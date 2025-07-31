@@ -277,11 +277,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (currentUser) {
       const loadData = async () => {
         try {
+          console.log('Loading data for user:', currentUser.uid);
           const userData = await loadUserState();
+          console.log('Loaded user data:', userData);
+          
           // Update state with user data
           Object.entries(userData).forEach(([key, value]) => {
+            const actionType = `SET_${key.toUpperCase()}` as any;
+            console.log('Dispatching action:', actionType, value);
             dispatch({ 
-              type: `SET_${key.toUpperCase()}` as any, 
+              type: actionType, 
               payload: value 
             });
           });
@@ -291,21 +296,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       
       loadData();
+    } else {
+      // Reset state when user logs out
+      dispatch({ type: 'SET_TASKS', payload: [] });
+      dispatch({ type: 'SET_ACHIEVEMENTS', payload: [] });
+      dispatch({ type: 'SET_STREAK', payload: { current: 0, longest: 0, lastCompletedDate: '' } });
+      dispatch({ type: 'SET_IMPORTANTDATES', payload: [] });
+      dispatch({ type: 'SET_QUESTIONS', payload: [] });
+      dispatch({ type: 'SET_MOODENTRIES', payload: [] });
+      dispatch({ type: 'SET_DAILYPROGRESS', payload: [] });
     }
   }, [currentUser]);
 
-  // Save state to Firebase whenever it changes
+  // Save state to Firebase whenever it changes (but not on initial load)
   useEffect(() => {
-    if (currentUser && state.tasks.length > 0) {
+    if (currentUser) {
       const saveData = async () => {
         try {
+          console.log('Saving data for user:', currentUser.uid, state);
           await saveUserState(state);
         } catch (error) {
           console.error('Error saving user data:', error);
         }
       };
       
-      saveData();
+      // Debounce the save to avoid too many Firebase calls
+      const timeoutId = setTimeout(saveData, 1000);
+      return () => clearTimeout(timeoutId);
     }
   }, [state, currentUser]);
 

@@ -23,16 +23,20 @@ export const saveUserState = async (state: AppState) => {
     const userId = getCurrentUserId();
     const userDoc = doc(db, 'users', userId);
     
+    console.log('Saving state to Firebase for user:', userId, state);
+    
     await setDoc(userDoc, {
-      tasks: state.tasks,
-      achievements: state.achievements,
-      streak: state.streak,
-      importantDates: state.importantDates,
-      questions: state.questions,
-      moodEntries: state.moodEntries,
-      dailyProgress: state.dailyProgress,
+      tasks: state.tasks || [],
+      achievements: state.achievements || [],
+      streak: state.streak || { current: 0, longest: 0, lastCompletedDate: '' },
+      importantDates: state.importantDates || [],
+      questions: state.questions || [],
+      moodEntries: state.moodEntries || [],
+      dailyProgress: state.dailyProgress || [],
       lastUpdated: new Date().toISOString()
     });
+    
+    console.log('Successfully saved state to Firebase');
   } catch (error) {
     console.error('Error saving user state:', error);
     throw error;
@@ -46,9 +50,14 @@ export const loadUserState = async (): Promise<AppState> => {
     const userDoc = doc(db, 'users', userId);
     const docSnap = await getDoc(userDoc);
     
+    console.log('Loading data for user:', userId);
+    console.log('Document exists:', docSnap.exists());
+    
     if (docSnap.exists()) {
       const data = docSnap.data();
-      return {
+      console.log('Raw Firebase data:', data);
+      
+      const appState = {
         tasks: data.tasks || [],
         achievements: data.achievements || [],
         streak: data.streak || { current: 0, longest: 0, lastCompletedDate: '' },
@@ -57,7 +66,11 @@ export const loadUserState = async (): Promise<AppState> => {
         moodEntries: data.moodEntries || [],
         dailyProgress: data.dailyProgress || []
       };
+      
+      console.log('Processed app state:', appState);
+      return appState;
     } else {
+      console.log('No existing data found, returning default state');
       // Return default state for new users
       return {
         tasks: [],
