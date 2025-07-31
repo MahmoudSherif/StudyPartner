@@ -5,6 +5,10 @@ import {
   saveUserState, 
   loadUserState
 } from '../utils/firebaseStorage';
+import { 
+  saveUserStateLocal, 
+  loadUserStateLocal
+} from '../utils/localStorage';
 import { useAuth } from './AuthContext';
 
 type Action =
@@ -300,24 +304,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load user data from Firebase when user logs in
   useEffect(() => {
     if (currentUser && currentUser.uid) {
-      const loadData = async () => {
-        try {
-          setIsLoading(true);
-          console.log('Loading data for user:', currentUser.uid);
-          const userData = await loadUserState();
-          console.log('Loaded user data:', userData);
-          
-          // Update state with user data - use a single dispatch to avoid race conditions
-          dispatch({ 
-            type: 'SET_ALL_DATA', 
-            payload: userData 
-          });
-        } catch (error) {
-          console.error('Error loading user data:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
+              const loadData = async () => {
+          try {
+            setIsLoading(true);
+            console.log('Loading data for user:', currentUser.uid);
+            
+            // Try Firebase first, fallback to local storage
+            let userData;
+            try {
+              userData = await loadUserState();
+              console.log('Loaded user data from Firebase:', userData);
+            } catch (firebaseError) {
+              console.log('Firebase failed, using local storage:', firebaseError);
+              userData = loadUserStateLocal(currentUser.uid);
+            }
+            
+            // Update state with user data - use a single dispatch to avoid race conditions
+            dispatch({ 
+              type: 'SET_ALL_DATA', 
+              payload: userData 
+            });
+          } catch (error) {
+            console.error('Error loading user data:', error);
+          } finally {
+            setIsLoading(false);
+          }
+        };
       
       // Add a small delay to ensure Firebase auth is ready
       setTimeout(loadData, 100);
@@ -362,8 +374,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const saveData = async () => {
         try {
           console.log('Saving data for user:', currentUser.uid, state);
-          await saveUserState(state);
-          console.log('Successfully saved data to Firebase');
+          
+          // Try Firebase first, fallback to local storage
+          try {
+            await saveUserState(state);
+            console.log('Successfully saved data to Firebase');
+          } catch (firebaseError) {
+            console.log('Firebase failed, saving to local storage:', firebaseError);
+            saveUserStateLocal(currentUser.uid, state);
+          }
         } catch (error) {
           console.error('Error saving user data:', error);
         }
