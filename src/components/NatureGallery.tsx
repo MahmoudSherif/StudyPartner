@@ -105,7 +105,7 @@ const NatureGallery: React.FC = () => {
       }
     };
 
-    scrollInterval = setInterval(scroll, 100);
+    scrollInterval = setInterval(scroll, 100) as any;
 
     return () => {
       clearInterval(scrollInterval);

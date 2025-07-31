@@ -1,6 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import Login from './components/Auth/Login';
+import Signup from './components/Auth/Signup';
 import {
   Calendar,
   CheckSquare,
@@ -8,7 +12,8 @@ import {
   Target,
   Heart,
   Trophy,
-  Image
+  Image,
+  LogOut
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import TaskManager from './components/TaskManager';
@@ -22,6 +27,7 @@ import QuotesBar from './components/QuotesBar';
 const Navigation: React.FC = () => {
   const location = useLocation();
   const { state } = useApp();
+  const { currentUser, logout } = useAuth();
 
   const navItems = [
     { 
@@ -123,6 +129,20 @@ const Navigation: React.FC = () => {
             ))}
           </div>
 
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-300">
+              {currentUser?.email}
+            </div>
+            <button
+              onClick={logout}
+              className="px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-xl text-red-300 hover:bg-red-500/30 hover:text-red-200 transition-all duration-300 flex items-center space-x-2"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          </div>
+
 
         </div>
 
@@ -133,22 +153,57 @@ const Navigation: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
+  const { currentUser } = useAuth();
+
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="min-h-screen">
-        <Navigation />
+        {currentUser && <Navigation />}
         <main className="container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/tasks" element={<TaskManager />} />
-            <Route path="/calendar" element={<CalendarView />} />
-            <Route path="/knowledge" element={<KnowledgeBase />} />
-            <Route path="/mood" element={<MoodTracker />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/nature" element={<NatureGallery />} />
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            
+            {/* Protected Routes */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/tasks" element={
+              <ProtectedRoute>
+                <TaskManager />
+              </ProtectedRoute>
+            } />
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <CalendarView />
+              </ProtectedRoute>
+            } />
+            <Route path="/knowledge" element={
+              <ProtectedRoute>
+                <KnowledgeBase />
+              </ProtectedRoute>
+            } />
+            <Route path="/mood" element={
+              <ProtectedRoute>
+                <MoodTracker />
+              </ProtectedRoute>
+            } />
+            <Route path="/achievements" element={
+              <ProtectedRoute>
+                <Achievements />
+              </ProtectedRoute>
+            } />
+            <Route path="/nature" element={
+              <ProtectedRoute>
+                <NatureGallery />
+              </ProtectedRoute>
+            } />
           </Routes>
         </main>
-        <QuotesBar />
+        {currentUser && <QuotesBar />}
       </div>
     </Router>
   );
@@ -156,9 +211,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </AuthProvider>
   );
 };
 
