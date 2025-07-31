@@ -287,6 +287,7 @@ interface AppContextType {
   updateStreak: (streak: { current: number; longest: number; lastCompletedDate: string }) => void;
   addDailyProgress: (progress: DailyProgress) => void;
   saveToFirebase: () => Promise<void>;
+  reloadFromFirebase: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -327,6 +328,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [currentUser]);
 
+  // Reload data when page becomes visible (handles refresh)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (currentUser && currentUser.uid && !document.hidden) {
+        console.log('Page became visible, reloading data...');
+        const loadData = async () => {
+          try {
+            setIsLoading(true);
+            const userData = await loadUserState();
+            console.log('Reloaded user data on visibility change:', userData);
+            dispatch({ 
+              type: 'SET_ALL_DATA', 
+              payload: userData 
+            });
+          } catch (error) {
+            console.error('Error reloading user data:', error);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+        loadData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [currentUser]);
+
   // Save state to Firebase whenever it changes (but not on initial load)
   useEffect(() => {
     if (currentUser && currentUser.uid) {
@@ -340,9 +369,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       };
       
-      // Debounce the save to avoid too many Firebase calls
-      const timeoutId = setTimeout(saveData, 500);
-      return () => clearTimeout(timeoutId);
+      // Save immediately for important changes
+      saveData();
     }
   }, [state, currentUser]);
 
@@ -402,6 +430,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const reloadFromFirebase = async () => {
+    if (currentUser && currentUser.uid) {
+      try {
+        setIsLoading(true);
+        console.log('Manual reload triggered for user:', currentUser.uid);
+        const userData = await loadUserState();
+        console.log('Manual reload completed:', userData);
+        dispatch({ 
+          type: 'SET_ALL_DATA', 
+          payload: userData 
+        });
+      } catch (error) {
+        console.error('Error in manual reload:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   const value: AppContextType = {
     state,
     isLoading,
@@ -417,7 +464,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addMoodEntry,
     updateStreak,
     addDailyProgress,
-    saveToFirebase
+    saveToFirebase,
+    reloadFromFirebase
   };
 
   return (
