@@ -28,7 +28,9 @@ type Action =
   | { type: 'SET_IMPORTANTDATES'; payload: ImportantDate[] }
   | { type: 'SET_QUESTIONS'; payload: Question[] }
   | { type: 'SET_MOODENTRIES'; payload: MoodEntry[] }
-  | { type: 'SET_DAILYPROGRESS'; payload: DailyProgress[] };
+  | { type: 'SET_DAILYPROGRESS'; payload: DailyProgress[] }
+  | { type: 'SET_ALL_DATA'; payload: AppState }
+  | { type: 'RESET_STATE' };
 
 const initialState: AppState = {
   tasks: [],
@@ -242,6 +244,25 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
       break;
 
+    case 'SET_ALL_DATA':
+      newState = {
+        ...state,
+        ...action.payload
+      };
+      break;
+
+    case 'RESET_STATE':
+      newState = {
+        tasks: [],
+        achievements: [],
+        streak: { current: 0, longest: 0, lastCompletedDate: '' },
+        importantDates: [],
+        questions: [],
+        moodEntries: [],
+        dailyProgress: []
+      };
+      break;
+
     default:
       return state;
   }
@@ -252,6 +273,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
 
 interface AppContextType {
   state: AppState;
+  isLoading: boolean;
   dispatch: React.Dispatch<Action>;
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   toggleTask: (id: string) => void;
@@ -264,64 +286,62 @@ interface AppContextType {
   addMoodEntry: (mood: Omit<MoodEntry, 'id'>) => void;
   updateStreak: (streak: { current: number; longest: number; lastCompletedDate: string }) => void;
   addDailyProgress: (progress: DailyProgress) => void;
+  saveToFirebase: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const [isLoading, setIsLoading] = React.useState(false);
   const { currentUser } = useAuth();
 
   // Load user data from Firebase when user logs in
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && currentUser.uid) {
       const loadData = async () => {
         try {
+          setIsLoading(true);
           console.log('Loading data for user:', currentUser.uid);
           const userData = await loadUserState();
           console.log('Loaded user data:', userData);
           
-          // Update state with user data
-          Object.entries(userData).forEach(([key, value]) => {
-            const actionType = `SET_${key.toUpperCase()}` as any;
-            console.log('Dispatching action:', actionType, value);
-            dispatch({ 
-              type: actionType, 
-              payload: value 
-            });
+          // Update state with user data - use a single dispatch to avoid race conditions
+          dispatch({ 
+            type: 'SET_ALL_DATA', 
+            payload: userData 
           });
         } catch (error) {
           console.error('Error loading user data:', error);
+        } finally {
+          setIsLoading(false);
         }
       };
       
-      loadData();
-    } else {
+      // Add a small delay to ensure Firebase auth is ready
+      setTimeout(loadData, 100);
+    } else if (!currentUser) {
       // Reset state when user logs out
-      dispatch({ type: 'SET_TASKS', payload: [] });
-      dispatch({ type: 'SET_ACHIEVEMENTS', payload: [] });
-      dispatch({ type: 'SET_STREAK', payload: { current: 0, longest: 0, lastCompletedDate: '' } });
-      dispatch({ type: 'SET_IMPORTANTDATES', payload: [] });
-      dispatch({ type: 'SET_QUESTIONS', payload: [] });
-      dispatch({ type: 'SET_MOODENTRIES', payload: [] });
-      dispatch({ type: 'SET_DAILYPROGRESS', payload: [] });
+      dispatch({ type: 'RESET_STATE' });
+      setIsLoading(false);
     }
   }, [currentUser]);
 
   // Save state to Firebase whenever it changes (but not on initial load)
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && currentUser.uid) {
       const saveData = async () => {
         try {
           console.log('Saving data for user:', currentUser.uid, state);
           await saveUserState(state);
+          console.log('Successfully saved data to Firebase');
         } catch (error) {
           console.error('Error saving user data:', error);
         }
       };
       
       // Debounce the save to avoid too many Firebase calls
-      const timeoutId = setTimeout(saveData, 1000);
+      const timeoutId = setTimeout(saveData, 500);
       return () => clearTimeout(timeoutId);
     }
   }, [state, currentUser]);
@@ -370,8 +390,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'ADD_DAILY_PROGRESS', payload: progress });
   };
 
+  const saveToFirebase = async () => {
+    if (currentUser && currentUser.uid) {
+      try {
+        console.log('Manual save triggered for user:', currentUser.uid);
+        await saveUserState(state);
+        console.log('Manual save completed successfully');
+      } catch (error) {
+        console.error('Error in manual save:', error);
+      }
+    }
+  };
+
   const value: AppContextType = {
     state,
+    isLoading,
     dispatch,
     addTask,
     toggleTask,
@@ -383,7 +416,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     deleteQuestion,
     addMoodEntry,
     updateStreak,
-    addDailyProgress
+    addDailyProgress,
+    saveToFirebase
   };
 
   return (
