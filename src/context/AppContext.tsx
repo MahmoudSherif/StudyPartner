@@ -1,6 +1,11 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { AppState, Task, Achievement, ImportantDate, Question, MoodEntry, DailyProgress } from '../types';
-import { loadState, saveState, generateId } from '../utils/storage';
+import { generateId } from '../utils/storage';
+import { 
+  saveUserState, 
+  loadUserState
+} from '../utils/firebaseStorage';
+import { useAuth } from './AuthContext';
 
 type Action =
   | { type: 'ADD_TASK'; payload: Omit<Task, 'id' | 'createdAt'> }
@@ -16,9 +21,24 @@ type Action =
   | { type: 'DELETE_QUESTION'; payload: string }
   | { type: 'ADD_MOOD_ENTRY'; payload: Omit<MoodEntry, 'id'> }
   | { type: 'UPDATE_STREAK'; payload: { current: number; longest: number; lastCompletedDate: string } }
-  | { type: 'ADD_DAILY_PROGRESS'; payload: DailyProgress };
+  | { type: 'ADD_DAILY_PROGRESS'; payload: DailyProgress }
+  | { type: 'SET_TASKS'; payload: Task[] }
+  | { type: 'SET_ACHIEVEMENTS'; payload: Achievement[] }
+  | { type: 'SET_STREAK'; payload: { current: number; longest: number; lastCompletedDate: string } }
+  | { type: 'SET_IMPORTANTDATES'; payload: ImportantDate[] }
+  | { type: 'SET_QUESTIONS'; payload: Question[] }
+  | { type: 'SET_MOODENTRIES'; payload: MoodEntry[] }
+  | { type: 'SET_DAILYPROGRESS'; payload: DailyProgress[] };
 
-const initialState: AppState = loadState();
+const initialState: AppState = {
+  tasks: [],
+  achievements: [],
+  streak: { current: 0, longest: 0, lastCompletedDate: '' },
+  importantDates: [],
+  questions: [],
+  moodEntries: [],
+  dailyProgress: []
+};
 
 const appReducer = (state: AppState, action: Action): AppState => {
   let newState: AppState;
@@ -173,11 +193,60 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
       break;
 
+    case 'SET_TASKS':
+      newState = {
+        ...state,
+        tasks: action.payload
+      };
+      break;
+
+    case 'SET_ACHIEVEMENTS':
+      newState = {
+        ...state,
+        achievements: action.payload
+      };
+      break;
+
+    case 'SET_STREAK':
+      newState = {
+        ...state,
+        streak: action.payload
+      };
+      break;
+
+    case 'SET_IMPORTANTDATES':
+      newState = {
+        ...state,
+        importantDates: action.payload
+      };
+      break;
+
+    case 'SET_QUESTIONS':
+      newState = {
+        ...state,
+        questions: action.payload
+      };
+      break;
+
+    case 'SET_MOODENTRIES':
+      newState = {
+        ...state,
+        moodEntries: action.payload
+      };
+      break;
+
+    case 'SET_DAILYPROGRESS':
+      newState = {
+        ...state,
+        dailyProgress: action.payload
+      };
+      break;
+
     default:
       return state;
   }
 
-  saveState(newState);
+  // Save to Firebase will be handled by useEffect
   return newState;
 };
 
@@ -201,6 +270,44 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
+  const { currentUser } = useAuth();
+
+  // Load user data from Firebase when user logs in
+  useEffect(() => {
+    if (currentUser) {
+      const loadData = async () => {
+        try {
+          const userData = await loadUserState();
+          // Update state with user data
+          Object.entries(userData).forEach(([key, value]) => {
+            dispatch({ 
+              type: `SET_${key.toUpperCase()}` as any, 
+              payload: value 
+            });
+          });
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      };
+      
+      loadData();
+    }
+  }, [currentUser]);
+
+  // Save state to Firebase whenever it changes
+  useEffect(() => {
+    if (currentUser && state.tasks.length > 0) {
+      const saveData = async () => {
+        try {
+          await saveUserState(state);
+        } catch (error) {
+          console.error('Error saving user data:', error);
+        }
+      };
+      
+      saveData();
+    }
+  }, [state, currentUser]);
 
   const addTask = (task: Omit<Task, 'id' | 'createdAt'>) => {
     dispatch({ type: 'ADD_TASK', payload: task });
