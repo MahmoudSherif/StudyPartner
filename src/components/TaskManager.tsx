@@ -144,101 +144,100 @@ const TaskManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* MEGA Celebration Pop-up Window - Clear & Happy */}
+      {/* Proper Pop-up Window - Rational Size & Positioning */}
       {showCompletionMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg p-4">
-          {/* Pop-up Window Container */}
-          <div className="bg-gradient-to-br from-purple-400 via-indigo-500 to-blue-600 text-white rounded-2xl shadow-2xl border-4 border-white/40 max-w-md w-full mx-4 animate-in zoom-in duration-700 transform relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          {/* Pop-up Window Container - Rational Sizing */}
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl animate-in zoom-in duration-500 transform relative overflow-hidden">
             
-            {/* Window Header */}
-            <div className="bg-white/20 backdrop-blur-sm rounded-t-xl px-6 py-4 border-b border-white/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            {/* Window Header Bar */}
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                 <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
                 <div className="w-3 h-3 bg-green-400 rounded-full"></div>
               </div>
-              <h3 className="font-bold text-lg">⚡ Task Complete!</h3>
+              <h3 className="font-bold text-white text-sm sm:text-base">⚡ Task Complete!</h3>
               <button 
                 onClick={() => setShowCompletionMessage(false)}
-                className="text-white/80 hover:text-white text-xl font-bold w-6 h-6 flex items-center justify-center rounded hover:bg-white/20 transition-colors"
+                className="text-white/80 hover:text-white text-lg font-bold w-6 h-6 flex items-center justify-center rounded hover:bg-white/20 transition-colors"
               >
                 ×
               </button>
             </div>
 
-            {/* Confetti Background */}
-            <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{animationDelay: '0s'}}></div>
-              <div className="absolute top-1/3 right-1/4 w-3 h-3 bg-pink-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
-              <div className="absolute bottom-1/3 left-1/3 w-2 h-2 bg-green-400 rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
-              <div className="absolute top-1/2 left-1/6 w-2 h-2 bg-red-400 rounded-full animate-ping" style={{animationDelay: '0.9s'}}></div>
-              <div className="absolute bottom-1/4 right-1/6 w-3 h-3 bg-orange-400 rounded-full animate-ping" style={{animationDelay: '1.2s'}}></div>
+            {/* Confetti Overlay */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-1 h-1 sm:w-2 sm:h-2 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0s'}}></div>
+              <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-pink-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
+              <div className="absolute bottom-1/3 left-1/3 w-1 h-1 sm:w-2 sm:h-2 bg-green-400 rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
+              <div className="absolute top-1/2 left-1/6 w-1 h-1 sm:w-2 sm:h-2 bg-red-400 rounded-full animate-ping" style={{animationDelay: '0.9s'}}></div>
+              <div className="absolute bottom-1/4 right-1/6 w-2 h-2 bg-orange-400 rounded-full animate-ping" style={{animationDelay: '1.2s'}}></div>
             </div>
             
             {/* Window Content */}
-            <div className="relative z-10 p-8 text-center space-y-6">
+            <div className="bg-white p-4 sm:p-6 text-center space-y-4">
               
-              {/* Main Emoji Animation */}
-              <div className="flex items-center justify-center gap-3">
-                <div className="text-6xl animate-bounce">⚡</div>
-                <div className="text-5xl animate-pulse">💎</div>
-                <div className="text-6xl animate-bounce" style={{animationDelay: '0.2s'}}>🚀</div>
+              {/* Main Celebration */}
+              <div className="flex items-center justify-center gap-2">
+                <div className="text-3xl sm:text-4xl animate-bounce">⚡</div>
+                <div className="text-2xl sm:text-3xl animate-pulse">💎</div>
+                <div className="text-3xl sm:text-4xl animate-bounce" style={{animationDelay: '0.2s'}}>🚀</div>
               </div>
               
-              <Sparkles className="w-10 h-10 animate-spin text-yellow-300 mx-auto" />
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-purple-500 mx-auto" />
               
-              {/* Message Content */}
-              <div className="space-y-4">
-                <h2 className="text-3xl font-black bg-gradient-to-r from-yellow-200 to-white bg-clip-text text-transparent animate-pulse">
+              {/* Message */}
+              <div className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                   EXCELLENT WORK! ⚡
                 </h2>
                 
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 border border-white/30">
-                  <p className="text-lg font-semibold mb-2">Task Successfully Completed!</p>
-                  <p className="text-sm opacity-90 italic font-medium bg-white/20 px-3 py-1 rounded-full inline-block">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                  <p className="text-sm sm:text-base font-medium text-purple-800 mb-1">Task Successfully Completed!</p>
+                  <p className="text-xs sm:text-sm text-purple-600 italic bg-purple-100 px-2 py-1 rounded inline-block">
                     Achievement Unlocked!
                   </p>
                 </div>
               </div>
               
-              {/* Rewards Section */}
-              <div className="space-y-3">
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-6 py-3 rounded-full shadow-lg flex items-center justify-center gap-3">
-                  <Trophy className="w-5 h-5 animate-bounce" />
-                  <span className="font-black text-base">+10 POINTS EARNED!</span>
-                  <Trophy className="w-5 h-5 animate-bounce" style={{animationDelay: '0.1s'}} />
+              {/* Rewards */}
+              <div className="space-y-2">
+                <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-4 py-2 rounded-full shadow-md flex items-center justify-center gap-2">
+                  <Trophy className="w-4 h-4 animate-bounce" />
+                  <span className="font-bold text-sm sm:text-base">+10 Points!</span>
+                  <Trophy className="w-4 h-4 animate-bounce" style={{animationDelay: '0.1s'}} />
                 </div>
                 
                 {state.streak.current > 0 && (
-                  <div className="bg-gradient-to-r from-red-400 to-pink-400 text-white px-4 py-2 rounded-full flex items-center justify-center gap-2">
-                    <span className="text-lg">🔥</span>
-                    <span className="font-bold">{state.streak.current} Day Streak!</span>
-                    <span className="text-lg">🔥</span>
+                  <div className="bg-gradient-to-r from-red-400 to-pink-400 text-white px-3 py-1 rounded-full flex items-center justify-center gap-2">
+                    <span className="text-sm">🔥</span>
+                    <span className="font-medium text-sm">{state.streak.current} Day Streak!</span>
+                    <span className="text-sm">🔥</span>
                   </div>
                 )}
               </div>
               
-              {/* Motivational Messages */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="space-y-2">
-                  <div className="text-lg font-bold">You're CRUSHING your goals! 🎯</div>
-                  <div className="text-sm opacity-90">Absolutely UNSTOPPABLE progress!</div>
-                  <div className="text-xs opacity-80">You're building INCREDIBLE habits! 💪</div>
+              {/* Motivational */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div className="space-y-1">
+                  <div className="text-sm sm:text-base font-semibold text-gray-700">You're crushing your goals! 🎯</div>
+                  <div className="text-xs sm:text-sm text-gray-600">Unstoppable progress!</div>
                 </div>
               </div>
               
               {/* Achievement Badge */}
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 rounded-full border-2 border-white/40 shadow-lg">
-                <div className="flex items-center justify-center gap-2 text-yellow-200">
-                  <span className="text-xl">🏆</span>
-                  <span className="font-bold">PRODUCTIVITY MASTER!</span>
-                  <span className="text-xl">🏆</span>
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-2 rounded-full">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-sm">🏆</span>
+                  <span className="font-medium text-xs sm:text-sm">PRODUCTIVITY MASTER!</span>
+                  <span className="text-sm">🏆</span>
                 </div>
               </div>
               
-              {/* Auto-close indicator */}
-              <div className="text-xs opacity-70">
-                This window will close automatically in a few seconds...
+              {/* Auto-close */}
+              <div className="text-xs text-gray-500">
+                Auto-closing in a few seconds...
               </div>
             </div>
           </div>
