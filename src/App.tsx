@@ -23,7 +23,7 @@ import MoodTracker from './components/MoodTracker';
 import Achievements from './components/Achievements';
 import NatureGallery from './components/NatureGallery';
 import QuotesBar from './components/QuotesBar';
-import DebugPanel from './components/DebugPanel';
+
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -205,7 +205,6 @@ const AppContent: React.FC = () => {
           </Routes>
         </main>
         {currentUser && <QuotesBar />}
-        {currentUser && <DebugPanel />}
       </div>
     </Router>
   );

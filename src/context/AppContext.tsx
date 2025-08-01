@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
 import { AppState, Task, Achievement, ImportantDate, Question, MoodEntry, DailyProgress } from '../types';
 import { generateId } from '../utils/storage';
 import { 
@@ -300,43 +300,78 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [state, dispatch] = useReducer(appReducer, initialState);
   const [isLoading, setIsLoading] = React.useState(false);
   const { currentUser } = useAuth();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialLoadRef = useRef(true);
+  const lastSavedStateRef = useRef<string>('');
+
+  // Debounced save function
+  const debouncedSave = useCallback(async (stateToSave: AppState) => {
+    if (!currentUser?.uid) return;
+    
+    const stateString = JSON.stringify(stateToSave);
+    // Don't save if state hasn't actually changed
+    if (stateString === lastSavedStateRef.current) return;
+    
+    try {
+      console.log('Saving data for user:', currentUser.uid);
+      
+      // Try Firebase first, fallback to local storage
+      try {
+        await saveUserState(stateToSave);
+        console.log('Successfully saved data to Firebase');
+        lastSavedStateRef.current = stateString;
+      } catch (firebaseError) {
+        console.log('Firebase failed, saving to local storage:', firebaseError);
+        saveUserStateLocal(currentUser.uid, stateToSave);
+        lastSavedStateRef.current = stateString;
+      }
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
+  }, [currentUser]);
 
   // Load user data from Firebase when user logs in
   useEffect(() => {
     if (currentUser && currentUser.uid) {
-              const loadData = async () => {
+      const loadData = async () => {
+        try {
+          setIsLoading(true);
+          console.log('Loading data for user:', currentUser.uid);
+          
+          // Try Firebase first, fallback to local storage
+          let userData;
           try {
-            setIsLoading(true);
-            console.log('Loading data for user:', currentUser.uid);
-            
-            // Try Firebase first, fallback to local storage
-            let userData;
-            try {
-              userData = await loadUserState();
-              console.log('Loaded user data from Firebase:', userData);
-            } catch (firebaseError) {
-              console.log('Firebase failed, using local storage:', firebaseError);
-              userData = loadUserStateLocal(currentUser.uid);
-            }
-            
-            // Update state with user data - use a single dispatch to avoid race conditions
-            dispatch({ 
-              type: 'SET_ALL_DATA', 
-              payload: userData 
-            });
-          } catch (error) {
-            console.error('Error loading user data:', error);
-          } finally {
-            setIsLoading(false);
+            userData = await loadUserState();
+            console.log('Loaded user data from Firebase:', userData);
+          } catch (firebaseError) {
+            console.log('Firebase failed, using local storage:', firebaseError);
+            userData = loadUserStateLocal(currentUser.uid);
           }
-        };
-      
+          
+          // Update state with user data - use a single dispatch to avoid race conditions
+          dispatch({ 
+            type: 'SET_ALL_DATA', 
+            payload: userData 
+          });
+          
+          // Store the loaded state as the last saved state
+          lastSavedStateRef.current = JSON.stringify(userData);
+          isInitialLoadRef.current = false;
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    
       // Add a small delay to ensure Firebase auth is ready
       setTimeout(loadData, 100);
     } else if (!currentUser) {
       // Reset state when user logs out
       dispatch({ type: 'RESET_STATE' });
       setIsLoading(false);
+      isInitialLoadRef.current = true;
+      lastSavedStateRef.current = '';
     }
   }, [currentUser]);
 
@@ -354,6 +389,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               type: 'SET_ALL_DATA', 
               payload: userData 
             });
+            lastSavedStateRef.current = JSON.stringify(userData);
           } catch (error) {
             console.error('Error reloading user data:', error);
           } finally {
@@ -368,30 +404,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [currentUser]);
 
-  // Save state to Firebase whenever it changes (but not on initial load)
+  // Debounced save state to Firebase whenever it changes (after initial load)
   useEffect(() => {
-    if (currentUser && currentUser.uid) {
-      const saveData = async () => {
-        try {
-          console.log('Saving data for user:', currentUser.uid, state);
-          
-          // Try Firebase first, fallback to local storage
-          try {
-            await saveUserState(state);
-            console.log('Successfully saved data to Firebase');
-          } catch (firebaseError) {
-            console.log('Firebase failed, saving to local storage:', firebaseError);
-            saveUserStateLocal(currentUser.uid, state);
-          }
-        } catch (error) {
-          console.error('Error saving user data:', error);
-        }
-      };
-      
-      // Save immediately for important changes
-      saveData();
+    // Skip saving during initial load or if no user
+    if (isInitialLoadRef.current || !currentUser?.uid) return;
+    
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  }, [state, currentUser]);
+    
+    // Set new timeout for debounced save (500ms delay)
+    saveTimeoutRef.current = setTimeout(() => {
+      debouncedSave(state);
+    }, 500);
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [state, currentUser, debouncedSave]);
+
+  // Immediate save for critical actions (like logout)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (currentUser?.uid && !isInitialLoadRef.current) {
+        // Force immediate save before page unload
+        const stateString = JSON.stringify(state);
+        if (stateString !== lastSavedStateRef.current) {
+          try {
+            saveUserStateLocal(currentUser.uid, state);
+          } catch (error) {
+            console.error('Error saving on page unload:', error);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [currentUser, state]);
 
   const addTask = (task: Omit<Task, 'id' | 'createdAt'>) => {
     dispatch({ type: 'ADD_TASK', payload: task });
