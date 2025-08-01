@@ -4,25 +4,64 @@ import { format } from 'date-fns';
 import { 
   Plus, 
   Trash2, 
- 
   Filter, 
   SortAsc, 
   Calendar,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Trophy,
+  Sparkles
 } from 'lucide-react';
 
 const TaskManager: React.FC = () => {
-  const { state, addTask, toggleTask, deleteTask } = useApp();
+  const { state, addTask, toggleTask, deleteTask, addAchievement } = useApp();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending'); // Default to pending
   const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'createdAt'>('priority');
+  const [completedTaskId, setCompletedTaskId] = useState<string | null>(null);
+  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
     priority: 'medium' as const,
     dueDate: ''
   });
+
+  const handleTaskToggle = (taskId: string) => {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (task && !task.completed) {
+      // Task is being completed
+      toggleTask(taskId);
+      setCompletedTaskId(taskId);
+      setShowCompletionMessage(true);
+      
+      // Add achievement for task completion
+      addAchievement({
+        title: '✅ Task Completed!',
+        description: `You completed: "${task.title}"`,
+        date: new Date().toISOString(),
+        type: 'task',
+        points: 10
+      });
+
+      // Auto-hide completed task after animation
+      setTimeout(() => {
+        setCompletedTaskId(null);
+        // Switch to pending view if we're on 'all' to hide completed task
+        if (filter === 'all') {
+          setFilter('pending');
+        }
+      }, 2000);
+
+      // Hide completion message
+      setTimeout(() => {
+        setShowCompletionMessage(false);
+      }, 3000);
+    } else {
+      // Task is being uncompleted
+      toggleTask(taskId);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,10 +114,29 @@ const TaskManager: React.FC = () => {
     return new Date(dueDate) < new Date() && dueDate !== '';
   };
 
+  const pendingTasksCount = state.tasks.filter(t => !t.completed).length;
+  const completedTasksCount = state.tasks.filter(t => t.completed).length;
+
   return (
     <div className="space-y-6">
+      {/* Completion Success Message */}
+      {showCompletionMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white p-4 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top duration-300">
+          <Sparkles className="w-5 h-5" />
+          <div>
+            <p className="font-semibold">Great job! 🎉</p>
+            <p className="text-sm">Task completed successfully!</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-800">Task Manager</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Task Manager</h1>
+          <p className="text-gray-600 mt-1">
+            {pendingTasksCount} pending • {completedTasksCount} completed
+          </p>
+        </div>
         <button 
           onClick={() => setShowAddForm(true)}
           className="btn"
@@ -176,9 +234,9 @@ const TaskManager: React.FC = () => {
                 onChange={(e) => setFilter(e.target.value as any)}
                 className="input"
               >
-                <option value="all">All Tasks</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
+                <option value="pending">📋 Active Tasks ({pendingTasksCount})</option>
+                <option value="completed">✅ Completed ({completedTasksCount})</option>
+                <option value="all">📊 All Tasks ({state.tasks.length})</option>
               </select>
             </div>
 
@@ -197,8 +255,7 @@ const TaskManager: React.FC = () => {
           </div>
 
           <div className="text-sm text-gray-600">
-            {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} 
-            {filter === 'all' && ` (${state.tasks.filter(t => !t.completed).length} pending, ${state.tasks.filter(t => t.completed).length} completed)`}
+            {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} shown
           </div>
         </div>
       </div>
@@ -207,23 +264,46 @@ const TaskManager: React.FC = () => {
       <div className="space-y-3">
         {filteredTasks.length === 0 ? (
           <div className="card text-center py-12">
-            <CheckCircle size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">
-              {filter === 'completed' ? 'No completed tasks yet' : 'No tasks found'}
-            </h3>
-            <p className="text-gray-500">
-              {filter === 'completed' 
-                ? 'Complete some tasks to see them here!' 
-                : 'Add your first task to get started!'
-              }
-            </p>
+            {filter === 'pending' ? (
+              <>
+                <CheckCircle size={48} className="mx-auto text-green-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                  🎉 All caught up!
+                </h3>
+                <p className="text-gray-500">
+                  You have no pending tasks. Great work!
+                </p>
+              </>
+            ) : filter === 'completed' ? (
+              <>
+                <Trophy size={48} className="mx-auto text-yellow-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                  No completed tasks yet
+                </h3>
+                <p className="text-gray-500">
+                  Complete some tasks to see your achievements here!
+                </p>
+              </>
+            ) : (
+              <>
+                <CheckCircle size={48} className="mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                  No tasks found
+                </h3>
+                <p className="text-gray-500">
+                  Add your first task to get started!
+                </p>
+              </>
+            )}
           </div>
         ) : (
           filteredTasks.map((task) => (
             <div
               key={task.id}
-              className={`card transition-all duration-200 ${
-                task.completed ? 'opacity-75' : ''
+              className={`card transition-all duration-500 ${
+                task.completed ? 'opacity-75 bg-green-50 border-green-200' : ''
+              } ${
+                completedTaskId === task.id ? 'animate-pulse bg-green-100 scale-[1.02] shadow-lg' : ''
               }`}
             >
               <div className="flex items-start justify-between">
@@ -231,14 +311,23 @@ const TaskManager: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => toggleTask(task.id)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 mt-1"
+                    onChange={() => handleTaskToggle(task.id)}
+                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-1 transition-all duration-200"
                   />
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-medium ${task.completed ? 'line-through text-gray-500' : ''}`}>
+                      <h3 className={`font-medium ${
+                        task.completed ? 'line-through text-gray-500' : ''
+                      } ${
+                        completedTaskId === task.id ? 'text-green-600' : ''
+                      }`}>
                         {task.title}
+                        {completedTaskId === task.id && (
+                          <span className="ml-2 text-green-500">
+                            <CheckCircle size={16} className="inline animate-bounce" />
+                          </span>
+                        )}
                       </h3>
                       {task.dueDate && isOverdue(task.dueDate) && !task.completed && (
                         <span className="text-red-500 text-sm flex items-center gap-1">
@@ -267,7 +356,7 @@ const TaskManager: React.FC = () => {
                       )}
                       
                       {task.completedAt && (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 text-green-600">
                           <CheckCircle size={12} />
                           Completed {format(new Date(task.completedAt), 'MMM do')}
                         </span>

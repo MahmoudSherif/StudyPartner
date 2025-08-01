@@ -132,7 +132,7 @@ const NatureGallery: React.FC = () => {
           </div>
 
           <div className="text-sm text-gray-600 text-center sm:text-left">
-            {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''} • DEBUG: {shuffledImages.length} total
+            {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
