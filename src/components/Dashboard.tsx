@@ -9,13 +9,14 @@ import {
   Heart, 
   Trophy,
   TrendingUp,
-
+  Sparkles
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { state, addTask } = useApp();
+  const { state, addTask, toggleTask, addAchievement } = useApp();
   const [newTask, setNewTask] = useState('');
-  const [showMotivationalMessage, setShowMotivationalMessage] = useState(false);
+  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
+  const [completedTaskTitle, setCompletedTaskTitle] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
   const todayTasks = state.tasks.filter(task => 
@@ -44,30 +45,36 @@ const Dashboard: React.FC = () => {
         dueDate: today
       });
       setNewTask('');
-      
-      // Show motivational message
-      setShowMotivationalMessage(true);
-      setTimeout(() => setShowMotivationalMessage(false), 3000);
+      // No animation for adding tasks - only for completing them
     }
   };
 
-  const handleCompleteTask = () => {
-    // This will be handled by the TaskManager component
-    // For now, we'll just show a motivational message
-    setShowMotivationalMessage(true);
-    setTimeout(() => setShowMotivationalMessage(false), 3000);
-  };
+  const handleCompleteTask = (taskId: string) => {
+    const task = state.tasks.find(t => t.id === taskId);
+    if (task && !task.completed) {
+      // Task is being completed
+      toggleTask(taskId);
+      setCompletedTaskTitle(task.title);
+      setShowCompletionMessage(true);
+      
+      // Add achievement for task completion
+      addAchievement({
+        title: '✅ Task Completed!',
+        description: `You completed: "${task.title}"`,
+        date: new Date().toISOString(),
+        type: 'task',
+        points: 10
+      });
 
-  const getMotivationalMessage = () => {
-    const messages = [
-      "🎉 Great job! You're making progress!",
-      "🌟 Keep up the amazing work!",
-      "💪 You're building great habits!",
-      "🚀 Every task completed brings you closer to your goals!",
-      "✨ You're doing fantastic!",
-      "🔥 Your dedication is inspiring!"
-    ];
-    return messages[Math.floor(Math.random() * messages.length)];
+      // Hide completion message after 3 seconds
+      setTimeout(() => {
+        setShowCompletionMessage(false);
+        setCompletedTaskTitle('');
+      }, 3000);
+    } else {
+      // Task is being uncompleted
+      toggleTask(taskId);
+    }
   };
 
   const getStreakMessage = () => {
@@ -86,6 +93,17 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Completion Success Message */}
+      {showCompletionMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white p-4 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top duration-300">
+          <Sparkles className="w-5 h-5" />
+          <div>
+            <p className="font-semibold">Great job! 🎉</p>
+            <p className="text-sm">"{completedTaskTitle}" completed!</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -95,14 +113,6 @@ const Dashboard: React.FC = () => {
           {format(new Date(), 'EEEE, MMMM do, yyyy')}
         </p>
       </div>
-
-      {/* Motivational Message */}
-      {showMotivationalMessage && (
-        <div className="achievement">
-          <div className="text-lg font-semibold mb-2">🎉 Achievement Unlocked!</div>
-          <div>{getMotivationalMessage()}</div>
-        </div>
-      )}
 
       {/* Quick Stats */}
       <div className="grid grid-3 gap-4">
@@ -164,20 +174,25 @@ const Dashboard: React.FC = () => {
             {todayTasks.slice(0, 5).map((task) => (
               <div
                 key={task.id}
-                className={`flex items-center justify-between p-3 rounded-lg border ${
-                  task.completed ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${
+                  task.completed ? 'bg-green-50 border-green-200 opacity-75' : 'bg-white border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     checked={task.completed}
-                    onChange={() => handleCompleteTask()}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    onChange={() => handleCompleteTask(task.id)}
+                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500 transition-all duration-200"
                   />
-                  <span className={task.completed ? 'line-through text-gray-500' : ''}>
+                  <span className={`transition-all duration-200 ${
+                    task.completed ? 'line-through text-gray-500' : 'text-gray-800'
+                  }`}>
                     {task.title}
                   </span>
+                  {task.completed && (
+                    <CheckCircle size={16} className="text-green-500" />
+                  )}
                 </div>
                 <span className={`badge badge-${task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info'}`}>
                   {task.priority}
