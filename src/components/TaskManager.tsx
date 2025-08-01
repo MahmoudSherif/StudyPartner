@@ -147,8 +147,8 @@ const TaskManager: React.FC = () => {
       {/* Proper Pop-up Window - Rational Size & Positioning */}
       {showCompletionMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          {/* Pop-up Window Container - Rational Sizing */}
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl animate-in zoom-in duration-500 transform relative overflow-hidden">
+          {/* Pop-up Window Container - MUCH LARGER for PC */}
+          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl animate-in zoom-in duration-500 transform relative overflow-hidden">
             
             {/* Window Header Bar */}
             <div className="bg-gradient-to-r from-purple-500 to-indigo-600 px-4 py-3 flex items-center justify-between">
@@ -176,67 +176,67 @@ const TaskManager: React.FC = () => {
             </div>
             
             {/* Window Content */}
-            <div className="bg-white p-4 sm:p-6 text-center space-y-4">
+            <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 text-center space-y-6 md:space-y-8 lg:space-y-10">
               
               {/* Main Celebration */}
-              <div className="flex items-center justify-center gap-2">
-                <div className="text-3xl sm:text-4xl animate-bounce">⚡</div>
-                <div className="text-2xl sm:text-3xl animate-pulse">💎</div>
-                <div className="text-3xl sm:text-4xl animate-bounce" style={{animationDelay: '0.2s'}}>🚀</div>
+              <div className="flex items-center justify-center gap-3 md:gap-4 lg:gap-6">
+                <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl animate-bounce">⚡</div>
+                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl animate-pulse">💎</div>
+                <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl animate-bounce" style={{animationDelay: '0.2s'}}>🚀</div>
               </div>
               
-              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-purple-500 mx-auto" />
+              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 animate-spin text-purple-500 mx-auto" />
               
               {/* Message */}
-              <div className="space-y-3">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+              <div className="space-y-4 md:space-y-6 lg:space-y-8">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-800">
                   EXCELLENT WORK! ⚡
                 </h2>
                 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                  <p className="text-sm sm:text-base font-medium text-purple-800 mb-1">Task Successfully Completed!</p>
-                  <p className="text-xs sm:text-sm text-purple-600 italic bg-purple-100 px-2 py-1 rounded inline-block">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 md:p-6 lg:p-8">
+                  <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-medium text-purple-800 mb-2 md:mb-4">Task Successfully Completed!</p>
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-purple-600 italic bg-purple-100 px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 rounded inline-block">
                     Achievement Unlocked!
                   </p>
                 </div>
               </div>
               
               {/* Rewards */}
-              <div className="space-y-2">
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-4 py-2 rounded-full shadow-md flex items-center justify-center gap-2">
-                  <Trophy className="w-4 h-4 animate-bounce" />
-                  <span className="font-bold text-sm sm:text-base">+10 Points!</span>
-                  <Trophy className="w-4 h-4 animate-bounce" style={{animationDelay: '0.1s'}} />
+              <div className="space-y-3 md:space-y-4 lg:space-y-6">
+                <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-3 md:px-8 md:py-4 lg:px-10 lg:py-6 rounded-full shadow-md flex items-center justify-center gap-3 md:gap-4">
+                  <Trophy className="w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 animate-bounce" />
+                  <span className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">+10 Points!</span>
+                  <Trophy className="w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 animate-bounce" style={{animationDelay: '0.1s'}} />
                 </div>
                 
                 {state.streak.current > 0 && (
-                  <div className="bg-gradient-to-r from-red-400 to-pink-400 text-white px-3 py-1 rounded-full flex items-center justify-center gap-2">
-                    <span className="text-sm">🔥</span>
-                    <span className="font-medium text-sm">{state.streak.current} Day Streak!</span>
-                    <span className="text-sm">🔥</span>
+                  <div className="bg-gradient-to-r from-red-400 to-pink-400 text-white px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4 rounded-full flex items-center justify-center gap-2 md:gap-3">
+                    <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🔥</span>
+                    <span className="font-medium text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">{state.streak.current} Day Streak!</span>
+                    <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🔥</span>
                   </div>
                 )}
               </div>
               
               {/* Motivational */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                <div className="space-y-1">
-                  <div className="text-sm sm:text-base font-semibold text-gray-700">You're crushing your goals! 🎯</div>
-                  <div className="text-xs sm:text-sm text-gray-600">Unstoppable progress!</div>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 md:p-6 lg:p-8">
+                <div className="space-y-2 md:space-y-3 lg:space-y-4">
+                  <div className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-700">You're crushing your goals! 🎯</div>
+                  <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600">Unstoppable progress!</div>
                 </div>
               </div>
               
               {/* Achievement Badge */}
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-2 rounded-full">
-                <div className="flex items-center justify-center gap-2">
-                  <span className="text-sm">🏆</span>
-                  <span className="font-medium text-xs sm:text-sm">PRODUCTIVITY MASTER!</span>
-                  <span className="text-sm">🏆</span>
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-3 md:px-6 md:py-4 lg:px-8 lg:py-6 rounded-full">
+                <div className="flex items-center justify-center gap-2 md:gap-3 lg:gap-4">
+                  <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🏆</span>
+                  <span className="font-medium text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">PRODUCTIVITY MASTER!</span>
+                  <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🏆</span>
                 </div>
               </div>
               
               {/* Auto-close */}
-              <div className="text-xs text-gray-500">
+              <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-500">
                 Auto-closing in a few seconds...
               </div>
             </div>
