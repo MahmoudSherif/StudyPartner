@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const TaskManager: React.FC = () => {
-  const { state, addTask, toggleTask, deleteTask, addAchievement } = useApp();
+  const { state, addTask, toggleTask, deleteTask, addAchievement, updateStreak } = useApp();
   const [showAddForm, setShowAddForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending'); // Default to pending
   const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'createdAt'>('priority');
@@ -35,6 +35,20 @@ const TaskManager: React.FC = () => {
       setCompletedTaskId(taskId);
       setShowCompletionMessage(true);
       
+      // Update streak
+      const today = new Date().toISOString().split('T')[0];
+      const newStreak = state.streak.lastCompletedDate === today 
+        ? state.streak 
+        : {
+            current: state.streak.lastCompletedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] 
+              ? state.streak.current + 1 
+              : 1,
+            longest: Math.max(state.streak.longest, state.streak.current + 1),
+            lastCompletedDate: today
+          };
+      
+      updateStreak(newStreak);
+      
       // Add achievement for task completion
       addAchievement({
         title: '✅ Task Completed!',
@@ -43,6 +57,17 @@ const TaskManager: React.FC = () => {
         type: 'task',
         points: 10
       });
+
+      // Add streak achievement if it's a milestone
+      if (newStreak.current > state.streak.current && [3, 7, 14, 30, 50, 100].includes(newStreak.current)) {
+        addAchievement({
+          title: `🔥 ${newStreak.current}-Day Streak!`,
+          description: `Amazing consistency! You've completed tasks for ${newStreak.current} days in a row!`,
+          date: new Date().toISOString(),
+          type: 'streak',
+          points: newStreak.current * 5
+        });
+      }
 
       // Auto-hide completed task after animation
       setTimeout(() => {
@@ -53,10 +78,10 @@ const TaskManager: React.FC = () => {
         }
       }, 2000);
 
-      // Hide completion message
+      // Hide completion message after 4 seconds (longer for bigger animation)
       setTimeout(() => {
         setShowCompletionMessage(false);
-      }, 3000);
+      }, 4000);
     } else {
       // Task is being uncompleted
       toggleTask(taskId);
@@ -119,13 +144,22 @@ const TaskManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Completion Success Message */}
+      {/* Completion Success Message - Enhanced and Bigger */}
       {showCompletionMessage && (
-        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white p-4 rounded-lg shadow-lg flex items-center gap-3 animate-in slide-in-from-top duration-300">
-          <Sparkles className="w-5 h-5" />
-          <div>
-            <p className="font-semibold">Great job! 🎉</p>
-            <p className="text-sm">Task completed successfully!</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <div className="bg-gradient-to-r from-green-400 via-green-500 to-emerald-500 text-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 animate-in zoom-in duration-500 transform scale-110 max-w-md mx-4">
+            <div className="text-6xl animate-bounce">🎉</div>
+            <Sparkles className="w-8 h-8 animate-pulse" />
+            <div className="text-center">
+              <p className="text-2xl font-bold mb-2">Excellent Work! ⚡</p>
+              <p className="text-lg mb-1">Task Completed!</p>
+              <p className="text-base opacity-90">Achievement unlocked!</p>
+            </div>
+            <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full">
+              <Trophy className="w-5 h-5 text-yellow-300" />
+              <span className="font-semibold">+10 Points Earned!</span>
+            </div>
+            <div className="text-sm opacity-80">You're crushing your goals! 🚀</div>
           </div>
         </div>
       )}
