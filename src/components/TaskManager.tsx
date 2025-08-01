@@ -17,7 +17,7 @@ const TaskManager: React.FC = () => {
   const { state, addTask, toggleTask, deleteTask, addAchievement, updateStreak } = useApp();
   const [showAddForm, setShowAddForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending'); // Default to pending
-  const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'createdAt'>('priority');
+  const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'createdAt'>('createdAt'); // Default to newest first
   const [completedTaskId, setCompletedTaskId] = useState<string | null>(null);
   const [showCompletionMessage, setShowCompletionMessage] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -78,10 +78,10 @@ const TaskManager: React.FC = () => {
         }
       }, 2000);
 
-      // Hide completion message after 4 seconds (longer for bigger animation)
+      // Hide completion message after 5 seconds (longer for MEGA animation)
       setTimeout(() => {
         setShowCompletionMessage(false);
-      }, 4000);
+      }, 5000);
     } else {
       // Task is being uncompleted
       toggleTask(taskId);
@@ -144,22 +144,70 @@ const TaskManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Completion Success Message - Enhanced and Bigger */}
+      {/* MEGA Completion Success Celebration - HUGE and Motivational */}
       {showCompletionMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          <div className="bg-gradient-to-r from-green-400 via-green-500 to-emerald-500 text-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 animate-in zoom-in duration-500 transform scale-110 max-w-md mx-4">
-            <div className="text-6xl animate-bounce">🎉</div>
-            <Sparkles className="w-8 h-8 animate-pulse" />
-            <div className="text-center">
-              <p className="text-2xl font-bold mb-2">Excellent Work! ⚡</p>
-              <p className="text-lg mb-1">Task Completed!</p>
-              <p className="text-base opacity-90">Achievement unlocked!</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+          <div className="bg-gradient-to-r from-purple-400 via-indigo-500 to-blue-500 text-white p-12 rounded-3xl shadow-2xl flex flex-col items-center gap-6 animate-in zoom-in duration-700 transform scale-125 max-w-lg mx-4 border-4 border-white/30">
+            {/* Confetti Effect */}
+            <div className="absolute inset-0 overflow-hidden rounded-3xl">
+              <div className="absolute top-0 left-1/4 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{animationDelay: '0s'}}></div>
+              <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-pink-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
+              <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-green-400 rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
+              <div className="absolute top-1/3 left-1/6 w-2 h-2 bg-red-400 rounded-full animate-ping" style={{animationDelay: '0.9s'}}></div>
+              <div className="absolute bottom-1/3 right-1/6 w-3 h-3 bg-orange-400 rounded-full animate-ping" style={{animationDelay: '1.2s'}}></div>
             </div>
-            <div className="flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full">
-              <Trophy className="w-5 h-5 text-yellow-300" />
-              <span className="font-semibold">+10 Points Earned!</span>
+            
+            {/* Main Content */}
+            <div className="relative z-10 flex flex-col items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="text-8xl animate-bounce">⚡</div>
+                <div className="text-6xl animate-pulse">💎</div>
+                <div className="text-8xl animate-bounce" style={{animationDelay: '0.2s'}}>🚀</div>
+              </div>
+              
+              <Sparkles className="w-12 h-12 animate-spin text-yellow-300" />
+              
+              <div className="text-center space-y-3">
+                <p className="text-4xl font-black mb-3 animate-pulse bg-gradient-to-r from-yellow-200 to-white bg-clip-text text-transparent">
+                  EXCELLENT WORK! ⚡
+                </p>
+                <p className="text-2xl font-bold mb-2">TASK COMPLETED!</p>
+                <p className="text-lg opacity-90 italic font-medium bg-white/20 px-4 py-2 rounded-full">
+                  Achievement Unlocked!
+                </p>
+              </div>
+              
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-6 py-3 rounded-full shadow-lg">
+                  <Trophy className="w-6 h-6 animate-bounce" />
+                  <span className="font-black text-lg">+10 POINTS EARNED!</span>
+                  <Trophy className="w-6 h-6 animate-bounce" style={{animationDelay: '0.1s'}} />
+                </div>
+                
+                {state.streak.current > 0 && (
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-red-400 to-pink-400 text-white px-4 py-2 rounded-full">
+                    <span className="text-xl">🔥</span>
+                    <span className="font-bold">{state.streak.current} Day Streak!</span>
+                    <span className="text-xl">🔥</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="text-center space-y-2">
+                <div className="text-xl font-bold">You're CRUSHING your goals! 🎯</div>
+                <div className="text-base opacity-90">Absolutely UNSTOPPABLE progress!</div>
+                <div className="text-sm opacity-80">You're building INCREDIBLE habits! 💪</div>
+              </div>
+              
+              {/* Achievement Badge */}
+              <div className="bg-white/20 px-6 py-3 rounded-full border-2 border-white/30">
+                <div className="flex items-center gap-2 text-yellow-200">
+                  <span className="text-2xl">🏆</span>
+                  <span className="font-bold text-lg">PRODUCTIVITY MASTER!</span>
+                  <span className="text-2xl">🏆</span>
+                </div>
+              </div>
             </div>
-            <div className="text-sm opacity-80">You're crushing your goals! 🚀</div>
           </div>
         </div>
       )}
@@ -281,9 +329,9 @@ const TaskManager: React.FC = () => {
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="input"
               >
+                <option value="createdAt">🆕 Newest First</option>
                 <option value="priority">Sort by Priority</option>
                 <option value="dueDate">Sort by Due Date</option>
-                <option value="createdAt">Sort by Created</option>
               </select>
             </div>
           </div>
