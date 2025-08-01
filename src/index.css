@@ -467,4 +467,20 @@ nav a.active {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* CELEBRATION ANIMATED GRADIENT */
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 400% 400%;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-size: 400% 400%;
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 6s ease infinite;
 } 

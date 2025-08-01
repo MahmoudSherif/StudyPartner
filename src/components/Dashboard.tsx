@@ -139,104 +139,113 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Proper Pop-up Window - Rational Size & Positioning */}
+      {/* FULL-SCREEN MEGA CELEBRATION - Covers Entire Screen */}
       {showCompletionMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          {/* Pop-up Window Container - MUCH LARGER for PC */}
-          <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl animate-in zoom-in duration-500 transform relative overflow-hidden">
-            
-            {/* Window Header Bar */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              </div>
-              <h3 className="font-bold text-white text-sm sm:text-base">🎉 Task Completed!</h3>
-              <button 
-                onClick={() => {
-                  setShowCompletionMessage(false);
-                  setCompletedTaskTitle('');
-                }}
-                className="text-white/80 hover:text-white text-lg font-bold w-6 h-6 flex items-center justify-center rounded hover:bg-white/20 transition-colors"
-              >
-                ×
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 bg-gradient-to-br from-pink-400 via-purple-500 via-blue-500 via-green-400 to-yellow-400 animate-gradient-x flex items-center justify-center p-8">
+          {/* Animated Background Effects */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full animate-bounce"></div>
+            <div className="absolute top-20 right-20 w-24 h-24 bg-yellow-300/30 rounded-full animate-pulse"></div>
+            <div className="absolute bottom-20 left-20 w-40 h-40 bg-pink-300/20 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute bottom-10 right-10 w-28 h-28 bg-green-300/30 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-blue-300/30 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
+            <div className="absolute top-1/3 right-1/3 w-36 h-36 bg-purple-300/20 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+          </div>
 
-            {/* Confetti Overlay */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-1/4 left-1/4 w-1 h-1 sm:w-2 sm:h-2 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0s'}}></div>
-              <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-pink-400 rounded-full animate-ping" style={{animationDelay: '0.3s'}}></div>
-              <div className="absolute bottom-1/3 left-1/3 w-1 h-1 sm:w-2 sm:h-2 bg-blue-400 rounded-full animate-ping" style={{animationDelay: '0.6s'}}></div>
-              <div className="absolute top-1/2 left-1/6 w-1 h-1 sm:w-2 sm:h-2 bg-purple-400 rounded-full animate-ping" style={{animationDelay: '0.9s'}}></div>
-              <div className="absolute bottom-1/4 right-1/6 w-2 h-2 bg-orange-400 rounded-full animate-ping" style={{animationDelay: '1.2s'}}></div>
+          {/* Confetti Particles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className={`absolute w-4 h-4 rounded-full animate-ping ${
+                  i % 4 === 0 ? 'bg-yellow-400' :
+                  i % 4 === 1 ? 'bg-pink-400' :
+                  i % 4 === 2 ? 'bg-blue-400' : 'bg-green-400'
+                }`}
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 2}s`
+                }}
+              ></div>
+            ))}
+          </div>
+          
+          {/* Main Content - MASSIVE */}
+          <div className="relative z-10 text-center space-y-8 max-w-4xl">
+            
+            {/* Close Button */}
+            <button 
+              onClick={() => {
+                setShowCompletionMessage(false);
+                setCompletedTaskTitle('');
+              }}
+              className="absolute top-0 right-0 text-white/80 hover:text-white text-6xl font-bold w-16 h-16 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+            >
+              ×
+            </button>
+            
+            {/* GIANT Emojis */}
+            <div className="flex items-center justify-center gap-8">
+              <div className="text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce">🎉</div>
+              <div className="text-8xl md:text-[10rem] lg:text-[12rem] animate-pulse">⭐</div>
+              <div className="text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce" style={{animationDelay: '0.2s'}}>🎊</div>
             </div>
             
-            {/* Window Content */}
-            <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 xl:p-16 text-center space-y-6 md:space-y-8 lg:space-y-10">
+            {/* MASSIVE Sparkles */}
+            <Sparkles className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 animate-spin text-yellow-300 mx-auto drop-shadow-2xl" />
+            
+            {/* HUGE Title */}
+            <div className="space-y-6">
+              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white drop-shadow-2xl animate-pulse">
+                FANTASTIC! 🌟
+              </h1>
               
-              {/* Main Celebration */}
-              <div className="flex items-center justify-center gap-3 md:gap-4 lg:gap-6">
-                <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl animate-bounce">🎉</div>
-                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl animate-pulse">⭐</div>
-                <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl animate-bounce" style={{animationDelay: '0.2s'}}>🎊</div>
+              <div className="bg-white/20 backdrop-blur-lg border-4 border-white/40 rounded-3xl p-8 shadow-2xl">
+                <p className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4">Task Successfully Completed!</p>
+                <p className="text-xl md:text-2xl lg:text-4xl text-yellow-200 italic bg-white/20 px-6 py-4 rounded-2xl inline-block font-medium">
+                  "{completedTaskTitle}"
+                </p>
+              </div>
+            </div>
+            
+            {/* HUGE Rewards */}
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-yellow-300 to-orange-400 text-black px-12 py-6 rounded-full shadow-2xl flex items-center justify-center gap-6 border-4 border-white/50">
+                <Trophy className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" />
+                <span className="font-black text-3xl md:text-4xl lg:text-6xl">+10 POINTS!</span>
+                <Trophy className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" style={{animationDelay: '0.1s'}} />
               </div>
               
-              <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 xl:w-20 xl:h-20 animate-spin text-green-500 mx-auto" />
-              
-              {/* Message */}
-              <div className="space-y-4 md:space-y-6 lg:space-y-8">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-800">
-                  FANTASTIC! 🌟
-                </h2>
-                
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 md:p-6 lg:p-8">
-                  <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-medium text-green-800 mb-2 md:mb-4">Task Successfully Completed!</p>
-                  <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-green-600 italic bg-green-100 px-3 py-2 md:px-4 md:py-3 lg:px-6 lg:py-4 rounded inline-block">
-                    "{completedTaskTitle}"
-                  </p>
+              {state.streak.current > 0 && (
+                <div className="bg-gradient-to-r from-red-400 to-pink-500 text-white px-8 py-4 rounded-full flex items-center justify-center gap-4 border-4 border-white/50 shadow-2xl">
+                  <span className="text-4xl md:text-5xl lg:text-6xl">🔥</span>
+                  <span className="font-bold text-2xl md:text-3xl lg:text-5xl">{state.streak.current} Day Streak!</span>
+                  <span className="text-4xl md:text-5xl lg:text-6xl">🔥</span>
                 </div>
+              )}
+            </div>
+            
+            {/* HUGE Motivational */}
+            <div className="bg-white/20 backdrop-blur-lg border-4 border-white/40 rounded-3xl p-8 shadow-2xl">
+              <div className="space-y-4">
+                <div className="text-3xl md:text-4xl lg:text-6xl font-black text-white drop-shadow-lg">Keep up the AMAZING work! 💪</div>
+                <div className="text-xl md:text-2xl lg:text-4xl text-yellow-200 font-bold">You're absolutely CRUSHING your goals!</div>
               </div>
-              
-              {/* Rewards */}
-              <div className="space-y-3 md:space-y-4 lg:space-y-6">
-                <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-3 md:px-8 md:py-4 lg:px-10 lg:py-6 rounded-full shadow-md flex items-center justify-center gap-3 md:gap-4">
-                  <Trophy className="w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 animate-bounce" />
-                  <span className="font-bold text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">+10 Points!</span>
-                  <Trophy className="w-5 h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 animate-bounce" style={{animationDelay: '0.1s'}} />
-                </div>
-                
-                {state.streak.current > 0 && (
-                  <div className="bg-gradient-to-r from-red-400 to-pink-400 text-white px-4 py-2 md:px-6 md:py-3 lg:px-8 lg:py-4 rounded-full flex items-center justify-center gap-2 md:gap-3">
-                    <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🔥</span>
-                    <span className="font-medium text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">{state.streak.current} Day Streak!</span>
-                    <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🔥</span>
-                  </div>
-                )}
+            </div>
+            
+            {/* MASSIVE Achievement Badge */}
+            <div className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-8 py-6 rounded-full border-4 border-white/50 shadow-2xl">
+              <div className="flex items-center justify-center gap-4">
+                <span className="text-4xl md:text-5xl lg:text-6xl">🏆</span>
+                <span className="font-black text-2xl md:text-3xl lg:text-5xl">ACHIEVEMENT UNLOCKED!</span>
+                <span className="text-4xl md:text-5xl lg:text-6xl">🏆</span>
               </div>
-              
-              {/* Motivational */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 md:p-6 lg:p-8">
-                <div className="space-y-2 md:space-y-3 lg:space-y-4">
-                  <div className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-700">Keep up the amazing work! 💪</div>
-                  <div className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600">You're crushing your goals!</div>
-                </div>
-              </div>
-              
-              {/* Achievement Badge */}
-              <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-3 md:px-6 md:py-4 lg:px-8 lg:py-6 rounded-full">
-                <div className="flex items-center justify-center gap-2 md:gap-3 lg:gap-4">
-                  <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🏆</span>
-                  <span className="font-medium text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">ACHIEVEMENT UNLOCKED!</span>
-                  <span className="text-base md:text-lg lg:text-xl xl:text-2xl">🏆</span>
-                </div>
-              </div>
-              
-              {/* Auto-close */}
-              <div className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-500">
-                Auto-closing in a few seconds...
-              </div>
+            </div>
+            
+            {/* Auto-close indicator */}
+            <div className="text-xl md:text-2xl lg:text-3xl text-white/90 font-medium">
+              Celebrating your success! Auto-closing in a few seconds... ✨
             </div>
           </div>
         </div>
