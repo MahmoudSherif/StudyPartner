@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { format } from 'date-fns';
+import { calculateNewStreak } from '../utils/streakCalculator';
 import { 
   Plus, 
   Trash2, 
@@ -35,18 +36,8 @@ const TaskManager: React.FC = () => {
       setCompletedTaskId(taskId);
       setShowCompletionMessage(true);
       
-      // Update streak
-      const today = new Date().toISOString().split('T')[0];
-      const newStreak = state.streak.lastCompletedDate === today 
-        ? state.streak 
-        : {
-            current: state.streak.lastCompletedDate === new Date(Date.now() - 86400000).toISOString().split('T')[0] 
-              ? state.streak.current + 1 
-              : 1,
-            longest: Math.max(state.streak.longest, state.streak.current + 1),
-            lastCompletedDate: today
-          };
-      
+      // Update streak using the new calculator
+      const { newStreak, isNewRecord, isMilestone, milestoneMessage } = calculateNewStreak(state.streak);
       updateStreak(newStreak);
       
       // Add achievement for task completion
@@ -59,13 +50,24 @@ const TaskManager: React.FC = () => {
       });
 
       // Add streak achievement if it's a milestone
-      if (newStreak.current > state.streak.current && [3, 7, 14, 30, 50, 100].includes(newStreak.current)) {
+      if (isMilestone && milestoneMessage) {
         addAchievement({
-          title: `🔥 ${newStreak.current}-Day Streak!`,
+          title: milestoneMessage,
           description: `Amazing consistency! You've completed tasks for ${newStreak.current} days in a row!`,
           date: new Date().toISOString(),
           type: 'streak',
           points: newStreak.current * 5
+        });
+      }
+
+      // Add special achievement for new personal record
+      if (isNewRecord && newStreak.current > 1) {
+        addAchievement({
+          title: '🏆 New Personal Record!',
+          description: `You've achieved your longest streak ever: ${newStreak.current} days!`,
+          date: new Date().toISOString(),
+          type: 'milestone',
+          points: newStreak.current * 10
         });
       }
 

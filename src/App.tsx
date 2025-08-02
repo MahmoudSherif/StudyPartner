@@ -5,6 +5,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
+import ErrorBoundary from './components/ErrorBoundary';
+import OfflineIndicator from './components/OfflineIndicator';
 import {
   Calendar,
   CheckSquare,
@@ -98,126 +100,111 @@ const Navigation: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  return (
-    <nav className="nav-glass shadow-2xl border-b border-purple-500/20">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-24">
-          {/* Logo Section */}
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white text-2xl">🚀</span>
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-              Student Hub
-            </h1>
-          </div>
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
-          {/* Desktop Navigation - Single Buttons */}
-          <div className="hidden lg:flex flex-row space-x-6 overflow-x-auto">
-            {navItems.map((item) => (
-              <div key={item.path} className="flex-shrink-0 border-2 border-purple-400 rounded-2xl p-1 bg-gradient-to-r from-purple-500/20 to-blue-500/20">
+  if (!currentUser) return null;
+
+  return (
+    <nav className="bg-black/20 backdrop-blur-md border-b border-white/10 px-6 py-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center space-x-8">
+          <Link to="/" className="text-2xl font-bold text-white">
+            MotiveMate
+          </Link>
+          <div className="hidden md:flex space-x-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              return (
                 <Link
+                  key={item.path}
                   to={item.path}
-                  className={`block px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-black/50 backdrop-blur-md shadow-lg whitespace-nowrap ${
-                    isActive(item.path)
-                      ? `${item.bgColor} ${item.textColor} shadow-xl`
-                      : 'text-gray-300 hover:text-white hover:bg-white/20'
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                    active
+                      ? 'bg-white/20 text-white shadow-lg'
+                      : 'text-gray-300 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  {item.label}
+                  <Icon size={18} />
+                  <span className="font-medium">{item.label}</span>
+                  {item.count > 0 && (
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      active ? 'bg-white/30' : 'bg-white/20'
+                    }`}>
+                      {item.count}
+                    </span>
+                  )}
                 </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
-
-          {/* User Menu */}
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-300">
-              {currentUser?.email}
-            </div>
-            <button
-              onClick={logout}
-              className="px-4 py-2 bg-red-500/20 border border-red-500/50 rounded-xl text-red-300 hover:bg-red-500/30 hover:text-red-200 transition-all duration-300 flex items-center space-x-2"
-            >
-              <LogOut size={16} />
-              <span>Logout</span>
-            </button>
-          </div>
-
-
         </div>
-
-
+        
+        <div className="flex items-center space-x-4">
+          <span className="text-gray-300 hidden sm:block">
+            {currentUser.email}
+          </span>
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10"
+          >
+            <LogOut size={18} />
+            <span className="hidden sm:block">Logout</span>
+          </button>
+        </div>
       </div>
     </nav>
   );
 };
 
 const AppContent: React.FC = () => {
-  const { currentUser } = useAuth();
-
-  return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <div className="min-h-screen">
-        {currentUser && <Navigation />}
-        <main className="container mx-auto px-4 py-8">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            
-            {/* Protected Routes */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/tasks" element={
-              <ProtectedRoute>
-                <TaskManager />
-              </ProtectedRoute>
-            } />
-            <Route path="/calendar" element={
-              <ProtectedRoute>
-                <CalendarView />
-              </ProtectedRoute>
-            } />
-            <Route path="/knowledge" element={
-              <ProtectedRoute>
-                <KnowledgeBase />
-              </ProtectedRoute>
-            } />
-            <Route path="/mood" element={
-              <ProtectedRoute>
-                <MoodTracker />
-              </ProtectedRoute>
-            } />
-            <Route path="/achievements" element={
-              <ProtectedRoute>
-                <Achievements />
-              </ProtectedRoute>
-            } />
-            <Route path="/nature" element={
-              <ProtectedRoute>
-                <NatureGallery />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </main>
-        {currentUser && <QuotesBar />}
-      </div>
-    </Router>
-  );
-};
-
-const App: React.FC = () => {
   return (
     <AuthProvider>
       <AppProvider>
-        <AppContent />
+        <div className="min-h-screen">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <Navigation />
+                <main className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/tasks" element={<TaskManager />} />
+                    <Route path="/calendar" element={<CalendarView />} />
+                    <Route path="/knowledge" element={<KnowledgeBase />} />
+                    <Route path="/mood" element={<MoodTracker />} />
+                    <Route path="/achievements" element={<Achievements />} />
+                    <Route path="/nature" element={<NatureGallery />} />
+                  </Routes>
+                </main>
+                <QuotesBar />
+              </ProtectedRoute>
+            } />
+          </Routes>
+          {/* Security Components */}
+          <OfflineIndicator />
+        </div>
       </AppProvider>
     </AuthProvider>
   );
 };
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppContent />
+      </Router>
+    </ErrorBoundary>
+  );
+}
 
 export default App; 
