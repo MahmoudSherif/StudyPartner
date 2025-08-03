@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek } from 'date-fns';
 import { 
   Plus, 
   Trash2, 
@@ -11,8 +11,7 @@ import {
   BookOpen,
   Clock,
   Flag,
-  Star,
-
+  X
 } from 'lucide-react';
 
 const CalendarView: React.FC = () => {
@@ -43,17 +42,9 @@ const CalendarView: React.FC = () => {
   };
 
   const getCalendarDays = () => {
-    const start = startOfMonth(currentDate);
-    const end = endOfMonth(currentDate);
-    const monthDays = eachDayOfInterval({ start, end });
-    
-    // Get the day of week for the first day (0 = Sunday, 1 = Monday, etc.)
-    const firstDayOfWeek = start.getDay();
-    
-    // Add empty cells for days before the first day of the month
-    const emptyCells = Array(firstDayOfWeek).fill(null);
-    
-    return [...emptyCells, ...monthDays];
+    const start = startOfWeek(startOfMonth(currentDate));
+    const end = endOfWeek(endOfMonth(currentDate));
+    return eachDayOfInterval({ start, end });
   };
 
   const getEventsForDate = (date: Date) => {
@@ -63,223 +54,210 @@ const CalendarView: React.FC = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'exam': return <AlertTriangle size={12} />;
-      case 'assignment': return <BookOpen size={12} />;
-      case 'deadline': return <Clock size={12} />;
-      default: return <Flag size={12} />;
+      case 'exam': return <AlertTriangle size={14} />;
+      case 'assignment': return <BookOpen size={14} />;
+      case 'deadline': return <Clock size={14} />;
+      default: return <Flag size={14} />;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'exam': return 'bg-gradient-to-r from-red-500 to-red-600 text-white';
-      case 'assignment': return 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-white';
-      case 'deadline': return 'bg-gradient-to-r from-orange-500 to-orange-600 text-white';
-      default: return 'bg-gradient-to-r from-blue-500 to-blue-600 text-white';
+      case 'exam': return 'bg-red-500 text-white';
+      case 'assignment': return 'bg-yellow-500 text-white';
+      case 'deadline': return 'bg-orange-500 text-white';
+      default: return 'bg-blue-500 text-white';
     }
-  };
-
-
-
-  const isUpcoming = (date: string) => {
-    return new Date(date) > new Date();
-  };
-
-  const isOverdue = (date: string) => {
-    return new Date(date) < new Date();
   };
 
   const isCurrentMonth = (date: Date) => {
     return date.getMonth() === currentDate.getMonth();
   };
 
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <CalendarIcon className="text-white" size={24} />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-              Calendar
-            </h1>
-            <p className="text-gray-400 text-sm">Manage your important dates and deadlines</p>
-          </div>
+      <div className="flex items-center justify-between card">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Calendar</h1>
+          <p className="text-gray-300 mt-1">Manage your schedule and important dates</p>
         </div>
         <button 
           onClick={() => setShowAddForm(true)}
-          className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-2xl font-semibold hover:from-purple-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2"
+          className="btn flex items-center gap-2"
         >
           <Plus size={18} />
-          <span>Add Important Date</span>
+          Add Event
         </button>
       </div>
 
-      {/* Add Date Form */}
+      {/* Add Event Modal */}
       {showAddForm && (
-        <div className="card bg-black/20 backdrop-blur-md border border-purple-500/30">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Add Important Date</h2>
-            <button 
-              onClick={() => setShowAddForm(false)}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <Plus size={24} className="rotate-45" />
-            </button>
-          </div>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Title *
-              </label>
-              <input
-                type="text"
-                value={newDate.title}
-                onChange={(e) => setNewDate({ ...newDate, title: e.target.value })}
-                placeholder="e.g., Final Exam, Assignment Due"
-                className="w-full px-4 py-3 bg-black/30 border border-purple-500/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors"
-                required
-              />
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="card max-w-md w-full">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-white">Add New Event</h2>
+              <button 
+                onClick={() => setShowAddForm(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Date *
+                  Event Title
                 </label>
                 <input
-                  type="date"
-                  value={newDate.date}
-                  onChange={(e) => setNewDate({ ...newDate, date: e.target.value })}
-                  className="w-full px-4 py-3 bg-black/30 border border-purple-500/50 rounded-xl text-white focus:outline-none focus:border-purple-400 transition-colors"
+                  type="text"
+                  value={newDate.title}
+                  onChange={(e) => setNewDate({ ...newDate, title: e.target.value })}
+                  placeholder="Enter event title"
+                  className="input"
                   required
                 />
               </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newDate.date}
+                    onChange={(e) => setNewDate({ ...newDate, date: e.target.value })}
+                    className="input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Type
+                  </label>
+                  <select
+                    value={newDate.type}
+                    onChange={(e) => setNewDate({ ...newDate, type: e.target.value as any })}
+                    className="input"
+                  >
+                    <option value="event">Event</option>
+                    <option value="exam">Exam</option>
+                    <option value="assignment">Assignment</option>
+                    <option value="deadline">Deadline</option>
+                  </select>
+                </div>
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Type
+                  Description (Optional)
                 </label>
-                <select
-                  value={newDate.type}
-                  onChange={(e) => setNewDate({ ...newDate, type: e.target.value as any })}
-                  className="w-full px-4 py-3 bg-black/30 border border-purple-500/50 rounded-xl text-white focus:outline-none focus:border-purple-400 transition-colors"
-                >
-                  <option value="event">Event</option>
-                  <option value="exam">Exam</option>
-                  <option value="assignment">Assignment</option>
-                  <option value="deadline">Deadline</option>
-                </select>
+                <textarea
+                  value={newDate.description}
+                  onChange={(e) => setNewDate({ ...newDate, description: e.target.value })}
+                  placeholder="Add event description"
+                  className="textarea"
+                  rows={3}
+                />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Description
-              </label>
-              <textarea
-                value={newDate.description}
-                onChange={(e) => setNewDate({ ...newDate, description: e.target.value })}
-                placeholder="Add details about this important date..."
-                className="w-full px-4 py-3 bg-black/30 border border-purple-500/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-400 transition-colors resize-none"
-                rows={3}
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="reminder"
-                checked={newDate.reminder}
-                onChange={(e) => setNewDate({ ...newDate, reminder: e.target.checked })}
-                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 bg-black/30 border-purple-500/50"
-              />
-              <label htmlFor="reminder" className="text-sm text-gray-300">
-                Set reminder for this date
-              </label>
-            </div>
-
-            <div className="flex gap-3">
-              <button type="submit" className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-xl">
-                Add Date
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setShowAddForm(false)}
-                className="px-6 py-3 bg-black/30 border border-purple-500/50 text-gray-300 rounded-xl font-semibold hover:bg-black/50 hover:text-white transition-all duration-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+              <div className="flex gap-3 pt-4">
+                <button type="submit" className="btn flex-1">
+                  Add Event
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowAddForm(false)}
+                  className="btn-secondary flex-1"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Calendar Navigation */}
-      <div className="card bg-black/20 backdrop-blur-md border border-purple-500/30">
-        <div className="flex items-center justify-between mb-8">
+      {/* Calendar */}
+      <div className="card">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <h2 className="text-2xl font-bold text-white">
+              {format(currentDate, 'MMMM yyyy')}
+            </h2>
+            <button
+              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
           <button
-            onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            className="p-3 bg-black/30 border border-purple-500/50 rounded-xl hover:bg-black/50 hover:border-purple-400 transition-all duration-300 text-white"
+            onClick={() => setCurrentDate(new Date())}
+            className="text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
           >
-            <ChevronLeft size={20} />
-          </button>
-          
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-            {format(currentDate, 'MMMM yyyy')}
-          </h2>
-          
-          <button
-            onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            className="p-3 bg-black/30 border border-purple-500/50 rounded-xl hover:bg-black/50 hover:border-purple-400 transition-all duration-300 text-white"
-          >
-            <ChevronRight size={20} />
+            Today
           </button>
         </div>
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-2">
-          {/* Calendar days */}
-          {getCalendarDays().map((date, index) => {
-            // If date is null, it's an empty cell
-            if (!date) {
-              return (
-                <div
-                  key={index}
-                  className="min-h-[120px] p-3 rounded-xl border border-purple-500/10 bg-black/5"
-                >
-                  {/* Empty cell */}
-                </div>
-              );
-            }
+        {/* Day Headers */}
+        <div className="grid grid-cols-7 mb-4">
+          {dayNames.map((day) => (
+            <div key={day} className="p-3 text-center border-b border-white/10">
+              <span className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                {day}
+              </span>
+            </div>
+          ))}
+        </div>
 
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-px bg-white/5 rounded-lg overflow-hidden">
+          {getCalendarDays().map((date, index) => {
             const events = getEventsForDate(date);
             const isCurrentMonthDay = isCurrentMonth(date);
+            const isTodayDate = isToday(date);
             
             return (
               <div
                 key={index}
-                className={`min-h-[120px] p-3 rounded-xl border transition-all duration-300 hover:shadow-lg ${
-                  isCurrentMonthDay 
-                    ? 'bg-black/20 border-purple-500/30 hover:border-purple-400/50' 
-                    : 'bg-black/10 border-purple-500/10'
-                } ${isToday(date) ? 'ring-2 ring-purple-400 bg-purple-500/20' : ''}`}
+                className={`min-h-[100px] p-3 bg-white/5 hover:bg-white/10 transition-colors ${
+                  !isCurrentMonthDay ? 'opacity-40' : ''
+                }`}
               >
-                <div className={`text-sm font-semibold mb-2 ${
-                  isCurrentMonthDay ? 'text-white' : 'text-gray-500'
-                } ${isToday(date) ? 'text-purple-200' : ''}`}>
-                  {format(date, 'd')}
+                <div className={`text-sm font-medium mb-2 ${
+                  !isCurrentMonthDay 
+                    ? 'text-gray-500' 
+                    : isTodayDate 
+                    ? 'text-blue-400 font-bold' 
+                    : 'text-white'
+                }`}>
+                  {isTodayDate ? (
+                    <div className="flex items-center justify-center">
+                      <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                        {format(date, 'd')}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="text-center">{format(date, 'd')}</div>
+                  )}
                 </div>
                 
                 <div className="space-y-1">
-                  {events.slice(0, 2).map((event) => (
+                  {events.slice(0, 3).map((event) => (
                     <div
                       key={event.id}
-                      className={`text-xs p-2 rounded-lg ${getTypeColor(event.type)} shadow-sm ${
-                        isOverdue(event.date) ? 'opacity-75' : ''
-                      }`}
+                      className={`text-xs px-2 py-1 rounded ${getTypeColor(event.type)} cursor-pointer`}
                       title={event.title}
                     >
                       <div className="flex items-center gap-1">
@@ -288,9 +266,9 @@ const CalendarView: React.FC = () => {
                       </div>
                     </div>
                   ))}
-                  {events.length > 2 && (
-                    <div className="text-xs text-purple-300 bg-purple-500/20 px-2 py-1 rounded-lg text-center">
-                      +{events.length - 2} more
+                  {events.length > 3 && (
+                    <div className="text-xs text-gray-400 px-2 py-1 text-center">
+                      +{events.length - 3} more
                     </div>
                   )}
                 </div>
@@ -300,81 +278,62 @@ const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* Upcoming Events */}
-      <div className="card bg-black/20 backdrop-blur-md border border-purple-500/30">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-            <Star size={16} className="text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-white">Upcoming Important Dates</h2>
+      {/* Events List */}
+      <div className="card">
+        <div className="mb-6 pb-4 border-b border-white/10">
+          <h2 className="text-xl font-bold text-white">Upcoming Events</h2>
         </div>
-        
-        {state.importantDates.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-black/30 border border-purple-500/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <CalendarIcon size={32} className="text-gray-400" />
+        <div>
+          {state.importantDates.length === 0 ? (
+            <div className="text-center py-12">
+              <CalendarIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-white mb-2">No events scheduled</h3>
+              <p className="text-gray-400 mb-6">
+                Get started by creating your first event.
+              </p>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="btn flex items-center gap-2 mx-auto"
+              >
+                <Plus size={18} />
+                Add Event
+              </button>
             </div>
-            <p className="text-gray-400 text-lg">No important dates added yet</p>
-            <p className="text-gray-500 text-sm mt-2">Add some dates to get started!</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {state.importantDates
-              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-              .map((event) => (
-                <div
-                  key={event.id}
-                  className={`p-4 rounded-xl border transition-all duration-300 hover:shadow-lg ${
-                    isOverdue(event.date) 
-                      ? 'bg-red-500/10 border-red-500/30 hover:border-red-400/50' 
-                      : isUpcoming(event.date)
-                      ? 'bg-blue-500/10 border-blue-500/30 hover:border-blue-400/50'
-                      : 'bg-green-500/10 border-green-500/30 hover:border-green-400/50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-xl ${getTypeColor(event.type)} shadow-lg`}>
+          ) : (
+            <div className="space-y-4">
+              {state.importantDates
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center justify-between p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`p-3 rounded-lg ${getTypeColor(event.type)}`}>
                         {getTypeIcon(event.type)}
                       </div>
-                      
                       <div>
-                        <div className="font-semibold text-white text-lg">{event.title}</div>
-                        <div className="text-gray-300 text-sm">
-                          {format(new Date(event.date), 'EEEE, MMMM do, yyyy')}
-                        </div>
+                        <h3 className="font-semibold text-white">{event.title}</h3>
+                        <p className="text-sm text-gray-300">
+                          {format(new Date(event.date), 'EEEE, MMM d, yyyy')}
+                        </p>
                         {event.description && (
-                          <div className="text-gray-400 text-sm mt-1 max-w-md">
-                            {event.description}
-                          </div>
+                          <p className="text-sm text-gray-400 mt-1">{event.description}</p>
                         )}
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        isOverdue(event.date) 
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/30' 
-                          : isUpcoming(event.date)
-                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                          : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                      }`}>
-                        {isOverdue(event.date) ? 'Overdue' : isUpcoming(event.date) ? 'Upcoming' : 'Today'}
-                      </span>
-                      
-                      <button
-                        onClick={() => deleteImportantDate(event.id)}
-                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300"
-                        title="Delete event"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => deleteImportantDate(event.id)}
+                      className="text-gray-400 hover:text-red-400 p-2 transition-colors"
+                      title="Delete event"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
-                </div>
-              ))}
-          </div>
-        )}
+                ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

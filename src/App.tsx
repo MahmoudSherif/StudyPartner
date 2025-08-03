@@ -128,7 +128,7 @@ const Navigation: React.FC = () => {
   return (
     <>
       {/* Simple Header with Logo and Logout - NO NAVIGATION TABS */}
-      <nav className="bg-black/20 backdrop-blur-md border-b border-white/10 px-6 py-4">
+      <nav className="bg-yellow-500 backdrop-blur-md border-b border-white/10 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-white">
             MotiveMate
@@ -191,7 +191,7 @@ const AppContent: React.FC = () => {
                 <QuotesBar />
                 <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
                   <Navigation />
-                  <main className="container mx-auto px-4 py-8 pb-32">
+                  <main className="container mx-auto px-4 py-8 pb-400 bg-green-500">
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/tasks" element={<TaskManager />} />
