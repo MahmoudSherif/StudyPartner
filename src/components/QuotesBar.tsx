@@ -122,12 +122,12 @@ const QuotesBar: React.FC = () => {
   const currentQuote = quotes[currentQuoteIndex];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* Outer frame with gradient border */}
-      <div className="bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 p-[2px] mx-4 mb-4 rounded-xl shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-[9999]">
+      {/* Solid frame with purple border */}
+      <div className="bg-purple-600 p-1">
         {/* Inner content with dark background */}
-        <div className="bg-gray-900/95 backdrop-blur-md rounded-xl p-4">
-          <div className="relative">
+        <div className="bg-gray-900 p-4">
+          <div className="relative max-w-6xl mx-auto">
             {/* Quote content */}
             <div 
               className={`text-center transition-all duration-500 ease-in-out ${
@@ -135,24 +135,22 @@ const QuotesBar: React.FC = () => {
               }`}
             >
               {currentQuote.arabic && (
-                <p className="text-lg md:text-xl font-arabic mb-2 text-blue-300" dir="rtl">
+                <p className="text-lg md:text-xl font-arabic mb-2 text-cyan-300" dir="rtl">
                   "{currentQuote.arabic}"
                 </p>
               )}
               {currentQuote.english && (
-                <p className="text-sm md:text-base italic text-gray-300">
+                <p className="text-sm md:text-base italic text-gray-200">
                   "{currentQuote.english}"
                 </p>
               )}
             </div>
             
-            {/* Quote indicator dots */}
-            <div className="absolute -left-2 top-1/2 transform -translate-y-1/2">
-              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full opacity-60"></div>
-            </div>
-            <div className="absolute -right-2 top-1/2 transform -translate-y-1/2">
-              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full opacity-60"></div>
-            </div>
+            {/* Decorative corner elements */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-purple-400"></div>
+            <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-purple-400"></div>
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-purple-400"></div>
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-purple-400"></div>
           </div>
         </div>
       </div>
