@@ -150,43 +150,28 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* Vertical Navigation Sidebar */}
-      <div className="fixed left-0 top-0 bottom-0 z-[999999] w-16 sm:w-20 bg-gray-900/95 backdrop-blur-xl border-r border-white/30 shadow-2xl">
-        <div className="flex flex-col items-center py-4 h-full">
-          {/* Logo/Brand at top */}
-          <Link to="/" className="mb-6 p-2 text-white">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-lg sm:text-xl font-bold">M</span>
-            </div>
-          </Link>
-          
-          {/* Navigation Items */}
-          <div className="flex flex-col items-center space-y-2 flex-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg transition-all duration-200 group ${
-                    active ? 'bg-white/20 text-white' : 'text-white hover:text-white hover:bg-white/10'
-                  }`}
-                  style={{
-                    color: active ? 'white' : 'white'
-                  }}
-                  title={item.label}
-                >
-                  <Icon size={20} className="sm:w-6 sm:h-6" />
-                  
-                  {/* Tooltip on hover */}
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                    {item.label}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+      {/* Horizontal Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-[999999] bg-gray-900/95 backdrop-blur-xl border-t border-white/30 shadow-2xl">
+        <div className="flex justify-around items-center py-2 px-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`relative flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-all duration-200 flex-1 ${
+                  active ? 'bg-white/20 text-white' : 'text-white hover:text-white hover:bg-white/10'
+                }`}
+                style={{
+                  color: active ? 'white' : 'white'
+                }}
+              >
+                <Icon size={20} />
+                <span className="text-xs mt-1 font-medium" style={{ color: 'white' }}>{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </>
@@ -207,7 +192,7 @@ const AppContent: React.FC = () => {
                 <QuotesBar />
                 <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
                   <Navigation />
-                  <main className="ml-16 sm:ml-20 container mx-auto px-4 py-8 pb-24">
+                  <main className="container mx-auto px-4 py-8 pb-32">
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/tasks" element={<TaskManager />} />

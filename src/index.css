@@ -41,30 +41,22 @@ body {
   isolation: isolate !important;
 }
 
-/* Add padding to account for vertical sidebar navigation */
+/* Add padding to account for horizontal bottom navigation */
 .quotes-bar-fixed {
-  bottom: 0 !important;
-  left: 64px !important; /* Account for sidebar width on mobile */
+  bottom: 64px !important; /* Height of bottom navigation */
+  left: 0 !important;
   right: 0 !important;
   z-index: 999998 !important;
 }
 
 /* Add padding to main content */
 #root {
-  padding-bottom: 120px !important; /* Space for quotes bar */
-}
-
-/* Desktop sidebar adjustments */
-@media (min-width: 640px) {
-  .quotes-bar-fixed {
-    left: 80px !important; /* Account for larger sidebar width on desktop */
-  }
+  padding-bottom: 180px !important; /* Space for bottom nav + quotes bar */
 }
 
 /* Mobile specific adjustments for quotes */
 @media (max-width: 640px) {
   .quotes-bar-fixed {
-    left: 64px !important; /* Account for mobile sidebar */
     padding: 8px !important; /* Reduce padding on mobile */
   }
   
@@ -78,7 +70,7 @@ body {
   }
   
   #root {
-    padding-bottom: 100px !important; /* Less space needed on mobile */
+    padding-bottom: 160px !important; /* Less space needed on mobile */
   }
 }
 
