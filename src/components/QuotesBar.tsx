@@ -123,11 +123,11 @@ const QuotesBar: React.FC = () => {
 
   return (
     <div className="quotes-bar-fixed">
-      {/* Solid frame with purple border */}
-      <div className="bg-purple-600 p-1">
-        {/* Inner content with dark background */}
-        <div className="bg-gray-900 p-4">
-          <div className="relative max-w-6xl mx-auto">
+      {/* Gradient background bar that overlaps everything */}
+      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-2xl">
+        {/* Inner content with semi-transparent dark overlay */}
+        <div className="bg-black/40 backdrop-blur-sm py-4 px-6">
+          <div className="relative max-w-7xl mx-auto">
             {/* Quote content */}
             <div 
               className={`text-center transition-all duration-500 ease-in-out ${
@@ -135,22 +135,20 @@ const QuotesBar: React.FC = () => {
               }`}
             >
               {currentQuote.arabic && (
-                <p className="text-lg md:text-xl font-arabic mb-2 text-cyan-300" dir="rtl">
+                <p className="text-lg md:text-xl font-arabic mb-2 text-white drop-shadow-lg" dir="rtl">
                   "{currentQuote.arabic}"
                 </p>
               )}
               {currentQuote.english && (
-                <p className="text-sm md:text-base italic text-gray-200">
+                <p className="text-sm md:text-base italic text-gray-100 drop-shadow-md">
                   "{currentQuote.english}"
                 </p>
               )}
             </div>
             
-            {/* Decorative corner elements */}
-            <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-purple-400"></div>
-            <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-purple-400"></div>
-            <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-purple-400"></div>
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-purple-400"></div>
+            {/* Animated decoration lines */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
           </div>
         </div>
       </div>
