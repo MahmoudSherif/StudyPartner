@@ -123,12 +123,12 @@ const QuotesBar: React.FC = () => {
 
   return (
     <div className="quotes-bar-fixed">
-      {/* Outer container with padding for the box effect */}
-      <div className="p-4 bg-gray-900/80">
-        {/* Main solid background box */}
-        <div className="bg-gradient-to-r from-blue-800 to-purple-800 rounded-lg shadow-2xl border-2 border-white/20">
-          {/* Inner content area */}
-          <div className="bg-black/50 rounded-lg m-1 py-4 px-6">
+      {/* Outer container with solid dark green background for clear separation */}
+      <div className="p-4 bg-green-900 border-t-2 border-white/30">
+        {/* Main solid background box with green gradient */}
+        <div className="bg-gradient-to-r from-emerald-800 to-green-800 rounded-lg shadow-2xl border-2 border-white/40">
+          {/* Inner content area with solid dark green background */}
+          <div className="bg-green-800 rounded-lg m-1 py-4 px-6">
             <div className="relative max-w-7xl mx-auto">
               {/* Quote content */}
               <div 
@@ -137,12 +137,12 @@ const QuotesBar: React.FC = () => {
                 }`}
               >
                 {currentQuote.arabic && (
-                  <p className="text-lg md:text-xl font-arabic mb-2 text-white drop-shadow-lg" dir="rtl">
+                  <p className="text-4xl md:text-5xl font-serif quotes-arabic-text mb-4 text-white drop-shadow-lg tracking-wide" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif"}}>
                     "{currentQuote.arabic}"
                   </p>
                 )}
                 {currentQuote.english && (
-                  <p className="text-sm md:text-base italic text-gray-100 drop-shadow-md">
+                  <p className="text-xl md:text-2xl font-sans quotes-english-text text-gray-100 drop-shadow-md tracking-wider" style={{fontFamily: "'Poppins', 'Inter', sans-serif"}}>
                     "{currentQuote.english}"
                   </p>
                 )}
