@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -46,6 +46,7 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const { state } = useApp();
   const { currentUser, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { 
@@ -126,55 +127,86 @@ const Navigation: React.FC = () => {
   if (!currentUser) return null;
 
   return (
-    <nav className="bg-black/20 backdrop-blur-md border-b border-white/10 px-6 py-4">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-8">
-          <Link to="/" className="text-2xl font-bold text-white">
-            MotiveMate
-          </Link>
-          <div className="hidden md:flex space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                    active
-                      ? 'bg-white/20 text-white shadow-lg'
-                      : 'text-gray-300 hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <Icon size={18} />
-                  <span className="font-medium">{item.label}</span>
-                  {item.count > 0 && (
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      active ? 'bg-white/30' : 'bg-white/20'
-                    }`}>
-                      {item.count}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+    <>
+      <nav className="bg-black/20 backdrop-blur-md border-b border-white/10 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="text-2xl font-bold text-white">
+              MotiveMate
+            </Link>
+            <div className="hidden md:flex space-x-1">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                      active
+                        ? 'bg-white/20 text-white shadow-lg'
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span className="font-medium">{item.label}</span>
+                    {item.count > 0 && (
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        active ? 'bg-white/30' : 'bg-white/20'
+                      }`}>
+                        {item.count}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <span className="text-gray-300 hidden sm:block">
+              {currentUser.email}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10"
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:block">Logout</span>
+            </button>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-4">
-          <span className="text-gray-300 hidden sm:block">
-            {currentUser.email}
-          </span>
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10"
-          >
-            <LogOut size={18} />
-            <span className="hidden sm:block">Logout</span>
-          </button>
+      </nav>
+
+      {/* Mobile Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/40 backdrop-blur-xl border-t border-white/20">
+        <div className="flex justify-around items-center">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center py-3 px-2 w-full ${
+                  active ? 'bg-white/20 text-white' : 'text-gray-400'
+                }`}
+              >
+                <Icon size={20} />
+                <span className="text-xs mt-1">{item.label}</span>
+                {item.count > 0 && (
+                  <span className={`absolute top-2 right-1/4 px-1.5 text-xs rounded-full ${
+                    active ? 'bg-white/30' : 'bg-white/20'
+                  }`}>
+                    {item.count}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
       </div>
-    </nav>
+    </>
   );
 };
 
@@ -192,7 +224,7 @@ const AppContent: React.FC = () => {
                 <QuotesBar />
                 <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
                   <Navigation />
-                  <main className="container mx-auto px-4 py-8" style={{ paddingBottom: '100px' }}>
+                  <main className="container mx-auto px-4 py-8 pb-32 md:pb-24">
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/tasks" element={<TaskManager />} />

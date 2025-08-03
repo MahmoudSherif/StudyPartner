@@ -124,11 +124,11 @@ const QuotesBar: React.FC = () => {
   return (
     <div className="quotes-bar-fixed">
       {/* Outer container with solid dark green background for clear separation */}
-      <div className="p-4 bg-green-900 border-t-2 border-white/30">
+      <div className="p-2 md:p-4 bg-green-900 border-t-2 border-white/30">
         {/* Main solid background box with green gradient */}
         <div className="bg-gradient-to-r from-emerald-800 to-green-800 rounded-lg shadow-2xl border-2 border-white/40">
           {/* Inner content area with solid dark green background */}
-          <div className="bg-green-800 rounded-lg m-1 py-4 px-6">
+          <div className="bg-green-800 rounded-lg m-1 py-2 md:py-4 px-3 md:px-6">
             <div className="relative max-w-7xl mx-auto">
               {/* Quote content */}
               <div 
@@ -137,22 +137,22 @@ const QuotesBar: React.FC = () => {
                 }`}
               >
                 {currentQuote.arabic && (
-                  <p className="text-4xl md:text-5xl font-serif quotes-arabic-text mb-4 text-white drop-shadow-lg tracking-wide" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif"}}>
+                  <p className="text-2xl md:text-4xl lg:text-5xl font-serif quotes-arabic-text mb-2 md:mb-4 text-white drop-shadow-lg tracking-wide" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif"}}>
                     "{currentQuote.arabic}"
                   </p>
                 )}
                 {currentQuote.english && (
-                  <p className="text-xl md:text-2xl font-sans quotes-english-text text-gray-100 drop-shadow-md tracking-wider" style={{fontFamily: "'Poppins', 'Inter', sans-serif"}}>
+                  <p className="text-sm md:text-xl lg:text-2xl font-sans quotes-english-text text-gray-100 drop-shadow-md tracking-wider" style={{fontFamily: "'Poppins', 'Inter', sans-serif"}}>
                     "{currentQuote.english}"
                   </p>
                 )}
               </div>
               
-              {/* Corner decorations */}
-              <div className="absolute -top-2 -left-2 w-6 h-6 border-l-2 border-t-2 border-blue-400 rounded-tl-lg"></div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 border-r-2 border-t-2 border-purple-400 rounded-tr-lg"></div>
-              <div className="absolute -bottom-2 -left-2 w-6 h-6 border-l-2 border-b-2 border-blue-400 rounded-bl-lg"></div>
-              <div className="absolute -bottom-2 -right-2 w-6 h-6 border-r-2 border-b-2 border-purple-400 rounded-br-lg"></div>
+              {/* Corner decorations - hidden on mobile */}
+              <div className="hidden md:block absolute -top-2 -left-2 w-6 h-6 border-l-2 border-t-2 border-blue-400 rounded-tl-lg"></div>
+              <div className="hidden md:block absolute -top-2 -right-2 w-6 h-6 border-r-2 border-t-2 border-purple-400 rounded-tr-lg"></div>
+              <div className="hidden md:block absolute -bottom-2 -left-2 w-6 h-6 border-l-2 border-b-2 border-blue-400 rounded-bl-lg"></div>
+              <div className="hidden md:block absolute -bottom-2 -right-2 w-6 h-6 border-r-2 border-b-2 border-purple-400 rounded-br-lg"></div>
             </div>
           </div>
         </div>
