@@ -44,12 +44,13 @@ body {
 /* Add padding to account for mobile navigation */
 @media (max-width: 768px) {
   .quotes-bar-fixed {
-    bottom: 56px !important; /* Height of mobile navigation */
+    bottom: 64px !important; /* Height of mobile navigation */
+    z-index: 999998 !important; /* Lower than mobile nav but still high */
   }
   
   /* Add padding to main content to prevent it from being hidden under the mobile nav and quotes bar */
   #root {
-    padding-bottom: 160px !important; /* Space for mobile nav + quotes bar */
+    padding-bottom: 180px !important; /* Space for mobile nav + quotes bar */
   }
 }
 

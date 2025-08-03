@@ -179,8 +179,8 @@ const Navigation: React.FC = () => {
       </nav>
 
       {/* Mobile Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/40 backdrop-blur-xl border-t border-white/20">
-        <div className="flex justify-around items-center">
+      <div className="fixed bottom-0 left-0 right-0 z-[999999] md:hidden bg-gray-900/95 backdrop-blur-xl border-t border-white/30 shadow-2xl">
+        <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -188,15 +188,15 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center py-3 px-2 w-full ${
-                  active ? 'bg-white/20 text-white' : 'text-gray-400'
+                className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 ${
+                  active ? 'bg-white/20 text-white' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <Icon size={20} />
-                <span className="text-xs mt-1">{item.label}</span>
+                <Icon size={22} />
+                <span className="text-xs mt-1 font-medium">{item.label}</span>
                 {item.count > 0 && (
-                  <span className={`absolute top-2 right-1/4 px-1.5 text-xs rounded-full ${
-                    active ? 'bg-white/30' : 'bg-white/20'
+                  <span className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-xs rounded-full min-w-[18px] text-center ${
+                    active ? 'bg-purple-500 text-white' : 'bg-red-500 text-white'
                   }`}>
                     {item.count}
                   </span>
