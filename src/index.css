@@ -41,25 +41,44 @@ body {
   isolation: isolate !important;
 }
 
-/* Add padding to account for bottom navigation on all screens */
+/* Add padding to account for vertical sidebar navigation */
 .quotes-bar-fixed {
-  bottom: 64px !important; /* Height of bottom navigation */
-  z-index: 999998 !important; /* Lower than bottom nav but still high */
+  bottom: 0 !important;
+  left: 64px !important; /* Account for sidebar width on mobile */
+  right: 0 !important;
+  z-index: 999998 !important;
 }
 
-/* Add padding to main content to prevent it from being hidden under the bottom nav and quotes bar */
+/* Add padding to main content */
 #root {
-  padding-bottom: 180px !important; /* Space for bottom nav + quotes bar */
+  padding-bottom: 120px !important; /* Space for quotes bar */
 }
 
-/* Mobile specific adjustments */
+/* Desktop sidebar adjustments */
+@media (min-width: 640px) {
+  .quotes-bar-fixed {
+    left: 80px !important; /* Account for larger sidebar width on desktop */
+  }
+}
+
+/* Mobile specific adjustments for quotes */
 @media (max-width: 640px) {
   .quotes-bar-fixed {
-    bottom: 48px !important; /* Smaller height for icon-only mobile nav */
+    left: 64px !important; /* Account for mobile sidebar */
+    padding: 8px !important; /* Reduce padding on mobile */
+  }
+  
+  /* Make quotes text smaller and more mobile-friendly */
+  .quotes-bar-fixed .text-2xl {
+    font-size: 1.25rem !important; /* Smaller Arabic text */
+  }
+  
+  .quotes-bar-fixed .text-sm {
+    font-size: 0.75rem !important; /* Smaller English text */
   }
   
   #root {
-    padding-bottom: 140px !important; /* Less space needed for smaller mobile nav */
+    padding-bottom: 100px !important; /* Less space needed on mobile */
   }
 }
 
