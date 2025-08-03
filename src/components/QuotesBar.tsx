@@ -123,34 +123,37 @@ const QuotesBar: React.FC = () => {
 
   return (
     <div className="quotes-bar-fixed">
-      {/* Solid colored background bar that overlaps everything */}
-      <div className="bg-purple-700 shadow-2xl border-t-4 border-purple-500">
-        {/* Inner content with solid background */}
-        <div className="bg-purple-800 py-4 px-6">
-          <div className="relative max-w-7xl mx-auto">
-            {/* Quote content */}
-            <div 
-              className={`text-center transition-all duration-500 ease-in-out ${
-                isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2'
-              }`}
-            >
-              {currentQuote.arabic && (
-                <p className="text-lg md:text-xl font-arabic mb-2 text-white drop-shadow-lg" dir="rtl">
-                  "{currentQuote.arabic}"
-                </p>
-              )}
-              {currentQuote.english && (
-                <p className="text-sm md:text-base italic text-gray-100 drop-shadow-md">
-                  "{currentQuote.english}"
-                </p>
-              )}
+      {/* Outer container with padding for the box effect */}
+      <div className="p-4 bg-gray-900/80">
+        {/* Main solid background box */}
+        <div className="bg-gradient-to-r from-blue-800 to-purple-800 rounded-lg shadow-2xl border-2 border-white/20">
+          {/* Inner content area */}
+          <div className="bg-black/50 rounded-lg m-1 py-4 px-6">
+            <div className="relative max-w-7xl mx-auto">
+              {/* Quote content */}
+              <div 
+                className={`text-center transition-all duration-500 ease-in-out ${
+                  isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2'
+                }`}
+              >
+                {currentQuote.arabic && (
+                  <p className="text-lg md:text-xl font-arabic mb-2 text-white drop-shadow-lg" dir="rtl">
+                    "{currentQuote.arabic}"
+                  </p>
+                )}
+                {currentQuote.english && (
+                  <p className="text-sm md:text-base italic text-gray-100 drop-shadow-md">
+                    "{currentQuote.english}"
+                  </p>
+                )}
+              </div>
+              
+              {/* Corner decorations */}
+              <div className="absolute -top-2 -left-2 w-6 h-6 border-l-2 border-t-2 border-blue-400 rounded-tl-lg"></div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 border-r-2 border-t-2 border-purple-400 rounded-tr-lg"></div>
+              <div className="absolute -bottom-2 -left-2 w-6 h-6 border-l-2 border-b-2 border-blue-400 rounded-bl-lg"></div>
+              <div className="absolute -bottom-2 -right-2 w-6 h-6 border-r-2 border-b-2 border-purple-400 rounded-br-lg"></div>
             </div>
-            
-            {/* Solid decoration lines */}
-            <div className="absolute top-0 left-0 w-16 h-[2px] bg-purple-400"></div>
-            <div className="absolute top-0 right-0 w-16 h-[2px] bg-purple-400"></div>
-            <div className="absolute bottom-0 left-0 w-16 h-[2px] bg-purple-400"></div>
-            <div className="absolute bottom-0 right-0 w-16 h-[2px] bg-purple-400"></div>
           </div>
         </div>
       </div>
