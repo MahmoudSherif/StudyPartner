@@ -11,7 +11,7 @@ const MoodTracker: React.FC = () => {
   const { state, addMoodEntry } = useApp();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMood, setNewMood] = useState({
-    mood: 3 as const,
+    mood: 4 as const,
     notes: '',
     activities: ''
   });
@@ -24,7 +24,7 @@ const MoodTracker: React.FC = () => {
       notes: newMood.notes.trim(),
       activities: newMood.activities.split(',').map(activity => activity.trim()).filter(activity => activity)
     });
-    setNewMood({ mood: 3, notes: '', activities: '' });
+    setNewMood({ mood: 4, notes: '', activities: '' });
     setShowAddForm(false);
   };
 
@@ -35,7 +35,7 @@ const MoodTracker: React.FC = () => {
       case 3: return '😐';
       case 4: return '🙂';
       case 5: return '😄';
-      default: return '😐';
+      default: return '🙂';
     }
   };
 
@@ -46,7 +46,7 @@ const MoodTracker: React.FC = () => {
       case 3: return 'Okay';
       case 4: return 'Good';
       case 5: return 'Excellent';
-      default: return 'Okay';
+      default: return 'Good';
     }
   };
 
@@ -57,7 +57,7 @@ const MoodTracker: React.FC = () => {
       case 3: return 'bg-yellow-100 text-yellow-800';
       case 4: return 'bg-green-100 text-green-800';
       case 5: return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-green-100 text-green-800';
     }
   };
 
