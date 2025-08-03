@@ -163,9 +163,12 @@ const Navigation: React.FC = () => {
                 className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 ${
                   active ? 'bg-white/20 text-white' : 'text-white hover:text-white'
                 }`}
+                style={{
+                  color: active ? 'white' : 'white'
+                }}
               >
                 <Icon size={22} />
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
+                <span className="text-xs mt-1 font-medium" style={{ color: 'white' }}>{item.label}</span>
                 {item.count > 0 && (
                   <span className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-xs rounded-full min-w-[18px] text-center ${
                     active ? 'bg-purple-500 text-white' : 'bg-red-500 text-white'
