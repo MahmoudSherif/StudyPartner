@@ -149,7 +149,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8">
       {/* FULL-SCREEN MEGA CELEBRATION - Covers Entire Screen */}
       {showCompletionMessage && (
         <div className="fixed inset-0 z-50 bg-gradient-to-br from-pink-400 via-purple-500 via-blue-500 via-green-400 to-yellow-400 animate-gradient-x flex items-center justify-center p-8">

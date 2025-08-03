@@ -122,7 +122,7 @@ const QuotesBar: React.FC = () => {
   const currentQuote = quotes[currentQuoteIndex];
 
   return (
-    <div className="quotes-bar bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 text-white py-3 overflow-hidden relative">
+    <div className="quotes-bar fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 text-white py-4 overflow-hidden shadow-lg z-50">
       <div className="max-w-7xl mx-auto px-4">
         <div 
           className={`text-center transition-all duration-500 ease-in-out ${

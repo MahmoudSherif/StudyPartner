@@ -189,19 +189,21 @@ const AppContent: React.FC = () => {
             <Route path="/*" element={
               <ProtectedRoute>
                 <StreakChecker />
-                <Navigation />
-                <main className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/tasks" element={<TaskManager />} />
-                    <Route path="/calendar" element={<CalendarView />} />
-                    <Route path="/knowledge" element={<KnowledgeBase />} />
-                    <Route path="/mood" element={<MoodTracker />} />
-                    <Route path="/achievements" element={<Achievements />} />
-                    <Route path="/nature" element={<NatureGallery />} />
-                  </Routes>
-                </main>
-                <QuotesBar />
+                <div className="min-h-screen flex flex-col">
+                  <Navigation />
+                  <main className="flex-1 pb-20">
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/tasks" element={<TaskManager />} />
+                      <Route path="/calendar" element={<CalendarView />} />
+                      <Route path="/knowledge" element={<KnowledgeBase />} />
+                      <Route path="/mood" element={<MoodTracker />} />
+                      <Route path="/achievements" element={<Achievements />} />
+                      <Route path="/nature" element={<NatureGallery />} />
+                    </Routes>
+                  </main>
+                  <QuotesBar />
+                </div>
               </ProtectedRoute>
             } />
           </Routes>

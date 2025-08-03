@@ -338,13 +338,7 @@ nav a.active {
 }
 
 /* Quotes Bar */
-.quotes-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-}
+/* Styles are now handled by Tailwind classes in the component */
 
 /* Arabic Font Support */
 .font-arabic {
