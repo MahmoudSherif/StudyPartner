@@ -41,9 +41,9 @@ body {
   isolation: isolate !important;
 }
 
-/* Add padding to account for horizontal bottom navigation */
+/* Add padding to account for vertical stacked bottom navigation */
 .quotes-bar-fixed {
-  bottom: 64px !important; /* Height of bottom navigation */
+  bottom: 320px !important; /* Height of vertical navigation (7 items * ~40px each + padding) */
   left: 0 !important;
   right: 0 !important;
   z-index: 999998 !important;
@@ -51,12 +51,13 @@ body {
 
 /* Add padding to main content */
 #root {
-  padding-bottom: 180px !important; /* Space for bottom nav + quotes bar */
+  padding-bottom: 400px !important; /* Space for bottom nav + quotes bar */
 }
 
 /* Mobile specific adjustments for quotes */
 @media (max-width: 640px) {
   .quotes-bar-fixed {
+    bottom: 280px !important; /* Slightly smaller on mobile */
     padding: 8px !important; /* Reduce padding on mobile */
   }
   
@@ -70,7 +71,7 @@ body {
   }
   
   #root {
-    padding-bottom: 160px !important; /* Less space needed on mobile */
+    padding-bottom: 360px !important; /* Less space needed on mobile */
   }
 }
 

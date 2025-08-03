@@ -150,9 +150,9 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* Horizontal Bottom Navigation */}
+      {/* Vertical Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-[999999] bg-gray-900/95 backdrop-blur-xl border-t border-white/30 shadow-2xl">
-        <div className="flex justify-around items-center py-2 px-2">
+        <div className="flex flex-col items-center py-2 px-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -160,15 +160,15 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-all duration-200 flex-1 ${
+                className={`relative flex items-center justify-start w-full py-2 px-3 rounded-lg transition-all duration-200 ${
                   active ? 'bg-white/20 text-white' : 'text-white hover:text-white hover:bg-white/10'
                 }`}
                 style={{
                   color: active ? 'white' : 'white'
                 }}
               >
-                <Icon size={20} />
-                <span className="text-xs mt-1 font-medium" style={{ color: 'white' }}>{item.label}</span>
+                <Icon size={20} className="mr-3" />
+                <span className="text-sm font-medium" style={{ color: 'white' }}>{item.label}</span>
               </Link>
             );
           })}
