@@ -161,7 +161,7 @@ const Navigation: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 ${
-                  active ? 'bg-white/20 text-white' : 'text-gray-400 hover:text-white'
+                  active ? 'bg-white/20 text-white' : 'text-white hover:text-white'
                 }`}
               >
                 <Icon size={22} />
