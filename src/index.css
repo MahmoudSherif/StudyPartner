@@ -53,9 +53,13 @@ body {
 }
 
 /* Mobile specific adjustments */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .quotes-bar-fixed {
-    bottom: 64px !important; /* Same height for consistency */
+    bottom: 48px !important; /* Smaller height for icon-only mobile nav */
+  }
+  
+  #root {
+    padding-bottom: 140px !important; /* Less space needed for smaller mobile nav */
   }
 }
 

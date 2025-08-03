@@ -152,7 +152,7 @@ const Navigation: React.FC = () => {
 
       {/* Bottom Navigation Bar - Now visible on all screen sizes */}
       <div className="fixed bottom-0 left-0 right-0 z-[999999] bg-gray-900/95 backdrop-blur-xl border-t border-white/30 shadow-2xl">
-        <div className="flex justify-around items-center py-2 max-w-7xl mx-auto">
+        <div className="flex justify-around items-center py-1 sm:py-2 max-w-7xl mx-auto overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -160,15 +160,15 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all duration-200 ${
+                className={`relative flex flex-col items-center justify-center py-1 px-1 sm:py-2 sm:px-3 rounded-lg transition-all duration-200 min-w-0 flex-shrink-0 ${
                   active ? 'bg-white/20 text-white' : 'text-white hover:text-white'
                 }`}
                 style={{
                   color: active ? 'white' : 'white'
                 }}
               >
-                <Icon size={22} />
-                <span className="text-xs mt-1 font-medium" style={{ color: 'white' }}>{item.label}</span>
+                <Icon size={18} className="sm:w-5 sm:h-5" />
+                <span className="hidden sm:block text-xs mt-1 font-medium" style={{ color: 'white' }}>{item.label}</span>
               </Link>
             );
           })}
