@@ -46,7 +46,6 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const { state } = useApp();
   const { currentUser, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { 
@@ -128,7 +127,7 @@ const Navigation: React.FC = () => {
 
   return (
     <>
-      {/* Simple Header with Logo and Logout */}
+      {/* Simple Header with Logo and Logout - NO NAVIGATION TABS */}
       <nav className="bg-black/20 backdrop-blur-md border-b border-white/10 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="text-2xl font-bold text-white">
@@ -151,7 +150,7 @@ const Navigation: React.FC = () => {
       </nav>
 
       {/* Vertical Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-[999999] bg-gray-900/95 backdrop-blur-xl border-t border-white/30 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 z-[999999] bg-red-500 backdrop-blur-xl border-t border-white/30 shadow-2xl">
         <div className="flex flex-col items-center py-2 px-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
