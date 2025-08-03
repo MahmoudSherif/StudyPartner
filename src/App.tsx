@@ -169,13 +169,6 @@ const Navigation: React.FC = () => {
               >
                 <Icon size={22} />
                 <span className="text-xs mt-1 font-medium" style={{ color: 'white' }}>{item.label}</span>
-                {item.count > 0 && (
-                  <span className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-xs rounded-full min-w-[18px] text-center ${
-                    active ? 'bg-purple-500 text-white' : 'bg-red-500 text-white'
-                  }`}>
-                    {item.count}
-                  </span>
-                )}
               </Link>
             );
           })}
