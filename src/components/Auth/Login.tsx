@@ -239,7 +239,10 @@ const Login: React.FC = () => {
                       Signing in...
                     </span>
                   ) : (
-                    'Sign In'
+                    <span className="flex items-center justify-center">
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Sign In
+                    </span>
                   )}
                 </button>
               </form>
