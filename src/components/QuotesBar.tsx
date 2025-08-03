@@ -122,7 +122,7 @@ const QuotesBar: React.FC = () => {
   const currentQuote = quotes[currentQuoteIndex];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999]">
+    <div className="quotes-bar-fixed">
       {/* Solid frame with purple border */}
       <div className="bg-purple-600 p-1">
         {/* Inner content with dark background */}
