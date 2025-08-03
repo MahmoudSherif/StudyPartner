@@ -123,10 +123,10 @@ const QuotesBar: React.FC = () => {
 
   return (
     <div className="quotes-bar-fixed">
-      {/* Gradient background bar that overlaps everything */}
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-2xl">
-        {/* Inner content with semi-transparent dark overlay */}
-        <div className="bg-black/40 backdrop-blur-sm py-4 px-6">
+      {/* Solid colored background bar that overlaps everything */}
+      <div className="bg-purple-700 shadow-2xl border-t-4 border-purple-500">
+        {/* Inner content with solid background */}
+        <div className="bg-purple-800 py-4 px-6">
           <div className="relative max-w-7xl mx-auto">
             {/* Quote content */}
             <div 
@@ -146,9 +146,11 @@ const QuotesBar: React.FC = () => {
               )}
             </div>
             
-            {/* Animated decoration lines */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+            {/* Solid decoration lines */}
+            <div className="absolute top-0 left-0 w-16 h-[2px] bg-purple-400"></div>
+            <div className="absolute top-0 right-0 w-16 h-[2px] bg-purple-400"></div>
+            <div className="absolute bottom-0 left-0 w-16 h-[2px] bg-purple-400"></div>
+            <div className="absolute bottom-0 right-0 w-16 h-[2px] bg-purple-400"></div>
           </div>
         </div>
       </div>
