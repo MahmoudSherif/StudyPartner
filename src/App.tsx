@@ -189,9 +189,9 @@ const AppContent: React.FC = () => {
             <Route path="/*" element={
               <ProtectedRoute>
                 <StreakChecker />
-                <div className="min-h-screen flex flex-col">
+                <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
                   <Navigation />
-                  <main className="flex-1 pb-20">
+                  <main className="container mx-auto px-4 py-8 pb-28">
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/tasks" element={<TaskManager />} />
@@ -202,8 +202,8 @@ const AppContent: React.FC = () => {
                       <Route path="/nature" element={<NatureGallery />} />
                     </Routes>
                   </main>
-                  <QuotesBar />
                 </div>
+                <QuotesBar />
               </ProtectedRoute>
             } />
           </Routes>

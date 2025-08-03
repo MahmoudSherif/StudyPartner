@@ -122,29 +122,40 @@ const QuotesBar: React.FC = () => {
   const currentQuote = quotes[currentQuoteIndex];
 
   return (
-    <div className="quotes-bar fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 text-white py-4 overflow-hidden shadow-lg z-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div 
-          className={`text-center transition-all duration-500 ease-in-out ${
-            isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2'
-          }`}
-        >
-          {currentQuote.arabic && (
-            <p className="text-lg md:text-xl font-arabic mb-1" dir="rtl">
-              "{currentQuote.arabic}"
-            </p>
-          )}
-          {currentQuote.english && (
-            <p className="text-sm md:text-base italic">
-              "{currentQuote.english}"
-            </p>
-          )}
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Outer frame with gradient border */}
+      <div className="bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 p-[2px] mx-4 mb-4 rounded-xl shadow-2xl">
+        {/* Inner content with dark background */}
+        <div className="bg-gray-900/95 backdrop-blur-md rounded-xl p-4">
+          <div className="relative">
+            {/* Quote content */}
+            <div 
+              className={`text-center transition-all duration-500 ease-in-out ${
+                isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2'
+              }`}
+            >
+              {currentQuote.arabic && (
+                <p className="text-lg md:text-xl font-arabic mb-2 text-blue-300" dir="rtl">
+                  "{currentQuote.arabic}"
+                </p>
+              )}
+              {currentQuote.english && (
+                <p className="text-sm md:text-base italic text-gray-300">
+                  "{currentQuote.english}"
+                </p>
+              )}
+            </div>
+            
+            {/* Quote indicator dots */}
+            <div className="absolute -left-2 top-1/2 transform -translate-y-1/2">
+              <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full opacity-60"></div>
+            </div>
+            <div className="absolute -right-2 top-1/2 transform -translate-y-1/2">
+              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full opacity-60"></div>
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-white/10 to-transparent"></div>
-      <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-white/10 to-transparent"></div>
     </div>
   );
 };
