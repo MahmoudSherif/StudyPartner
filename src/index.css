@@ -41,16 +41,21 @@ body {
   isolation: isolate !important;
 }
 
-/* Add padding to account for mobile navigation */
+/* Add padding to account for bottom navigation on all screens */
+.quotes-bar-fixed {
+  bottom: 64px !important; /* Height of bottom navigation */
+  z-index: 999998 !important; /* Lower than bottom nav but still high */
+}
+
+/* Add padding to main content to prevent it from being hidden under the bottom nav and quotes bar */
+#root {
+  padding-bottom: 180px !important; /* Space for bottom nav + quotes bar */
+}
+
+/* Mobile specific adjustments */
 @media (max-width: 768px) {
   .quotes-bar-fixed {
-    bottom: 64px !important; /* Height of mobile navigation */
-    z-index: 999998 !important; /* Lower than mobile nav but still high */
-  }
-  
-  /* Add padding to main content to prevent it from being hidden under the mobile nav and quotes bar */
-  #root {
-    padding-bottom: 180px !important; /* Space for mobile nav + quotes bar */
+    bottom: 64px !important; /* Same height for consistency */
   }
 }
 
