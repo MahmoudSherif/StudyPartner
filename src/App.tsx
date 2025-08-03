@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -7,6 +7,7 @@ import Login from './components/Auth/Login';
 import Signup from './components/Auth/Signup';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineIndicator from './components/OfflineIndicator';
+import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
 import {
   Calendar,
   CheckSquare,
@@ -26,6 +27,20 @@ import Achievements from './components/Achievements';
 import NatureGallery from './components/NatureGallery';
 import QuotesBar from './components/QuotesBar';
 
+// Component to check and reset streak on app load
+const StreakChecker: React.FC = () => {
+  const { state, updateStreak } = useApp();
+
+  useEffect(() => {
+    if (state.streak && shouldResetStreak(state.streak)) {
+      console.log('Resetting streak due to missed days');
+      const resetStreakData = resetStreak(state.streak);
+      updateStreak(resetStreakData);
+    }
+  }, []); // Only run on mount
+
+  return null;
+};
 
 const Navigation: React.FC = () => {
   const location = useLocation();
@@ -173,6 +188,7 @@ const AppContent: React.FC = () => {
             <Route path="/signup" element={<Signup />} />
             <Route path="/*" element={
               <ProtectedRoute>
+                <StreakChecker />
                 <Navigation />
                 <main className="flex-1">
                   <Routes>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { format } from 'date-fns';
-import { calculateNewStreak } from '../utils/streakCalculator';
+import { calculateNewStreak, shouldResetStreak, resetStreak } from '../utils/streakCalculator';
 import { 
   Plus, 
   Trash2, 
@@ -27,6 +27,15 @@ const TaskManager: React.FC = () => {
     priority: 'medium' as const,
     dueDate: ''
   });
+
+  // Check and reset streak on component mount if needed
+  useEffect(() => {
+    if (state.streak && shouldResetStreak(state.streak)) {
+      console.log('Resetting streak due to missed days');
+      const resetStreakData = resetStreak(state.streak);
+      updateStreak(resetStreakData);
+    }
+  }, []); // Only run on mount
 
   const handleTaskToggle = (taskId: string) => {
     const task = state.tasks.find(t => t.id === taskId);

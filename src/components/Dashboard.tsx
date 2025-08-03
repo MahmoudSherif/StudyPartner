@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { calculateNewStreak } from '../utils/streakCalculator';
+import { calculateNewStreak, shouldResetStreak, resetStreak } from '../utils/streakCalculator';
 import { 
   Target, 
   CheckCircle, 
@@ -35,6 +35,15 @@ const Dashboard: React.FC = () => {
     .filter(date => date.date >= today)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
+
+  // Check and reset streak on component mount if needed
+  useEffect(() => {
+    if (state.streak && shouldResetStreak(state.streak)) {
+      console.log('Resetting streak due to missed days');
+      const resetStreakData = resetStreak(state.streak);
+      updateStreak(resetStreakData);
+    }
+  }, []); // Only run on mount
 
   const recentAchievements = state.achievements
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
