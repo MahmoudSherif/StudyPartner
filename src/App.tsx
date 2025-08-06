@@ -70,7 +70,6 @@ const Navigation: React.FC = () => {
       path: '/', 
       icon: Target, 
       label: 'Dashboard', 
-      count: state.tasks.filter(t => !t.completed).length,
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-700'
@@ -79,7 +78,6 @@ const Navigation: React.FC = () => {
       path: '/tasks', 
       icon: CheckSquare, 
       label: 'Tasks', 
-      count: state.tasks.length,
       color: 'from-green-500 to-green-600',
       bgColor: 'bg-green-50',
       textColor: 'text-green-700'
@@ -88,7 +86,6 @@ const Navigation: React.FC = () => {
       path: '/calendar', 
       icon: Calendar, 
       label: 'Calendar', 
-      count: state.importantDates.length,
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50',
       textColor: 'text-purple-700'
@@ -97,7 +94,6 @@ const Navigation: React.FC = () => {
       path: '/knowledge', 
       icon: BookOpen, 
       label: 'Knowledge', 
-      count: state.questions.length,
       color: 'from-orange-500 to-orange-600',
       bgColor: 'bg-orange-50',
       textColor: 'text-orange-700'
@@ -106,7 +102,6 @@ const Navigation: React.FC = () => {
       path: '/mood', 
       icon: Heart, 
       label: 'Mood', 
-      count: state.moodEntries.length,
       color: 'from-pink-500 to-pink-600',
       bgColor: 'bg-pink-50',
       textColor: 'text-pink-700'
@@ -115,7 +110,6 @@ const Navigation: React.FC = () => {
       path: '/achievements', 
       icon: Trophy, 
       label: 'Achievements', 
-      count: state.achievements.length,
       color: 'from-yellow-500 to-yellow-600',
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-700'
@@ -124,7 +118,6 @@ const Navigation: React.FC = () => {
       path: '/challenges', 
       icon: Zap, 
       label: 'Challenges', 
-      count: state.dailyChallenges.filter(c => !c.completed).length,
       color: 'from-indigo-500 to-indigo-600',
       bgColor: 'bg-indigo-50',
       textColor: 'text-indigo-700'
@@ -133,7 +126,6 @@ const Navigation: React.FC = () => {
       path: '/profile', 
       icon: User, 
       label: 'Profile', 
-      count: 0,
       color: 'from-gray-500 to-gray-600',
       bgColor: 'bg-gray-50',
       textColor: 'text-gray-700'
@@ -231,38 +223,27 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* Enhanced Bottom Navigation - All Screen Sizes */}
+      {/* MOBILE-RESPONSIVE Bottom Navigation - NO SPACES */}
       <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-[999998] bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl">
-        <div className="flex items-center py-2 px-1 sm:px-2 overflow-x-auto scrollbar-hide touch-pan-x">
-          {navItems.map((item) => {
+        <div className="flex">
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center justify-center min-w-[60px] sm:min-w-[72px] min-h-[50px] py-2 px-1 mx-0.5 rounded-lg transition-all duration-200 flex-shrink-0 touch-manipulation ${
+                className={`flex flex-col items-center justify-center flex-1 h-12 sm:h-14 md:h-16 transition-all duration-200 touch-manipulation ${
                   active 
-                    ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600 border border-blue-200 shadow-sm' 
+                    ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600' 
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 active:bg-gray-100'
-                }`}
+                } ${index > 0 ? 'border-l border-gray-200' : ''}`}
+                style={{ minHeight: '48px', WebkitTapHighlightColor: 'transparent' }}
               >
-                {/* Notification Badge */}
-                {item.count > 0 && (
-                  <div className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[8px] min-w-[16px] z-10">
-                    {item.count > 99 ? '99+' : item.count}
-                  </div>
-                )}
-                
-                <Icon size={18} className="mb-1 flex-shrink-0" />
-                <span className="text-[8px] sm:text-[9px] font-medium text-center leading-tight max-w-[52px] sm:max-w-[64px] overflow-hidden text-ellipsis">
+                <Icon size={12} className="sm:size-[14px] md:size-[16px] mb-1" />
+                <span className="text-[6px] xs:text-[7px] sm:text-[8px] md:text-[9px] font-medium leading-tight text-center">
                   {item.label}
                 </span>
-                
-                {/* Active Indicator */}
-                {active && (
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"></div>
-                )}
               </Link>
             );
           })}
