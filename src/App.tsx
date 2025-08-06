@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -8,7 +8,7 @@ import Signup from './components/Auth/Signup';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineIndicator from './components/OfflineIndicator';
 import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
-import { applyTheme, getThemeBackground, getHeaderGradient } from './utils/themeUtils';
+import { applyTheme, getThemeBackground, getTheme } from './utils/themeUtils';
 import {
   Calendar,
   CheckSquare,
@@ -16,10 +16,8 @@ import {
   Target,
   Heart,
   Trophy,
-  Image,
   LogOut,
   Zap,
-  User,
   Crown
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
@@ -64,6 +62,7 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const { state } = useApp();
   const { currentUser, logout } = useAuth();
+  const theme = getTheme(state.settings.theme);
 
   const navItems = [
     { 
@@ -122,14 +121,6 @@ const Navigation: React.FC = () => {
       bgColor: 'bg-indigo-50',
       textColor: 'text-indigo-700'
     },
-    { 
-      path: '/profile', 
-      icon: User, 
-      label: 'Profile', 
-      color: 'from-gray-500 to-gray-600',
-      bgColor: 'bg-gray-50',
-      textColor: 'text-gray-700'
-    },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -144,23 +135,14 @@ const Navigation: React.FC = () => {
 
   if (!currentUser) return null;
 
-  const headerGradient = getHeaderGradient(state.settings.theme);
-
   return (
     <>
       {/* Enhanced Header with User Info */}
       <nav 
         className="backdrop-blur-md border-b border-white/10 px-3 sm:px-6 py-3 sm:py-4 shadow-lg"
-        style={{ background: headerGradient }}
+        style={{ background: theme.colors.headerGradient }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          {/* Logo - Responsive */}
-          <Link to="/" className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-            <Target className="text-yellow-300" size={24} />
-            <span className="hidden min-[360px]:block">MotiveMate</span>
-            <span className="min-[360px]:hidden">MM</span>
-          </Link>
-          
           {/* User Stats - Hidden on small mobile, compact on medium */}
           <div className="hidden sm:flex items-center gap-3 lg:gap-6">
             {/* Level Badge */}
@@ -197,51 +179,81 @@ const Navigation: React.FC = () => {
           </div>
           
           {/* User Menu */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <span className="text-gray-200 hidden lg:block text-sm">
+          <div className="flex items-center">
+            <span className="text-gray-200 hidden lg:block text-sm mr-8">
               {state.settings.username}
             </span>
             
-            {/* Avatar */}
+            {/* Dashboard Button */}
+            <Link 
+              to="/"
+              className={`flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-8 ${
+                isActive('/') ? 'text-yellow-300' : 'text-gray-200 hover:text-white'
+              }`}
+            >
+              <Target size={20} />
+              <span className="text-xs">Dashboard</span>
+            </Link>
+            
+            {/* Avatar with Profile text */}
             <Link 
               to="/profile"
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5 hover:scale-105 transition-transform"
+              className="flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-12"
             >
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-lg sm:text-xl">
-                {state.settings.avatar}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
+                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-lg sm:text-xl">
+                  {state.settings.avatar}
+                </div>
               </div>
+              <span className="text-gray-200 text-xs">Profile</span>
             </Link>
             
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 sm:space-x-2 text-gray-200 hover:text-white transition-colors duration-200 px-2 sm:px-3 py-1 sm:py-2 rounded-lg hover:bg-white/10"
+              className="flex items-center space-x-1 sm:space-x-2 text-gray-100 hover:text-gray-300 transition-colors duration-200 px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-gray-800 hover:bg-gray-900 border-2 border-gray-700 shadow-lg"
             >
               <LogOut size={16} className="sm:size-[18px]" />
-              <span className="hidden sm:block text-sm">Logout</span>
+              <span className="hidden sm:block text-sm font-bold">EXIT</span>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* MOBILE-RESPONSIVE Bottom Navigation - NO SPACES */}
-      <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-[999998] bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl">
-        <div className="flex">
-          {navItems.map((item, index) => {
+      {/* Vertical Navigation for Other Tabs */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 z-[999998] backdrop-blur-xl border-t shadow-2xl"
+        style={{ 
+          background: getThemeBackground(state.settings.theme).replace('to bottom right', 'to top').replace('linear-gradient', 'linear-gradient') + ', rgba(255, 255, 255, 0.8)',
+          borderColor: 'rgba(255, 255, 255, 0.3)'
+        }}
+      >
+        <div className="flex flex-col max-w-sm mx-auto px-2 py-1 space-y-0">
+          {navItems.slice(1).map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            const theme = getTheme(state.settings.theme);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center flex-1 h-12 sm:h-14 md:h-16 transition-all duration-200 touch-manipulation ${
+                className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 touch-manipulation ${
                   active 
-                    ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600' 
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 active:bg-gray-100'
-                } ${index > 0 ? 'border-l border-gray-200' : ''}`}
-                style={{ minHeight: '48px', WebkitTapHighlightColor: 'transparent' }}
+                    ? 'border-l-4' 
+                    : 'hover:bg-white/30 active:bg-white/40'
+                }`}
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent',
+                  ...(active ? {
+                    background: `linear-gradient(to right, ${theme.colors.primary}20, ${theme.colors.secondary}20)`,
+                    color: theme.colors.primary,
+                    borderLeftColor: theme.colors.primary
+                  } : {
+                    color: 'rgba(0, 0, 0, 0.7)'
+                  })
+                }}
               >
-                <Icon size={12} className="sm:size-[14px] md:size-[16px] mb-1" />
-                <span className="text-[6px] xs:text-[7px] sm:text-[8px] md:text-[9px] font-medium leading-tight text-center">
+                <Icon size={18} />
+                <span className="text-sm font-medium">
                   {item.label}
                 </span>
               </Link>
@@ -288,7 +300,7 @@ const ThemedMainContent: React.FC = () => {
       style={{ background: themeBackground }}
     >
       <Navigation />
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 sm:pb-36 max-w-full overflow-x-hidden">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-56 max-w-full overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/tasks" element={<TaskManager />} />
