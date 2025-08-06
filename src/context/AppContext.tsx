@@ -49,7 +49,9 @@ type Action =
   | { type: 'SET_MOODENTRIES'; payload: MoodEntry[] }
   | { type: 'SET_DAILYPROGRESS'; payload: DailyProgress[] }
   | { type: 'SET_ALL_DATA'; payload: AppState }
-  | { type: 'RESET_STATE' };
+  | { type: 'RESET_STATE' }
+  | { type: 'FIX_ACHIEVEMENTS' }
+  | { type: 'FORCE_INIT_ACHIEVEMENTS' };
 
 const initialState: AppState = {
   tasks: [],
@@ -79,6 +81,71 @@ const initialState: AppState = {
     username: 'Motivator',
     avatar: '🎯'
   }
+};
+
+// Debug log to check if achievement template is working
+console.log('🔍 DEBUG: createAchievementTemplate() result:', createAchievementTemplate());
+console.log('🔍 DEBUG: initialState.availableAchievements:', initialState.availableAchievements);
+
+// Helper function to fix corrupted achievements
+const fixAchievementsData = (achievements: Achievement[]): Achievement[] => {
+  console.log('🔧 Starting achievements fix process...');
+  console.log('Current achievements count:', achievements.length);
+  
+  const template = createAchievementTemplate();
+  console.log('Fresh template count:', template.length);
+  
+  // Check if we have corrupted achievements
+  const corrupted = achievements.filter(a => 
+    a.title === "???" || 
+    a.description === "???" || 
+    !a.title || 
+    !a.description ||
+    a.title.trim() === "" ||
+    a.description.trim() === "" ||
+    a.title === "undefined" ||
+    a.description === "undefined"
+  );
+  
+  console.log('🚨 Found corrupted achievements:', corrupted.length);
+  console.log('Corrupted achievements details:', corrupted);
+  
+  if (corrupted.length > 0) {
+    // If we have corruptions, completely reset to fresh template
+    // but preserve unlocked status and dates where possible
+    console.log('🔄 Resetting to fresh template...');
+    return template.map(templateAchievement => {
+      const existing = achievements.find(a => a.id === templateAchievement.id);
+      const result = {
+        ...templateAchievement,
+        unlocked: existing?.unlocked || false,
+        date: existing?.date || ''
+      };
+      console.log(`Fixed achievement: ${result.id} -> ${result.title}`);
+      return result;
+    });
+  }
+  
+  console.log('✅ No corruptions found, keeping existing achievements');
+  return achievements;
+};
+
+// Helper function to completely reset corrupted data
+const resetCorruptedData = (): AppState => {
+  console.log('🚨 EMERGENCY RESET: Completely clearing corrupted data');
+  
+  // Clear all localStorage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  const freshState = {
+    ...initialState,
+    achievements: [], // Start fresh with no unlocked achievements
+    availableAchievements: createAchievementTemplate()
+  };
+  
+  console.log('✅ Fresh state created:', freshState);
+  return freshState;
 };
 
 const appReducer = (state: AppState, action: Action): AppState => {
@@ -414,7 +481,7 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'SET_ACHIEVEMENTS':
       newState = {
         ...state,
-        achievements: action.payload
+        achievements: fixAchievementsData(action.payload)
       };
       break;
 
@@ -460,10 +527,20 @@ const appReducer = (state: AppState, action: Action): AppState => {
 
     case 'SET_ALL_DATA':
       // Ensure we have default values for new properties
+      const incomingAchievements = action.payload.availableAchievements;
+      const shouldUseTemplate = !incomingAchievements || 
+                               !Array.isArray(incomingAchievements) || 
+                               incomingAchievements.length === 0;
+      
+      console.log('🔍 SET_ALL_DATA debug:');
+      console.log('Incoming availableAchievements:', incomingAchievements);
+      console.log('Should use template?', shouldUseTemplate);
+      
       newState = {
         ...initialState,
         ...action.payload,
-        availableAchievements: action.payload.availableAchievements || createAchievementTemplate(),
+        achievements: fixAchievementsData(action.payload.achievements || []),
+        availableAchievements: shouldUseTemplate ? createAchievementTemplate() : incomingAchievements,
         userStats: {
           ...initialState.userStats,
           ...action.payload.userStats,
@@ -481,10 +558,45 @@ const appReducer = (state: AppState, action: Action): AppState => {
           freezeCount: action.payload.streak?.freezeCount ?? 3
         }
       };
+      
+      console.log('✅ Final availableAchievements count:', newState.availableAchievements.length);
       break;
 
     case 'RESET_STATE':
       newState = initialState;
+      break;
+
+    case 'FIX_ACHIEVEMENTS':
+      // Check if we have severe corruption that requires full reset
+      const hasCorruption = state.achievements.some(a => 
+        a.title === "???" || 
+        a.description === "???" || 
+        !a.title || 
+        !a.description ||
+        a.title.trim() === "" ||
+        a.description.trim() === "" ||
+        a.title === "undefined" ||
+        a.description === "undefined"
+      );
+      
+      if (hasCorruption) {
+        console.log('🚨 Severe corruption detected - performing full reset');
+        newState = resetCorruptedData();
+      } else {
+        newState = {
+          ...state,
+          achievements: fixAchievementsData(state.achievements),
+          availableAchievements: createAchievementTemplate()
+        };
+      }
+      break;
+
+    case 'FORCE_INIT_ACHIEVEMENTS':
+      console.log('🔧 FORCE_INIT_ACHIEVEMENTS - populating availableAchievements');
+      newState = {
+        ...state,
+        availableAchievements: createAchievementTemplate()
+      };
       break;
 
     default:
@@ -537,6 +649,7 @@ interface AppContextType {
   addMoodEntry: (mood: Omit<MoodEntry, 'id'>) => void;
   updateStreak: (streak: { current: number; longest: number; lastCompletedDate: string; freezeCount?: number }) => void;
   addDailyProgress: (progress: DailyProgress) => void;
+  fixAchievements: () => void;
   saveToFirebase: () => Promise<void>;
   reloadFromFirebase: () => Promise<void>;
 }
@@ -551,9 +664,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isInitialLoadRef = useRef(true);
   const lastSavedStateRef = useRef<string>('');
 
+  // Force ensure availableAchievements are always populated
+  useEffect(() => {
+    console.log('🔍 Checking availableAchievements:', state.availableAchievements.length);
+    
+    if (state.availableAchievements.length === 0) {
+      console.log('🚨 availableAchievements is empty - force populating...');
+      setTimeout(() => {
+        dispatch({ type: 'FORCE_INIT_ACHIEVEMENTS' });
+      }, 100);
+    } else {
+      // Also check if achievements are corrupted
+      const validAchievements = state.availableAchievements.filter(a => 
+        a && a.id && a.title && a.description && a.title !== '???' && a.description !== '???'
+      );
+      
+      if (validAchievements.length === 0) {
+        console.log('🚨 All availableAchievements are corrupted - force repopulating...');
+        setTimeout(() => {
+          dispatch({ type: 'FORCE_INIT_ACHIEVEMENTS' });
+        }, 100);
+      }
+    }
+  }, [state.availableAchievements, state.availableAchievements.length]);
+
   // Debounced save function
   const debouncedSave = useCallback(async (stateToSave: AppState) => {
     if (!currentUser?.uid) return;
+    
+    // Validate state before saving - never save empty availableAchievements
+    if (!stateToSave.availableAchievements || stateToSave.availableAchievements.length === 0) {
+      console.log('🚨 Preventing save with empty availableAchievements');
+      stateToSave = {
+        ...stateToSave,
+        availableAchievements: createAchievementTemplate()
+      };
+    }
     
     const stateString = JSON.stringify(stateToSave);
     // Don't save if state hasn't actually changed
@@ -561,6 +707,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     try {
       console.log('Saving data for user:', currentUser.uid);
+      console.log('Saving availableAchievements count:', stateToSave.availableAchievements.length);
       
       // Try Firebase first, fallback to local storage
       try {
@@ -585,17 +732,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setIsLoading(true);
           console.log('Loading data for user:', currentUser.uid);
           
-          // Try Firebase first, fallback to local storage
+          // Check if offline mode is enabled
+          const isOfflineMode = localStorage.getItem('motiveMate_offlineMode') === 'true';
+          
           let userData;
           try {
+            if (isOfflineMode) {
+              console.log('🔌 Offline mode enabled - skipping Firebase');
+              throw new Error('Offline mode');
+            }
+            
+            // Try Firebase first, fallback to local storage
             userData = await loadUserState();
             console.log('Loaded user data from Firebase:', userData);
           } catch (firebaseError) {
-            console.log('Firebase failed, using local storage:', firebaseError);
+            console.log('Firebase blocked/failed, using local storage:', firebaseError);
             userData = loadUserStateLocal(currentUser.uid);
+            
+            // If no local data exists, use fresh initial state
+            if (!userData || Object.keys(userData).length === 0) {
+              console.log('No local data found, using fresh initial state');
+              userData = {
+                ...initialState,
+                achievements: [], // Start fresh
+                availableAchievements: createAchievementTemplate()
+              };
+              // Save this fresh state to local storage
+              saveUserStateLocal(currentUser.uid, userData);
+            }
           }
           
-          // Update state with user data - use a single dispatch to avoid race conditions
+          // Ensure achievements are properly initialized
+          if (!userData.availableAchievements || userData.availableAchievements.length === 0) {
+            console.log('🔧 Initializing missing availableAchievements');
+            userData.availableAchievements = createAchievementTemplate();
+          }
+          
+          // Validate each achievement has required properties
+          userData.availableAchievements = userData.availableAchievements.filter(a => 
+            a && a.id && a.title && a.description
+          );
+          
+          // If filtering removed achievements, repopulate from template
+          if (userData.availableAchievements.length === 0) {
+            console.log('🚨 All achievements were invalid - repopulating from template');
+            userData.availableAchievements = createAchievementTemplate();
+          }
+          
+          // Fix any corrupted achievements
+          if (userData.achievements) {
+            userData.achievements = fixAchievementsData(userData.achievements);
+          } else {
+            userData.achievements = [];
+          }
+          
+          console.log('Final user data to load:', {
+            ...userData,
+            availableAchievements: `Array(${userData.availableAchievements.length})`
+          });
+          
+          // Update state with user data
           dispatch({ 
             type: 'SET_ALL_DATA', 
             payload: userData 
@@ -606,6 +802,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           isInitialLoadRef.current = false;
         } catch (error) {
           console.error('Error loading user data:', error);
+          
+          // If everything fails, use initial state
+          console.log('🚨 Complete fallback to initial state');
+          dispatch({ 
+            type: 'SET_ALL_DATA', 
+            payload: initialState 
+          });
         } finally {
           setIsLoading(false);
         }
@@ -815,6 +1018,121 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // Auto-fix corrupted achievements on startup
+  useEffect(() => {
+    const checkForCorruption = () => {
+      const corrupted = state.achievements.some(a => 
+        a.title === "???" || 
+        a.description === "???" || 
+        !a.title || 
+        !a.description ||
+        a.title.trim() === "" ||
+        a.description.trim() === "" ||
+        a.title === 'undefined' ||
+        a.description === 'undefined'
+      );
+      
+      if (corrupted) {
+        console.log('🚨 Corrupted achievements detected on startup - fixing automatically...');
+        console.log('Corrupted achievements:', state.achievements.filter(a => 
+          a.title === "???" || 
+          a.description === "???" || 
+          !a.title || 
+          !a.description ||
+          a.title.trim() === "" ||
+          a.description.trim() === ""
+        ));
+        
+        // Add global helper functions
+        (window as any).clearMotiveMateData = () => {
+          console.log('🗑️ Clearing all MotiveMate data...');
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.reload();
+        };
+        
+        (window as any).enableOfflineMode = () => {
+          console.log('� Enabling offline mode...');
+          localStorage.setItem('motiveMate_offlineMode', 'true');
+          const freshData = {
+            ...initialState,
+            achievements: [],
+            availableAchievements: createAchievementTemplate()
+          };
+          if (currentUser?.uid) {
+            saveUserStateLocal(currentUser.uid, freshData);
+          }
+          window.location.reload();
+        };
+        
+        console.log('🔧 Available commands:');
+        console.log('- clearMotiveMateData() - Clear all data');
+        console.log('- enableOfflineMode() - Force offline mode (bypasses Firebase)');
+        
+        // Trigger fix
+        setTimeout(() => {
+          dispatch({ type: 'FIX_ACHIEVEMENTS' });
+        }, 500);
+      }
+      
+      // Always expose helper functions
+      if (!(window as any).clearMotiveMateData) {
+        (window as any).clearMotiveMateData = () => {
+          console.log('🗑️ Clearing all MotiveMate data...');
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.reload();
+        };
+      }
+      
+      if (!(window as any).enableOfflineMode) {
+        (window as any).enableOfflineMode = () => {
+          console.log('🔌 Enabling offline mode...');
+          localStorage.setItem('motiveMate_offlineMode', 'true');
+          const freshData = {
+            ...initialState,
+            achievements: [],
+            availableAchievements: createAchievementTemplate()
+          };
+          if (currentUser?.uid) {
+            saveUserStateLocal(currentUser.uid, freshData);
+          }
+          window.location.reload();
+        };
+      }
+    };
+
+    // Check after a brief delay to ensure state is loaded
+    if (state.achievements.length > 0) {
+      setTimeout(checkForCorruption, 1000);
+    } else {
+      // If no achievements at all, also expose helper functions
+      setTimeout(checkForCorruption, 2000);
+    }
+  }, [state.achievements, currentUser]);
+
+  const fixAchievements = useCallback(() => {
+    console.log('🔧 Manual achievement fix triggered');
+    
+    // Clear all localStorage related to achievements
+    localStorage.removeItem('motiveMateAchievements');
+    localStorage.removeItem('motiveMateData');
+    localStorage.removeItem('motivemateAppData');
+    console.log('🗑️ Cleared all localStorage caches');
+    
+    // Dispatch fix action with fresh template
+    dispatch({ 
+      type: 'FIX_ACHIEVEMENTS'
+    });
+    
+    console.log('✅ Achievement fix completed - refreshing in 1 second');
+    
+    // Force page refresh after a short delay to ensure clean state
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  }, []);
+
   const value: AppContextType = {
     state,
     isLoading,
@@ -836,6 +1154,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addMoodEntry,
     updateStreak,
     addDailyProgress,
+    fixAchievements,
     saveToFirebase,
     reloadFromFirebase
   };

@@ -149,10 +149,10 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-4 sm:space-y-6 pb-4 sm:pb-8 w-full max-w-full overflow-hidden">
       {/* FULL-SCREEN MEGA CELEBRATION - Covers Entire Screen */}
       {showCompletionMessage && (
-        <div className="fixed inset-0 z-50 bg-gradient-to-br from-pink-400 via-purple-500 via-blue-500 via-green-400 to-yellow-400 animate-gradient-x flex items-center justify-center p-8">
+        <div className="fixed inset-0 z-50 bg-gradient-to-br from-pink-400 via-purple-500 via-blue-500 via-green-400 to-yellow-400 animate-gradient-x flex items-center justify-center p-4 sm:p-8">
           {/* Animated Background Effects */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full animate-bounce"></div>
@@ -183,7 +183,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           {/* Main Content - MASSIVE */}
-          <div className="relative z-10 text-center space-y-8 max-w-4xl">
+          <div className="relative z-10 text-center space-y-4 sm:space-y-8 max-w-4xl w-full px-2">
             
             {/* Close Button */}
             <button 
@@ -191,71 +191,71 @@ const Dashboard: React.FC = () => {
                 setShowCompletionMessage(false);
                 setCompletedTaskTitle('');
               }}
-              className="absolute top-0 right-0 text-white/80 hover:text-white text-6xl font-bold w-16 h-16 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+              className="absolute -top-2 sm:top-0 -right-2 sm:right-0 text-white/80 hover:text-white text-3xl sm:text-6xl font-bold w-8 h-8 sm:w-16 sm:h-16 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
             >
               ×
             </button>
             
             {/* GIANT Emojis */}
-            <div className="flex items-center justify-center gap-8">
-              <div className="text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce">🎉</div>
-              <div className="text-8xl md:text-[10rem] lg:text-[12rem] animate-pulse">⭐</div>
-              <div className="text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce" style={{animationDelay: '0.2s'}}>🎊</div>
+            <div className="flex items-center justify-center gap-2 sm:gap-8">
+              <div className="text-6xl sm:text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce">🎉</div>
+              <div className="text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] animate-pulse">⭐</div>
+              <div className="text-6xl sm:text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce" style={{animationDelay: '0.2s'}}>🎊</div>
             </div>
             
             {/* MASSIVE Sparkles */}
-            <Sparkles className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 animate-spin text-yellow-300 mx-auto drop-shadow-2xl" />
+            <Sparkles className="w-12 h-12 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 animate-spin text-yellow-300 mx-auto drop-shadow-2xl" />
             
             {/* HUGE Title */}
-            <div className="space-y-6">
-              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white drop-shadow-2xl animate-pulse">
+            <div className="space-y-3 sm:space-y-6">
+              <h1 className="text-3xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white drop-shadow-2xl animate-pulse">
                 FANTASTIC! 🌟
               </h1>
               
-              <div className="bg-white/20 backdrop-blur-lg border-4 border-white/40 rounded-3xl p-8 shadow-2xl">
-                <p className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4">Task Successfully Completed!</p>
-                <p className="text-xl md:text-2xl lg:text-4xl text-yellow-200 italic bg-white/20 px-6 py-4 rounded-2xl inline-block font-medium">
+              <div className="bg-white/20 backdrop-blur-lg border-2 sm:border-4 border-white/40 rounded-xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl">
+                <p className="text-lg sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-2 sm:mb-4">Task Successfully Completed!</p>
+                <p className="text-sm sm:text-xl md:text-2xl lg:text-4xl text-yellow-200 italic bg-white/20 px-3 sm:px-6 py-2 sm:py-4 rounded-lg sm:rounded-2xl inline-block font-medium break-words max-w-full">
                   "{completedTaskTitle}"
                 </p>
               </div>
             </div>
             
             {/* HUGE Rewards */}
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-yellow-300 to-orange-400 text-black px-12 py-6 rounded-full shadow-2xl flex items-center justify-center gap-6 border-4 border-white/50">
-                <Trophy className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" />
-                <span className="font-black text-3xl md:text-4xl lg:text-6xl">+10 POINTS!</span>
-                <Trophy className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" style={{animationDelay: '0.1s'}} />
+            <div className="space-y-3 sm:space-y-6">
+              <div className="bg-gradient-to-r from-yellow-300 to-orange-400 text-black px-4 sm:px-12 py-3 sm:py-6 rounded-full shadow-2xl flex items-center justify-center gap-2 sm:gap-6 border-2 sm:border-4 border-white/50">
+                <Trophy className="w-6 h-6 sm:w-12 sm:h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" />
+                <span className="font-black text-lg sm:text-3xl md:text-4xl lg:text-6xl">+10 POINTS!</span>
+                <Trophy className="w-6 h-6 sm:w-12 sm:h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" style={{animationDelay: '0.1s'}} />
               </div>
               
               {state.streak.current > 0 && (
-                <div className="bg-gradient-to-r from-red-400 to-pink-500 text-white px-8 py-4 rounded-full flex items-center justify-center gap-4 border-4 border-white/50 shadow-2xl">
-                  <span className="text-4xl md:text-5xl lg:text-6xl">🔥</span>
-                  <span className="font-bold text-2xl md:text-3xl lg:text-5xl">{state.streak.current} Day Streak!</span>
-                  <span className="text-4xl md:text-5xl lg:text-6xl">🔥</span>
+                <div className="bg-gradient-to-r from-red-400 to-pink-500 text-white px-4 sm:px-8 py-2 sm:py-4 rounded-full flex items-center justify-center gap-2 sm:gap-4 border-2 sm:border-4 border-white/50 shadow-2xl">
+                  <span className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl">🔥</span>
+                  <span className="font-bold text-lg sm:text-2xl md:text-3xl lg:text-5xl">{state.streak.current} Day Streak!</span>
+                  <span className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl">🔥</span>
                 </div>
               )}
             </div>
             
             {/* HUGE Motivational */}
-            <div className="bg-white/20 backdrop-blur-lg border-4 border-white/40 rounded-3xl p-8 shadow-2xl">
-              <div className="space-y-4">
-                <div className="text-3xl md:text-4xl lg:text-6xl font-black text-white drop-shadow-lg">Keep up the AMAZING work! 💪</div>
-                <div className="text-xl md:text-2xl lg:text-4xl text-yellow-200 font-bold">You're absolutely CRUSHING your goals!</div>
+            <div className="bg-white/20 backdrop-blur-lg border-2 sm:border-4 border-white/40 rounded-xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl">
+              <div className="space-y-2 sm:space-y-4">
+                <div className="text-xl sm:text-3xl md:text-4xl lg:text-6xl font-black text-white drop-shadow-lg">Keep up the AMAZING work! 💪</div>
+                <div className="text-lg sm:text-xl md:text-2xl lg:text-4xl text-yellow-200 font-bold">You're absolutely CRUSHING your goals!</div>
               </div>
             </div>
             
             {/* MASSIVE Achievement Badge */}
-            <div className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-8 py-6 rounded-full border-4 border-white/50 shadow-2xl">
-              <div className="flex items-center justify-center gap-4">
-                <span className="text-4xl md:text-5xl lg:text-6xl">🏆</span>
-                <span className="font-black text-2xl md:text-3xl lg:text-5xl">ACHIEVEMENT UNLOCKED!</span>
-                <span className="text-4xl md:text-5xl lg:text-6xl">🏆</span>
+            <div className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white px-4 sm:px-8 py-3 sm:py-6 rounded-full border-2 sm:border-4 border-white/50 shadow-2xl">
+              <div className="flex items-center justify-center gap-2 sm:gap-4">
+                <span className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl">🏆</span>
+                <span className="font-black text-lg sm:text-2xl md:text-3xl lg:text-5xl">ACHIEVEMENT UNLOCKED!</span>
+                <span className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl">🏆</span>
               </div>
             </div>
             
             {/* Auto-close indicator */}
-            <div className="text-xl md:text-2xl lg:text-3xl text-white/90 font-medium">
+            <div className="text-base sm:text-xl md:text-2xl lg:text-3xl text-white/90 font-medium">
               Celebrating your success! Auto-closing in a few seconds... ✨
             </div>
           </div>
@@ -263,17 +263,17 @@ const Dashboard: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="text-center px-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Welcome back! 👋
         </h1>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           {format(new Date(), 'EEEE, MMMM do, yyyy')}
         </p>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div className="card text-center">
           <div className="streak mb-2">
             <TrendingUp size={20} />
@@ -303,15 +303,15 @@ const Dashboard: React.FC = () => {
           <Target size={20} />
           Quick Add Task
         </h2>
-        <form onSubmit={handleAddTask} className="flex gap-2">
+        <form onSubmit={handleAddTask} className="flex flex-col sm:flex-row gap-2 sm:gap-2">
           <input
             type="text"
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             placeholder="What do you want to accomplish today?"
-            className="input flex-1"
+            className="input flex-1 text-sm sm:text-base"
           />
-          <button type="submit" className="btn">
+          <button type="submit" className="btn text-sm sm:text-base px-4 py-2 sm:px-6 sm:py-3">
             Add Task
           </button>
         </form>
@@ -319,9 +319,9 @@ const Dashboard: React.FC = () => {
 
       {/* Today's Tasks */}
       <div className="card">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <CheckCircle size={20} />
-          Today's Tasks ({todayTasks.filter(t => !t.completed).length} remaining)
+        <h2 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
+          <CheckCircle size={18} className="sm:w-5 sm:h-5" />
+          <span className="text-sm sm:text-base">Today's Tasks ({todayTasks.filter(t => !t.completed).length} remaining)</span>
         </h2>
         {todayTasks.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
@@ -332,27 +332,27 @@ const Dashboard: React.FC = () => {
             {todayTasks.slice(0, 5).map((task) => (
               <div
                 key={task.id}
-                className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${
+                className={`flex items-center justify-between p-2 sm:p-3 rounded-lg border transition-all duration-300 ${
                   task.completed ? 'bg-green-50 border-green-200 opacity-75' : 'bg-white border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <input
                     type="checkbox"
                     checked={task.completed}
                     onChange={() => handleCompleteTask(task.id)}
-                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500 transition-all duration-200"
+                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500 transition-all duration-200 flex-shrink-0"
                   />
-                  <span className={`transition-all duration-200 ${
+                  <span className={`transition-all duration-200 text-sm sm:text-base truncate ${
                     task.completed ? 'line-through text-gray-500' : 'text-gray-800'
                   }`}>
                     {task.title}
                   </span>
                   {task.completed && (
-                    <CheckCircle size={16} className="text-green-500" />
+                    <CheckCircle size={14} className="text-green-500 flex-shrink-0 sm:w-4 sm:h-4" />
                   )}
                 </div>
-                <span className={`badge badge-${task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info'}`}>
+                <span className={`badge badge-${task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'info'} text-xs flex-shrink-0 ml-2`}>
                   {task.priority}
                 </span>
               </div>
@@ -414,34 +414,34 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="card">
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <button 
             onClick={handleAddStudyQuestion}
-            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors text-sm sm:text-base py-3"
           >
-            <BookOpen size={18} />
+            <BookOpen size={16} className="sm:w-4 sm:h-4" />
             Add Study Question
           </button>
           <button 
             onClick={handleTrackMood}
-            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-pink-50 hover:border-pink-300 transition-colors"
+            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-pink-50 hover:border-pink-300 transition-colors text-sm sm:text-base py-3"
           >
-            <Heart size={18} />
+            <Heart size={16} className="sm:w-4 sm:h-4" />
             Track Mood
           </button>
           <button 
             onClick={handleAddImportantDate}
-            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 transition-colors"
+            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-green-50 hover:border-green-300 transition-colors text-sm sm:text-base py-3"
           >
-            <Calendar size={18} />
+            <Calendar size={16} className="sm:w-4 sm:h-4" />
             Add Important Date
           </button>
           <button 
             onClick={handleViewAllAchievements}
-            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-yellow-50 hover:border-yellow-300 transition-colors"
+            className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-yellow-50 hover:border-yellow-300 transition-colors text-sm sm:text-base py-3"
           >
-            <Trophy size={18} />
+            <Trophy size={16} className="sm:w-4 sm:h-4" />
             View All Achievements
           </button>
         </div>

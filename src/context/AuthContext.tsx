@@ -33,10 +33,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   function signup(email: string, password: string) {
+    // In development, handle Firebase connection issues gracefully
+    if (import.meta.env.DEV) {
+      try {
+        return createUserWithEmailAndPassword(auth, email, password);
+      } catch (error: any) {
+        console.warn('Firebase connection blocked in development:', error);
+        throw error;
+      }
+    }
     return createUserWithEmailAndPassword(auth, email, password);
   }
 
   function login(email: string, password: string) {
+    // In development, if Firebase is blocked, log the error but don't crash
+    if (import.meta.env.DEV) {
+      try {
+        return signInWithEmailAndPassword(auth, email, password);
+      } catch (error: any) {
+        console.warn('Firebase connection blocked in development:', error);
+        // For development testing, you can uncomment the next line to simulate login
+        // return Promise.resolve({ user: { email, uid: 'dev-user-id' } });
+        throw error;
+      }
+    }
     return signInWithEmailAndPassword(auth, email, password);
   }
 
@@ -49,10 +69,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
+    const unsubscribe = onAuthStateChanged(auth, 
+      (user) => {
+        setCurrentUser(user);
+        setLoading(false);
+      },
+      (error) => {
+        // Handle auth state change errors (like network issues)
+        console.warn('Auth state change error:', error);
+        if (import.meta.env.DEV) {
+          console.log('Firebase may be blocked by ad blocker or network security');
+        }
+        setLoading(false);
+      }
+    );
 
     return unsubscribe;
   }, []);

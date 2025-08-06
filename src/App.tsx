@@ -232,7 +232,7 @@ const Navigation: React.FC = () => {
 
       {/* Enhanced Bottom Navigation - positioned above quotes bar */}
       <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-[999998] bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl">
-        <div className="flex flex-row items-center justify-center py-2 px-2 space-x-1 overflow-x-auto">
+        <div className="flex flex-row items-center justify-between py-1 px-1 overflow-x-auto max-w-full">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -240,7 +240,7 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center justify-center min-w-fit py-2 px-2 rounded-lg transition-all duration-200 ${
+                className={`relative flex flex-col items-center justify-center flex-1 min-w-0 py-2 px-1 rounded-lg transition-all duration-200 ${
                   active 
                     ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600 border border-blue-200' 
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
@@ -248,13 +248,13 @@ const Navigation: React.FC = () => {
               >
                 {/* Notification Badge */}
                 {item.count > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  <div className="absolute -top-1 -right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
                     {item.count > 99 ? '99+' : item.count}
                   </div>
                 )}
                 
-                <Icon size={20} className="mb-1" />
-                <span className="text-xs font-medium whitespace-nowrap">{item.label}</span>
+                <Icon size={18} className="mb-0.5" />
+                <span className="text-[10px] sm:text-xs font-medium truncate max-w-full">{item.label}</span>
                 
                 {/* Active Indicator */}
                 {active && (
@@ -304,7 +304,7 @@ const ThemedMainContent: React.FC = () => {
       style={{ background: themeBackground }}
     >
       <Navigation />
-      <main className="container mx-auto px-4 py-8 pb-32">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-20 sm:pb-32 max-w-full overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/tasks" element={<TaskManager />} />

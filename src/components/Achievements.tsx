@@ -109,7 +109,7 @@ const Achievements: React.FC = () => {
           <Trophy className="text-yellow-500" size={32} />
           Achievements
         </h1>
-        <p className="text-gray-600">{getMotivationalMessage()}</p>
+        <p className="text-gray-600 mb-4">{getMotivationalMessage()}</p>
       </div>
 
       {/* Achievement Stats */}
@@ -277,7 +277,7 @@ const Achievements: React.FC = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            {isLocked ? '???' : achievement.title}
+                            {achievement.title}
                             {!isLocked && <CheckCircle2 size={20} className="text-green-500" />}
                           </h3>
                           <div className="flex items-center gap-2 mt-1">
@@ -299,7 +299,7 @@ const Achievements: React.FC = () => {
                       </div>
                       
                       <p className="text-sm text-gray-700 mb-3">
-                        {isLocked ? 'Complete the required actions to unlock this achievement.' : achievement.description}
+                        {achievement.description}
                       </p>
                       
                       {!isLocked && achievement.date && (

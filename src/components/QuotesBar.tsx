@@ -124,33 +124,33 @@ const QuotesBar: React.FC = () => {
   return (
     <div className="quotes-bar-fixed">
       {/* Solid background container that overlaps everything */}
-      <div className="p-3 md:p-4 bg-slate-900 border-t-4 border-slate-700 shadow-2xl">
-        {/* Single solid background container */}
-        <div className="bg-slate-800 rounded-lg shadow-xl border-2 border-slate-600">
-          {/* Content area with high contrast */}
-          <div className="bg-slate-800 rounded-lg py-3 md:py-4 px-4 md:px-6">
-            <div className="relative max-w-7xl mx-auto">
+      <div className="w-full p-2 sm:p-3 md:p-4 bg-slate-900 border-t-4 border-slate-700 shadow-2xl">
+        {/* Single solid background container with responsive width */}
+        <div className="w-full bg-slate-800 rounded-lg shadow-xl border-2 border-slate-600">
+          {/* Content area with high contrast and responsive padding */}
+          <div className="w-full bg-slate-800 rounded-lg py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6">
+            <div className="relative w-full max-w-none mx-auto">
               {/* Quote content with high contrast colors */}
               <div 
-                className={`text-center transition-all duration-700 ease-in-out ${
+                className={`text-center transition-all duration-700 ease-in-out w-full ${
                   isVisible ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-3'
                 }`}
               >
                 {currentQuote.arabic && (
-                  <p className="text-lg md:text-2xl lg:text-3xl font-bold quotes-arabic-text mb-2 md:mb-3 text-white drop-shadow-2xl tracking-wide leading-relaxed" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
+                  <p className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold quotes-arabic-text mb-1 sm:mb-2 md:mb-3 text-white drop-shadow-2xl tracking-wide leading-relaxed" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
                     "{currentQuote.arabic}"
                   </p>
                 )}
                 {currentQuote.english && (
-                  <p className="text-sm md:text-lg lg:text-xl font-semibold quotes-english-text text-white drop-shadow-2xl tracking-wider leading-relaxed" style={{fontFamily: "'Poppins', 'Inter', sans-serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
+                  <p className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold quotes-english-text text-white drop-shadow-2xl tracking-wider leading-relaxed" style={{fontFamily: "'Poppins', 'Inter', sans-serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
                     "{currentQuote.english}"
                   </p>
                 )}
               </div>
               
-              {/* Simple accent lines for visual appeal */}
-              <div className="hidden lg:block absolute top-0 left-4 w-8 h-1 bg-yellow-400 rounded-full opacity-80"></div>
-              <div className="hidden lg:block absolute top-0 right-4 w-8 h-1 bg-yellow-400 rounded-full opacity-80"></div>
+              {/* Simple accent lines for visual appeal - responsive */}
+              <div className="hidden md:block absolute top-0 left-2 sm:left-4 w-6 sm:w-8 h-1 bg-yellow-400 rounded-full opacity-80"></div>
+              <div className="hidden md:block absolute top-0 right-2 sm:right-4 w-6 sm:w-8 h-1 bg-yellow-400 rounded-full opacity-80"></div>
             </div>
           </div>
         </div>
