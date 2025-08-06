@@ -180,40 +180,54 @@ const Navigation: React.FC = () => {
           
           {/* User Menu */}
           <div className="flex items-center">
-            <span className="text-gray-200 hidden lg:block text-sm mr-8">
+            <span className="text-gray-200 hidden lg:block text-sm mr-4">
               {state.settings.username}
             </span>
             
             {/* Dashboard Button */}
             <Link 
               to="/"
-              className={`flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-8 ${
+              className={`flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-4 ${
                 isActive('/') ? 'text-yellow-300' : 'text-gray-200 hover:text-white'
               }`}
             >
-              <Target size={20} />
               <span className="text-xs">Dashboard</span>
+              <Target size={16} />
             </Link>
             
             {/* Avatar with Profile text */}
             <Link 
               to="/profile"
-              className="flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-12"
+              className="flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-4"
             >
+              <span className="text-gray-200 text-xs">Profile</span>
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-lg sm:text-xl">
                   {state.settings.avatar}
                 </div>
               </div>
-              <span className="text-gray-200 text-xs">Profile</span>
             </Link>
             
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-1 sm:space-x-2 text-gray-100 hover:text-gray-300 transition-colors duration-200 px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-gray-800 hover:bg-gray-900 border-2 border-gray-700 shadow-lg"
+              className="flex items-center justify-center space-x-1 sm:space-x-2 transition-colors duration-200 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-fit whitespace-nowrap"
+              style={{
+                backgroundColor: '#000000',
+                borderColor: '#000000',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                color: '#ffffff',
+                fontWeight: 'bold'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#333333';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#000000';
+              }}
             >
-              <LogOut size={16} className="sm:size-[18px]" />
-              <span className="hidden sm:block text-sm font-bold">EXIT</span>
+              <LogOut size={14} className="sm:size-[16px]" />
+              <span className="text-xs sm:text-sm font-bold">EXIT</span>
             </button>
           </div>
         </div>
@@ -228,15 +242,14 @@ const Navigation: React.FC = () => {
         }}
       >
         <div className="flex flex-col max-w-sm mx-auto px-2 py-1 space-y-0">
-          {navItems.slice(1).map((item) => {
+          {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others including Challenges
             const Icon = item.icon;
             const active = isActive(item.path);
-            const theme = getTheme(state.settings.theme);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 touch-manipulation ${
+                className={`block w-full text-center px-4 py-3 rounded-lg transition-all duration-200 touch-manipulation ${
                   active 
                     ? 'border-l-4' 
                     : 'hover:bg-white/30 active:bg-white/40'
@@ -244,18 +257,20 @@ const Navigation: React.FC = () => {
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
                   ...(active ? {
-                    background: `linear-gradient(to right, ${theme.colors.primary}20, ${theme.colors.secondary}20)`,
-                    color: theme.colors.primary,
-                    borderLeftColor: theme.colors.primary
+                    background: `linear-gradient(to right, rgba(79, 70, 229, 0.125), rgba(99, 102, 241, 0.125))`, // Same as Challenges
+                    color: '#4f46e5', // Same indigo color
+                    borderLeftColor: '#4f46e5' // Same border color
                   } : {
-                    color: 'rgba(0, 0, 0, 0.7)'
+                    color: 'rgba(0, 0, 0, 0.7)' // Same inactive color
                   })
                 }}
               >
-                <Icon size={18} />
-                <span className="text-sm font-medium">
-                  {item.label}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <span className="text-sm font-medium">
+                    {item.label}
+                  </span>
+                  <Icon size={16} />
+                </div>
               </Link>
             );
           })}

@@ -142,7 +142,7 @@ const Login: React.FC = () => {
       <div 
         id="login-container"
         style={{
-          background: 'linear-gradient(135deg, #0C0A1E 0%, #1A0B2E 15%, #2D1B69 30%, #3730A3 50%, #6366F1 70%, #8B5CF6 85%, #C084FC 100%)',
+          background: 'linear-gradient(135deg, #475569 0%, #64748b 20%, #94a3b8 40%, #cbd5e1 60%, #e2e8f0 80%, #f1f5f9 100%)',
           backgroundSize: '400% 400%',
           animation: 'gradientShift 15s ease infinite'
         }}
@@ -151,7 +151,7 @@ const Login: React.FC = () => {
         <div 
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.3) 0%, transparent 25%), radial-gradient(circle at 70% 80%, rgba(99, 102, 241, 0.4) 0%, transparent 35%), linear-gradient(135deg, rgba(12, 10, 30, 0.6) 0%, transparent 40%, rgba(45, 27, 105, 0.5) 70%, rgba(55, 48, 163, 0.7) 100%)'
+            background: 'radial-gradient(circle at 30% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 25%), radial-gradient(circle at 70% 80%, rgba(29, 78, 216, 0.4) 0%, transparent 35%), linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, transparent 40%, rgba(51, 65, 85, 0.5) 70%, rgba(71, 85, 105, 0.7) 100%)'
           }}
         ></div>
         
@@ -210,7 +210,7 @@ const Login: React.FC = () => {
             style={{
               top: '-5rem',
               left: '-5rem',
-              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, rgba(99, 102, 241, 0.3) 40%, transparent 70%)'
+              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(29, 78, 216, 0.3) 40%, transparent 70%)'
             }}
           ></div>
           <div 
@@ -218,7 +218,7 @@ const Login: React.FC = () => {
             style={{
               bottom: '-5rem',
               right: '-5rem',
-              background: 'radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, rgba(168, 85, 247, 0.3) 40%, transparent 70%)'
+              background: 'radial-gradient(circle, rgba(16, 185, 129, 0.4) 0%, rgba(5, 150, 105, 0.3) 40%, transparent 70%)'
             }}
           ></div>
           <div 
@@ -227,83 +227,83 @@ const Login: React.FC = () => {
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
-              background: 'radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, rgba(16, 185, 129, 0.25) 40%, transparent 70%)'
+              background: 'radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, rgba(6, 182, 212, 0.25) 40%, transparent 70%)'
             }}
           ></div>
         </div>
 
         {/* Main Login Container */}
-        <div className="relative z-10 w-full max-w-md mx-auto px-4 sm:px-6 md:px-4">
+        <div className="relative z-10 w-full max-w-md mx-auto px-4 sm:px-6 md:px-4 flex flex-col justify-center min-h-screen">
           {!showForgotPassword ? (
             <div 
-              className="backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8 border-2 transform hover:scale-[1.01] transition-all duration-300 max-h-[90vh] overflow-y-auto"
+              className="backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-10 border-2 transform hover:scale-[1.01] transition-all duration-300 max-h-[90vh] overflow-y-auto"
               style={{
-                background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.92) 20%, rgba(241, 245, 249, 0.90) 60%, rgba(226, 232, 240, 0.88) 100%)',
-                borderImage: 'linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(99, 102, 241, 0.5), rgba(236, 72, 153, 0.6)) 1',
+                background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 20%, rgba(241, 245, 249, 0.94) 60%, rgba(226, 232, 240, 0.92) 100%)',
+                borderImage: 'linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.4)) 1',
                 borderWidth: '3px',
                 borderStyle: 'solid',
                 boxShadow: `
-                  0 25px 50px -12px rgba(139, 92, 246, 0.4),
+                  0 25px 50px -12px rgba(59, 130, 246, 0.3),
                   0 0 0 1px rgba(99, 102, 241, 0.1) inset,
-                  0 2px 4px rgba(139, 92, 246, 0.1),
+                  0 2px 4px rgba(59, 130, 246, 0.1),
                   0 8px 16px rgba(99, 102, 241, 0.15)
                 `
               }}
             >
               {/* Logo and Title Section */}
-              <div className="text-center mb-6 sm:mb-8">
+              <div className="text-center mb-8 sm:mb-10">
                 {/* Animated Logo with enhanced gaming effects */}
-                <div className="relative inline-block mb-4 sm:mb-6">
+                <div className="relative inline-block mb-6 sm:mb-8">
                   <div 
-                    className="relative inline-flex items-center justify-center w-16 h-16 sm:w-20 md:w-24 sm:h-20 md:h-24 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 animate-pulse"
+                    className="relative inline-flex items-center justify-center w-18 h-18 sm:w-22 md:w-26 sm:h-22 md:h-26 rounded-full shadow-2xl transform hover:scale-110 transition-all duration-300 animate-pulse"
                     style={{
-                      background: 'linear-gradient(135deg, #8B5CF6 0%, #3B82F6 50%, #06B6D4 100%)',
-                      boxShadow: '0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.4)'
+                      background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%)',
+                      boxShadow: '0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(29, 78, 216, 0.4)'
                     }}
                   >
-                    <Target className="w-8 h-8 sm:w-10 md:w-12 sm:h-10 md:h-12 text-white drop-shadow-2xl" />
+                    <Target className="w-10 h-10 sm:w-12 md:w-14 sm:h-12 md:h-14 text-white drop-shadow-2xl" />
                     {/* Rotating ring around logo */}
                     <div 
-                      className="absolute inset-0 rounded-full border-2 sm:border-4 border-transparent animate-spin"
+                      className="absolute inset-0 rounded-full border-3 sm:border-4 border-transparent animate-spin"
                       style={{
-                        background: 'linear-gradient(45deg, transparent, rgba(236, 72, 153, 0.8), transparent, rgba(139, 92, 246, 0.8)) border-box',
+                        background: 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.8), transparent, rgba(29, 78, 216, 0.8)) border-box',
                         animation: 'spin 3s linear infinite'
                       }}
                     ></div>
                   </div>
-                  <div className="absolute -top-1 sm:-top-2 -right-1 sm:-right-2 animate-bounce">
-                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400" style={{ filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.8))' }} />
+                  <div className="absolute -top-2 sm:-top-3 -right-2 sm:-right-3 animate-bounce">
+                    <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-yellow-400" style={{ filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.8))' }} />
                   </div>
-                  <div className="absolute -bottom-1 -left-1 animate-pulse">
-                    <Crown className="w-4 h-4 sm:w-6 sm:h-6 text-amber-400" style={{ filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.6))' }} />
+                  <div className="absolute -bottom-2 -left-2 animate-pulse">
+                    <Crown className="w-5 h-5 sm:w-7 sm:h-7 text-amber-400" style={{ filter: 'drop-shadow(0 0 8px rgba(245, 158, 11, 0.6))' }} />
                   </div>
                 </div>
                 
                 {/* Welcome Text with gradient */}
                 <h1 
-                  className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent animate-gradient-x"
+                  className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x"
                   style={{ fontFamily: 'Poppins, sans-serif' }}
                 >
                   Welcome Back, Hero! 🎮
                 </h1>
-                <p className="text-gray-700 text-base sm:text-lg font-medium mb-1 sm:mb-2">Ready to continue your epic journey? ⚡</p>
-                <p className="text-gray-600 text-xs sm:text-sm">Level up your productivity and unlock achievements! 🚀</p>
+                <p className="text-gray-700 text-base sm:text-lg font-medium mb-2 sm:mb-3">Ready to continue your epic journey? ⚡</p>
+                <p className="text-gray-600 text-sm sm:text-base">Level up your productivity and unlock achievements! 🚀</p>
                 
                 {/* Enhanced Stats Bar with more gaming elements */}
-                <div className="flex justify-center gap-2 sm:gap-3 mt-4 sm:mt-6 flex-wrap">
+                <div className="flex justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 flex-wrap">
                   <div 
-                    className="bg-gradient-to-r from-blue-100 to-blue-50 px-2 sm:px-4 py-1 sm:py-2 rounded-full border-2 border-blue-300 shadow-md hover:shadow-lg transition-all hover:scale-105"
-                    style={{ borderImage: 'linear-gradient(45deg, #3B82F6, #06B6D4) 1' }}
+                    className="bg-gradient-to-r from-blue-100 to-blue-50 px-3 sm:px-5 py-2 sm:py-3 rounded-full border-2 border-blue-300 shadow-md hover:shadow-lg transition-all hover:scale-105"
+                    style={{ borderImage: 'linear-gradient(45deg, #3B82F6, #1D4ED8) 1' }}
                   >
-                    <span className="text-blue-700 text-xs sm:text-sm font-bold flex items-center gap-1">
-                      🏆 <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">1000+ Heroes</span>
+                    <span className="text-blue-700 text-sm sm:text-base font-bold flex items-center gap-2">
+                      🏆 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">1000+ Heroes</span>
                     </span>
                   </div>
                   <div 
-                    className="bg-gradient-to-r from-emerald-100 to-emerald-50 px-2 sm:px-4 py-1 sm:py-2 rounded-full border-2 border-emerald-300 shadow-md hover:shadow-lg transition-all hover:scale-105"
+                    className="bg-gradient-to-r from-emerald-100 to-emerald-50 px-3 sm:px-5 py-2 sm:py-3 rounded-full border-2 border-emerald-300 shadow-md hover:shadow-lg transition-all hover:scale-105"
                     style={{ borderImage: 'linear-gradient(45deg, #10B981, #34D399) 1' }}
                   >
-                    <span className="text-emerald-700 text-xs sm:text-sm font-bold flex items-center gap-1">
+                    <span className="text-emerald-700 text-sm sm:text-base font-bold flex items-center gap-2">
                       ⭐ <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">Legendary</span>
                     </span>
                   </div>
@@ -321,10 +321,10 @@ const Login: React.FC = () => {
               )}
 
               {/* Login Form */}
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7">
                 {/* Email Field */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">
                     Email Address
                   </label>
                   <div className="relative">
@@ -332,19 +332,19 @@ const Login: React.FC = () => {
                       type="email"
                       value={email}
                       onChange={handleEmailChange}
-                      className="w-full bg-white/90 backdrop-blur-sm border-2 border-gray-200 rounded-xl py-2.5 sm:py-3 px-3 sm:px-4 pl-10 sm:pl-11 text-gray-800 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 hover:border-gray-300 text-sm sm:text-base"
+                      className="w-full bg-white/95 backdrop-blur-sm border-2 border-gray-200 rounded-xl py-3.5 sm:py-4 px-4 sm:px-5 pl-12 sm:pl-13 text-gray-800 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 hover:border-gray-300 text-base sm:text-lg"
                       placeholder="hero@motivate.com"
                       disabled={loading}
                       required
                     />
-                    <Mail className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                    <Mail className="absolute left-3.5 sm:left-4 top-3.5 sm:top-4.5 w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                     {email && !emailError && (
-                      <CheckCircle className="absolute right-2.5 sm:right-3 top-2.5 sm:top-3.5 w-4 h-4 sm:w-5 sm:h-5 text-green-600 animate-scale-in" />
+                      <CheckCircle className="absolute right-3.5 sm:right-4 top-3.5 sm:top-4.5 w-5 h-5 sm:w-6 sm:h-6 text-green-600 animate-scale-in" />
                     )}
                   </div>
                   {emailError && (
-                    <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
+                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
                       {emailError}
                     </p>
                   )}
@@ -352,7 +352,7 @@ const Login: React.FC = () => {
 
                 {/* Password Field */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  <label className="block text-sm font-semibold text-gray-800 mb-3">
                     Password
                   </label>
                   <div className="relative">
@@ -360,42 +360,42 @@ const Login: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={handlePasswordChange}
-                      className="w-full bg-white/90 backdrop-blur-sm border-2 border-gray-200 rounded-xl py-2.5 sm:py-3 px-3 sm:px-4 pl-10 sm:pl-11 pr-10 sm:pr-11 text-gray-800 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 hover:border-gray-300 text-sm sm:text-base"
+                      className="w-full bg-white/95 backdrop-blur-sm border-2 border-gray-200 rounded-xl py-3.5 sm:py-4 px-4 sm:px-5 pl-12 sm:pl-13 pr-12 sm:pr-13 text-gray-800 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 hover:border-gray-300 text-base sm:text-lg"
                       placeholder="Your secret key"
                       disabled={loading}
                       required
                     />
-                    <Lock className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+                    <Lock className="absolute left-3.5 sm:left-4 top-3.5 sm:top-4.5 w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 sm:right-3 top-2.5 sm:top-3.5 text-gray-500 hover:text-gray-700 transition-colors"
+                      className="absolute right-3.5 sm:right-4 top-3.5 sm:top-4.5 text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
+                      {showPassword ? <EyeOff className="w-5 h-5 sm:w-6 sm:h-6" /> : <Eye className="w-5 h-5 sm:w-6 sm:h-6" />}
                     </button>
                   </div>
                   {passwordError && (
-                    <p className="mt-2 text-xs sm:text-sm text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
+                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
                       {passwordError}
                     </p>
                   )}
                 </div>
 
                 {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between py-2">
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <span className="ml-1.5 sm:ml-2 text-gray-700 text-xs sm:text-sm">Remember me</span>
+                    <span className="ml-2 sm:ml-3 text-gray-700 text-sm sm:text-base">Remember me</span>
                   </label>
                   
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium transition-colors"
+                    className="text-blue-600 hover:text-blue-700 text-sm sm:text-base font-medium transition-colors"
                     disabled={loading}
                   >
                     Forgot password?
@@ -406,45 +406,45 @@ const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading || !!emailError || !!passwordError}
-                  className="w-full text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 relative overflow-hidden group"
+                  className="w-full text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 relative overflow-hidden group mt-8"
                   style={{
-                    background: 'linear-gradient(135deg, #8B5CF6 0%, #3B82F6 50%, #06B6D4 100%)',
-                    boxShadow: '0 10px 25px rgba(139, 92, 246, 0.4), 0 0 20px rgba(59, 130, 246, 0.3)'
+                    background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%)',
+                    boxShadow: '0 10px 25px rgba(59, 130, 246, 0.4), 0 0 20px rgba(29, 78, 216, 0.3)'
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-700"></div>
-                  <span className="flex items-center justify-center gap-1.5 sm:gap-2 relative z-10">
+                  <span className="flex items-center justify-center gap-2 sm:gap-3 relative z-10">
                     {loading ? (
                       <>
-                        <div className="w-5 h-5 sm:w-6 sm:h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span className="text-sm sm:text-base">Entering the Arena...</span>
+                        <div className="w-6 h-6 sm:w-7 sm:h-7 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <span className="text-base sm:text-lg">Entering the Arena...</span>
                       </>
                     ) : (
                       <>
-                        <Zap className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
-                        <span className="text-base sm:text-lg">⚡ START EPIC JOURNEY ⚡</span>
-                        <Trophy className="w-5 h-5 sm:w-6 sm:h-6 animate-bounce" />
+                        <Zap className="w-6 h-6 sm:w-7 sm:h-7 animate-pulse" />
+                        <span className="text-lg sm:text-xl">⚡ START EPIC JOURNEY ⚡</span>
+                        <Trophy className="w-6 h-6 sm:w-7 sm:h-7 animate-bounce" />
                       </>
                     )}
                   </span>
                 </button>
 
                 {/* Divider */}
-                <div className="relative my-6 sm:my-8">
+                <div className="relative my-8 sm:my-10">
                   <div className="absolute inset-0 flex items-center">
                     <div 
                       className="w-full border-t-2"
                       style={{
-                        borderImage: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), rgba(59, 130, 246, 0.4), rgba(139, 92, 246, 0.3), transparent) 1'
+                        borderImage: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), rgba(29, 78, 216, 0.4), rgba(59, 130, 246, 0.3), transparent) 1'
                       }}
                     ></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
                     <span 
-                      className="px-4 sm:px-6 py-1.5 sm:py-2 text-gray-600 font-semibold rounded-full text-xs sm:text-sm"
+                      className="px-6 sm:px-8 py-2 sm:py-3 text-gray-600 font-semibold rounded-full text-sm sm:text-base"
                       style={{ 
-                        background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.92) 100%)',
-                        boxShadow: '0 4px 8px rgba(139, 92, 246, 0.1)'
+                        background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.96) 100%)',
+                        boxShadow: '0 4px 8px rgba(59, 130, 246, 0.1)'
                       }}
                     >
                       🎮 New Player? Join the Guild! 🎮
@@ -455,38 +455,38 @@ const Login: React.FC = () => {
                 {/* Sign Up Link - Enhanced Gaming Style */}
                 <Link 
                   to="/signup" 
-                  className="w-full text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-[1.02] relative overflow-hidden group"
+                  className="w-full text-white font-bold py-4 sm:py-5 px-4 sm:px-6 rounded-xl flex items-center justify-center gap-3 sm:gap-4 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-[1.02] relative overflow-hidden group"
                   style={{
-                    background: 'linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #3B82F6 100%)',
-                    boxShadow: '0 10px 25px rgba(236, 72, 153, 0.4), 0 0 20px rgba(139, 92, 246, 0.3)'
+                    background: 'linear-gradient(135deg, #10B981 0%, #059669 50%, #047857 100%)',
+                    boxShadow: '0 10px 25px rgba(16, 185, 129, 0.4), 0 0 20px rgba(5, 150, 105, 0.3)'
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-700"></div>
-                  <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-spin" style={{ animationDuration: '3s' }} />
-                  <span className="text-base sm:text-lg relative z-10">🚀 CREATE HERO ACCOUNT 🚀</span>
-                  <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-pulse" />
+                  <Star className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300 animate-spin" style={{ animationDuration: '3s' }} />
+                  <span className="text-lg sm:text-xl relative z-10">🚀 CREATE HERO ACCOUNT 🚀</span>
+                  <Crown className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-300 animate-pulse" />
                 </Link>
               </form>
 
               {/* Features Showcase - Enhanced Gaming Theme */}
-              <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t-2" style={{ borderImage: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2), transparent) 1' }}>
-                <p className="text-center text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 font-semibold">🌟 Join thousands of legendary achievers! 🌟</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
-                  <div className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-b from-blue-50 to-blue-100 border border-blue-200 hover:scale-105 transition-transform">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🎯</div>
-                    <p className="text-xs text-blue-700 font-bold">Epic Goals</p>
+              <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t-2" style={{ borderImage: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent) 1' }}>
+                <p className="text-center text-gray-600 text-lg font-bold mb-4 sm:mb-6">🌟 Join thousands of legendary achievers! 🌟</p>
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                  <div className="text-center p-2 sm:p-3 rounded-xl bg-gradient-to-b from-blue-50 to-blue-100 border border-blue-200 hover:scale-105 transition-transform">
+                    <p className="text-xs sm:text-sm text-blue-700 font-bold mb-1 sm:mb-2">Epic Goals</p>
+                    <div className="text-2xl sm:text-3xl">🎯</div>
                   </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-b from-yellow-50 to-yellow-100 border border-yellow-200 hover:scale-105 transition-transform">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🏆</div>
-                    <p className="text-xs text-yellow-700 font-bold">Legendary Rewards</p>
+                  <div className="text-center p-2 sm:p-3 rounded-xl bg-gradient-to-b from-yellow-50 to-yellow-100 border border-yellow-200 hover:scale-105 transition-transform">
+                    <p className="text-xs sm:text-sm text-yellow-700 font-bold mb-1 sm:mb-2">Legendary Rewards</p>
+                    <div className="text-2xl sm:text-3xl">🏆</div>
                   </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-b from-green-50 to-green-100 border border-green-200 hover:scale-105 transition-transform">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">📈</div>
-                    <p className="text-xs text-green-700 font-bold">Power Stats</p>
+                  <div className="text-center p-2 sm:p-3 rounded-xl bg-gradient-to-b from-green-50 to-green-100 border border-green-200 hover:scale-105 transition-transform">
+                    <p className="text-xs sm:text-sm text-green-700 font-bold mb-1 sm:mb-2">Power Stats</p>
+                    <div className="text-2xl sm:text-3xl">📈</div>
                   </div>
-                  <div className="text-center p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200 hover:scale-105 transition-transform">
-                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">💎</div>
-                    <p className="text-xs text-purple-700 font-bold">Rare Gems</p>
+                  <div className="text-center p-2 sm:p-3 rounded-xl bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200 hover:scale-105 transition-transform">
+                    <p className="text-xs sm:text-sm text-purple-700 font-bold mb-1 sm:mb-2">Rare Gems</p>
+                    <div className="text-2xl sm:text-3xl">💎</div>
                   </div>
                 </div>
               </div>
