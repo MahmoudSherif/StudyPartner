@@ -158,28 +158,29 @@ const Navigation: React.FC = () => {
     <>
       {/* Enhanced Header with User Info */}
       <nav 
-        className="backdrop-blur-md border-b border-white/10 px-6 py-4 shadow-lg"
+        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-6 py-3 sm:py-4 shadow-lg"
         style={{ background: headerGradient }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-white flex items-center gap-2">
-            <Target className="text-yellow-300" size={28} />
-            MotiveMate
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+          {/* Logo - Responsive */}
+          <Link to="/" className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <Target className="text-yellow-300" size={24} />
+            <span className="hidden min-[360px]:block">MotiveMate</span>
+            <span className="min-[360px]:hidden">MM</span>
           </Link>
           
-          {/* User Stats */}
-          <div className="hidden md:flex items-center gap-6">
+          {/* User Stats - Hidden on small mobile, compact on medium */}
+          <div className="hidden sm:flex items-center gap-3 lg:gap-6">
             {/* Level Badge */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
-              <Crown className="text-yellow-300" size={18} />
-              <span className="text-white font-semibold">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 lg:px-3 py-1 lg:py-2 rounded-full border border-white/20">
+              <Crown className="text-yellow-300" size={16} />
+              <span className="text-white font-semibold text-sm">
                 Lv.{state.userStats.level.level}
               </span>
             </div>
 
-            {/* XP Display */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
+            {/* XP Display - Hidden on medium, shown on large */}
+            <div className="hidden lg:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
               <Zap className="text-blue-300" size={18} />
               <span className="text-white font-semibold">
                 {state.userStats.totalXP.toLocaleString()} XP
@@ -187,24 +188,24 @@ const Navigation: React.FC = () => {
             </div>
 
             {/* Coins */}
-            <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-3 py-2 rounded-full shadow-lg">
-              <span className="text-lg">🪙</span>
-              <span className="text-white font-bold">
+            <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-2 lg:px-3 py-1 lg:py-2 rounded-full shadow-lg">
+              <span className="text-base lg:text-lg">🪙</span>
+              <span className="text-white font-bold text-sm lg:text-base">
                 {state.coins}
               </span>
             </div>
 
             {/* Streak */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
-              <span className="text-lg">🔥</span>
-              <span className="text-white font-semibold">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 lg:px-3 py-1 lg:py-2 rounded-full border border-white/20">
+              <span className="text-base lg:text-lg">🔥</span>
+              <span className="text-white font-semibold text-sm lg:text-base">
                 {state.streak.current}
               </span>
             </div>
           </div>
           
           {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="text-gray-200 hidden lg:block text-sm">
               {state.settings.username}
             </span>
@@ -212,27 +213,27 @@ const Navigation: React.FC = () => {
             {/* Avatar */}
             <Link 
               to="/profile"
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5 hover:scale-105 transition-transform"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5 hover:scale-105 transition-transform"
             >
-              <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-xl">
+              <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-lg sm:text-xl">
                 {state.settings.avatar}
               </div>
             </Link>
             
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 text-gray-200 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10"
+              className="flex items-center space-x-1 sm:space-x-2 text-gray-200 hover:text-white transition-colors duration-200 px-2 sm:px-3 py-1 sm:py-2 rounded-lg hover:bg-white/10"
             >
-              <LogOut size={18} />
-              <span className="hidden sm:block">Logout</span>
+              <LogOut size={16} className="sm:size-[18px]" />
+              <span className="hidden sm:block text-sm">Logout</span>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Enhanced Bottom Navigation - positioned above quotes bar */}
+      {/* Enhanced Bottom Navigation - Mobile Optimized */}
       <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-[999998] bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl">
-        <div className="flex flex-row items-center justify-between py-1 px-1 overflow-x-auto max-w-full">
+        <div className="flex items-center py-2 px-2 overflow-x-auto scrollbar-hide">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -240,21 +241,23 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center justify-center flex-1 min-w-0 py-2 px-1 rounded-lg transition-all duration-200 ${
+                className={`relative flex flex-col items-center justify-center min-w-[64px] sm:min-w-[72px] py-2 px-1 mx-0.5 rounded-lg transition-all duration-200 flex-shrink-0 ${
                   active 
-                    ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600 border border-blue-200' 
+                    ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600 border border-blue-200 shadow-sm' 
                     : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                 }`}
               >
                 {/* Notification Badge */}
                 {item.count > 0 && (
-                  <div className="absolute -top-1 -right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[10px]">
+                  <div className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[9px] min-w-[16px] z-10">
                     {item.count > 99 ? '99+' : item.count}
                   </div>
                 )}
                 
-                <Icon size={18} className="mb-0.5" />
-                <span className="text-[10px] sm:text-xs font-medium truncate max-w-full">{item.label}</span>
+                <Icon size={20} className="mb-1 flex-shrink-0" />
+                <span className="text-[9px] sm:text-[10px] font-medium text-center leading-tight max-w-[56px] sm:max-w-[64px] overflow-hidden">
+                  {item.label}
+                </span>
                 
                 {/* Active Indicator */}
                 {active && (
@@ -304,7 +307,7 @@ const ThemedMainContent: React.FC = () => {
       style={{ background: themeBackground }}
     >
       <Navigation />
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-20 sm:pb-32 max-w-full overflow-x-hidden">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-24 sm:pb-36 max-w-full overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/tasks" element={<TaskManager />} />
