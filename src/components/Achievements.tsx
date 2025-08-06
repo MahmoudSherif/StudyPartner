@@ -67,13 +67,14 @@ const Achievements: React.FC = () => {
   };
 
   const getAchievementIcon = (type: string) => {
+    const iconSize = 20; // Responsive size handled in CSS
     switch (type) {
-      case 'task': return <Target size={24} />;
-      case 'streak': return <TrendingUp size={24} />;
-      case 'milestone': return <Star size={24} />;
-      case 'daily-challenge': return <Zap size={24} />;
-      case 'special': return <Crown size={24} />;
-      default: return <Trophy size={24} />;
+      case 'task': return <Target size={iconSize} />;
+      case 'streak': return <TrendingUp size={iconSize} />;
+      case 'milestone': return <Star size={iconSize} />;
+      case 'daily-challenge': return <Zap size={iconSize} />;
+      case 'special': return <Crown size={iconSize} />;
+      default: return <Trophy size={iconSize} />;
     }
   };
 
@@ -105,45 +106,45 @@ const Achievements: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-          <Trophy className="text-yellow-500" size={32} />
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
+          <Trophy className="text-yellow-500" size={28} />
           Achievements
         </h1>
-        <p className="text-gray-600 mb-4">{getMotivationalMessage()}</p>
+        <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">{getMotivationalMessage()}</p>
       </div>
 
       {/* Achievement Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card text-center">
-          <div className="text-3xl mb-2">🏆</div>
-          <div className="text-2xl font-bold text-yellow-600 mb-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="card text-center p-3 sm:p-4">
+          <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🏆</div>
+          <div className="text-lg sm:text-2xl font-bold text-yellow-600 mb-1 sm:mb-2">
             {achievementCount}
           </div>
-          <p className="text-sm text-gray-600">Unlocked</p>
+          <p className="text-xs sm:text-sm text-gray-600">Unlocked</p>
         </div>
 
-        <div className="card text-center">
-          <div className="text-3xl mb-2">⭐</div>
-          <div className="text-2xl font-bold text-blue-600 mb-2">
+        <div className="card text-center p-3 sm:p-4">
+          <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">⭐</div>
+          <div className="text-lg sm:text-2xl font-bold text-blue-600 mb-1 sm:mb-2">
             {totalPoints}
           </div>
-          <p className="text-sm text-gray-600">Total Points</p>
+          <p className="text-xs sm:text-sm text-gray-600">Total Points</p>
         </div>
 
-        <div className="card text-center">
-          <div className="text-3xl mb-2">📊</div>
-          <div className="text-2xl font-bold text-green-600 mb-2">
+        <div className="card text-center p-3 sm:p-4">
+          <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">📊</div>
+          <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1 sm:mb-2">
             {completionPercentage.toFixed(1)}%
           </div>
-          <p className="text-sm text-gray-600">Complete</p>
+          <p className="text-xs sm:text-sm text-gray-600">Complete</p>
         </div>
 
-        <div className="card text-center">
-          <div className="text-3xl mb-2">🔥</div>
-          <div className="text-2xl font-bold text-orange-600 mb-2">
+        <div className="card text-center p-3 sm:p-4">
+          <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🔥</div>
+          <div className="text-lg sm:text-2xl font-bold text-orange-600 mb-1 sm:mb-2">
             {state.streak.current}
           </div>
-          <p className="text-sm text-gray-600">Current Streak</p>
+          <p className="text-xs sm:text-sm text-gray-600">Current Streak</p>
         </div>
       </div>
 
@@ -180,13 +181,13 @@ const Achievements: React.FC = () => {
           <span className="text-lg font-medium text-gray-700">Filters</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col space-y-4 sm:grid sm:grid-cols-1 md:grid-cols-3 sm:gap-4 sm:space-y-0">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="input"
+              className="input w-full"
             >
               <option value="all">All Types</option>
               <option value="task">Task Achievements</option>
@@ -202,7 +203,7 @@ const Achievements: React.FC = () => {
             <select
               value={rarityFilter}
               onChange={(e) => setRarityFilter(e.target.value as any)}
-              className="input"
+              className="input w-full"
             >
               <option value="all">All Rarities</option>
               <option value="common">Common</option>
@@ -217,7 +218,7 @@ const Achievements: React.FC = () => {
             <select
               value={showUnlocked}
               onChange={(e) => setShowUnlocked(e.target.value as any)}
-              className="input"
+              className="input w-full"
             >
               <option value="all">All Achievements</option>
               <option value="unlocked">Unlocked Only</option>
@@ -232,9 +233,9 @@ const Achievements: React.FC = () => {
       </div>
 
       {/* Achievements Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {filteredAchievements.length === 0 ? (
-          <div className="col-span-2 card text-center py-12">
+          <div className="lg:col-span-2 card text-center py-12">
             <Trophy size={48} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">
               No achievements found
@@ -262,25 +263,25 @@ const Achievements: React.FC = () => {
                 )}
                 
                 <div className="relative">
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
                     {/* Achievement Icon */}
-                    <div className={`p-3 rounded-full ${
+                    <div className={`p-2 sm:p-3 rounded-full ${
                       isLocked 
                         ? 'bg-gray-200 text-gray-400' 
                         : getRarityColor(achievement.rarity)
-                    } relative`}>
-                      {isLocked ? <Lock size={24} /> : getAchievementIcon(achievement.type)}
+                    } relative flex-shrink-0`}>
+                      {isLocked ? <Lock size={20} className="sm:size-6" /> : getAchievementIcon(achievement.type)}
                     </div>
 
                     {/* Achievement Details */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-lg font-semibold flex items-center gap-2">
-                            {achievement.title}
-                            {!isLocked && <CheckCircle2 size={20} className="text-green-500" />}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 flex-wrap">
+                            <span className="break-words">{achievement.title}</span>
+                            {!isLocked && <CheckCircle2 size={18} className="text-green-500 flex-shrink-0" />}
                           </h3>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRarityColor(achievement.rarity)}`}>
                               {achievement.rarity}
                             </span>
@@ -291,26 +292,26 @@ const Achievements: React.FC = () => {
                         </div>
                         
                         {!isLocked && (
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-blue-600">+{achievement.points}</div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <div className="text-base sm:text-lg font-bold text-blue-600">+{achievement.points}</div>
                             <div className="text-xs text-gray-500">XP</div>
                           </div>
                         )}
                       </div>
                       
-                      <p className="text-sm text-gray-700 mb-3">
+                      <p className="text-sm text-gray-700 mb-3 break-words">
                         {achievement.description}
                       </p>
                       
                       {!isLocked && achievement.date && (
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <Calendar size={12} />
-                          Unlocked on {format(new Date(achievement.date), 'MMM do, yyyy')}
+                          <span className="break-words">Unlocked on {format(new Date(achievement.date), 'MMM do, yyyy')}</span>
                         </div>
                       )}
 
                       {achievement.icon && !isLocked && (
-                        <div className="absolute top-2 right-2 text-2xl">
+                        <div className="absolute top-2 right-2 text-xl sm:text-2xl">
                           {achievement.icon}
                         </div>
                       )}

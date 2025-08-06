@@ -231,9 +231,9 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* Enhanced Bottom Navigation - Mobile Optimized */}
+      {/* Enhanced Bottom Navigation - All Screen Sizes */}
       <div className="fixed bottom-16 sm:bottom-20 left-0 right-0 z-[999998] bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl">
-        <div className="flex items-center py-2 px-2 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center py-2 px-1 sm:px-2 overflow-x-auto scrollbar-hide touch-pan-x">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -241,21 +241,21 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center justify-center min-w-[64px] sm:min-w-[72px] py-2 px-1 mx-0.5 rounded-lg transition-all duration-200 flex-shrink-0 ${
+                className={`relative flex flex-col items-center justify-center min-w-[60px] sm:min-w-[72px] min-h-[50px] py-2 px-1 mx-0.5 rounded-lg transition-all duration-200 flex-shrink-0 touch-manipulation ${
                   active 
                     ? 'bg-gradient-to-t from-blue-50 to-purple-50 text-blue-600 border border-blue-200 shadow-sm' 
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50 active:bg-gray-100'
                 }`}
               >
                 {/* Notification Badge */}
                 {item.count > 0 && (
-                  <div className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[9px] min-w-[16px] z-10">
+                  <div className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold text-[8px] min-w-[16px] z-10">
                     {item.count > 99 ? '99+' : item.count}
                   </div>
                 )}
                 
-                <Icon size={20} className="mb-1 flex-shrink-0" />
-                <span className="text-[9px] sm:text-[10px] font-medium text-center leading-tight max-w-[56px] sm:max-w-[64px] overflow-hidden">
+                <Icon size={18} className="mb-1 flex-shrink-0" />
+                <span className="text-[8px] sm:text-[9px] font-medium text-center leading-tight max-w-[52px] sm:max-w-[64px] overflow-hidden text-ellipsis">
                   {item.label}
                 </span>
                 
