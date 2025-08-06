@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
-import { AppState, Task, Achievement, ImportantDate, Question, MoodEntry, DailyProgress } from '../types';
+import { AppState, Task, Achievement, ImportantDate, Question, MoodEntry, DailyProgress, UserStats, DailyChallenge, UserLevel } from '../types';
 import { generateId } from '../utils/storage';
 import { 
   saveUserState, 
@@ -10,6 +10,14 @@ import {
   loadUserStateLocal
 } from '../utils/localStorage';
 import { useAuth } from './AuthContext';
+import { 
+  calculateLevel, 
+  XP_REWARDS, 
+  COIN_REWARDS, 
+  createAchievementTemplate,
+  generateDailyChallenges,
+  checkAchievements
+} from '../utils/gamificationEngine';
 
 type Action =
   | { type: 'ADD_TASK'; payload: Omit<Task, 'id' | 'createdAt'> }
@@ -17,6 +25,13 @@ type Action =
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'TOGGLE_TASK'; payload: string }
   | { type: 'ADD_ACHIEVEMENT'; payload: Omit<Achievement, 'id'> }
+  | { type: 'UNLOCK_ACHIEVEMENT'; payload: Achievement }
+  | { type: 'ADD_XP'; payload: number }
+  | { type: 'ADD_COINS'; payload: number }
+  | { type: 'UPDATE_USER_STATS'; payload: Partial<UserStats> }
+  | { type: 'COMPLETE_DAILY_CHALLENGE'; payload: string }
+  | { type: 'GENERATE_NEW_CHALLENGES' }
+  | { type: 'UPDATE_SETTINGS'; payload: Partial<AppState['settings']> }
   | { type: 'ADD_IMPORTANT_DATE'; payload: Omit<ImportantDate, 'id'> }
   | { type: 'UPDATE_IMPORTANT_DATE'; payload: ImportantDate }
   | { type: 'DELETE_IMPORTANT_DATE'; payload: string }
@@ -24,11 +39,11 @@ type Action =
   | { type: 'UPDATE_QUESTION'; payload: Question }
   | { type: 'DELETE_QUESTION'; payload: string }
   | { type: 'ADD_MOOD_ENTRY'; payload: Omit<MoodEntry, 'id'> }
-  | { type: 'UPDATE_STREAK'; payload: { current: number; longest: number; lastCompletedDate: string } }
+  | { type: 'UPDATE_STREAK'; payload: { current: number; longest: number; lastCompletedDate: string; freezeCount?: number } }
   | { type: 'ADD_DAILY_PROGRESS'; payload: DailyProgress }
   | { type: 'SET_TASKS'; payload: Task[] }
   | { type: 'SET_ACHIEVEMENTS'; payload: Achievement[] }
-  | { type: 'SET_STREAK'; payload: { current: number; longest: number; lastCompletedDate: string } }
+  | { type: 'SET_STREAK'; payload: { current: number; longest: number; lastCompletedDate: string; freezeCount?: number } }
   | { type: 'SET_IMPORTANTDATES'; payload: ImportantDate[] }
   | { type: 'SET_QUESTIONS'; payload: Question[] }
   | { type: 'SET_MOODENTRIES'; payload: MoodEntry[] }
@@ -39,11 +54,31 @@ type Action =
 const initialState: AppState = {
   tasks: [],
   achievements: [],
-  streak: { current: 0, longest: 0, lastCompletedDate: '' },
+  availableAchievements: createAchievementTemplate(),
+  streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 3 },
   importantDates: [],
   questions: [],
   moodEntries: [],
-  dailyProgress: []
+  dailyProgress: [],
+  userStats: {
+    totalTasksCompleted: 0,
+    longestStreak: 0,
+    totalXP: 0,
+    totalCoins: 100, // Start with some coins
+    joinedDate: new Date().toISOString(),
+    favoriteActivity: 'tasks',
+    level: calculateLevel(0)
+  },
+  dailyChallenges: generateDailyChallenges(),
+  leaderboard: [],
+  coins: 100, // Start with some coins
+  settings: {
+    theme: 'default',
+    notifications: true,
+    soundEffects: true,
+    username: 'Motivator',
+    avatar: '🎯'
+  }
 };
 
 const appReducer = (state: AppState, action: Action): AppState => {
@@ -81,6 +116,9 @@ const appReducer = (state: AppState, action: Action): AppState => {
       break;
 
     case 'TOGGLE_TASK':
+      const task = state.tasks.find(t => t.id === action.payload);
+      const isCompleting = task && !task.completed;
+      
       newState = {
         ...state,
         tasks: state.tasks.map(task => {
@@ -95,6 +133,62 @@ const appReducer = (state: AppState, action: Action): AppState => {
           return task;
         })
       };
+
+      // If task is being completed, award XP and coins
+      if (isCompleting && task) {
+        const xpReward = task.priority === 'high' ? XP_REWARDS.HIGH_PRIORITY_TASK : XP_REWARDS.TASK_COMPLETE;
+        const coinReward = task.priority === 'high' ? COIN_REWARDS.HIGH_PRIORITY_TASK : COIN_REWARDS.TASK_COMPLETE;
+        
+        newState = {
+          ...newState,
+          userStats: {
+            ...newState.userStats,
+            totalTasksCompleted: newState.userStats.totalTasksCompleted + 1,
+            totalXP: newState.userStats.totalXP + xpReward,
+            totalCoins: newState.userStats.totalCoins + coinReward,
+            level: calculateLevel(newState.userStats.totalXP + xpReward)
+          },
+          coins: newState.coins + coinReward
+        };
+
+        // Update daily challenges progress
+        newState = {
+          ...newState,
+          dailyChallenges: newState.dailyChallenges.map(challenge => {
+            if (challenge.type === 'task-completion' && !challenge.completed) {
+              const newProgress = challenge.progress + 1;
+              return {
+                ...challenge,
+                progress: newProgress,
+                completed: newProgress >= challenge.target
+              };
+            }
+            return challenge;
+          })
+        };
+      }
+      break;
+
+    case 'ADD_XP':
+      newState = {
+        ...state,
+        userStats: {
+          ...state.userStats,
+          totalXP: state.userStats.totalXP + action.payload,
+          level: calculateLevel(state.userStats.totalXP + action.payload)
+        }
+      };
+      break;
+
+    case 'ADD_COINS':
+      newState = {
+        ...state,
+        coins: state.coins + action.payload,
+        userStats: {
+          ...state.userStats,
+          totalCoins: state.userStats.totalCoins + action.payload
+        }
+      };
       break;
 
     case 'ADD_ACHIEVEMENT':
@@ -104,9 +198,69 @@ const appReducer = (state: AppState, action: Action): AppState => {
           ...state.achievements,
           {
             ...action.payload,
-            id: generateId()
+            id: generateId(),
+            unlocked: true,
+            date: new Date().toISOString()
           }
         ]
+      };
+      break;
+
+    case 'UNLOCK_ACHIEVEMENT':
+      newState = {
+        ...state,
+        achievements: [
+          ...state.achievements,
+          {
+            ...action.payload,
+            unlocked: true,
+            date: new Date().toISOString()
+          }
+        ],
+        userStats: {
+          ...state.userStats,
+          totalXP: state.userStats.totalXP + action.payload.points,
+          level: calculateLevel(state.userStats.totalXP + action.payload.points)
+        },
+        coins: state.coins + COIN_REWARDS.ACHIEVEMENT_UNLOCK
+      };
+      break;
+
+    case 'COMPLETE_DAILY_CHALLENGE':
+      const challenge = state.dailyChallenges.find(c => c.id === action.payload);
+      if (challenge && !challenge.completed) {
+        newState = {
+          ...state,
+          dailyChallenges: state.dailyChallenges.map(c => 
+            c.id === action.payload ? { ...c, completed: true } : c
+          ),
+          userStats: {
+            ...state.userStats,
+            totalXP: state.userStats.totalXP + challenge.reward.xp,
+            totalCoins: state.userStats.totalCoins + challenge.reward.coins,
+            level: calculateLevel(state.userStats.totalXP + challenge.reward.xp)
+          },
+          coins: state.coins + challenge.reward.coins
+        };
+      } else {
+        newState = state;
+      }
+      break;
+
+    case 'GENERATE_NEW_CHALLENGES':
+      newState = {
+        ...state,
+        dailyChallenges: generateDailyChallenges()
+      };
+      break;
+
+    case 'UPDATE_SETTINGS':
+      newState = {
+        ...state,
+        settings: {
+          ...state.settings,
+          ...action.payload
+        }
       };
       break;
 
@@ -149,7 +303,28 @@ const appReducer = (state: AppState, action: Action): AppState => {
             id: generateId(),
             createdAt: new Date().toISOString()
           }
-        ]
+        ],
+        userStats: {
+          ...state.userStats,
+          totalXP: state.userStats.totalXP + XP_REWARDS.KNOWLEDGE_QUESTION,
+          level: calculateLevel(state.userStats.totalXP + XP_REWARDS.KNOWLEDGE_QUESTION)
+        }
+      };
+
+      // Update daily challenges progress
+      newState = {
+        ...newState,
+        dailyChallenges: newState.dailyChallenges.map(challenge => {
+          if (challenge.type === 'knowledge-add' && !challenge.completed) {
+            const newProgress = challenge.progress + 1;
+            return {
+              ...challenge,
+              progress: newProgress,
+              completed: newProgress >= challenge.target
+            };
+          }
+          return challenge;
+        })
       };
       break;
 
@@ -178,14 +353,44 @@ const appReducer = (state: AppState, action: Action): AppState => {
             ...action.payload,
             id: generateId()
           }
-        ]
+        ],
+        userStats: {
+          ...state.userStats,
+          totalXP: state.userStats.totalXP + XP_REWARDS.MOOD_ENTRY,
+          level: calculateLevel(state.userStats.totalXP + XP_REWARDS.MOOD_ENTRY)
+        }
+      };
+
+      // Update daily challenges progress
+      newState = {
+        ...newState,
+        dailyChallenges: newState.dailyChallenges.map(challenge => {
+          if (challenge.type === 'mood-track' && !challenge.completed) {
+            const newProgress = challenge.progress + 1;
+            return {
+              ...challenge,
+              progress: newProgress,
+              completed: newProgress >= challenge.target
+            };
+          }
+          return challenge;
+        })
       };
       break;
 
     case 'UPDATE_STREAK':
       newState = {
         ...state,
-        streak: action.payload
+        streak: {
+          current: action.payload.current,
+          longest: action.payload.longest,
+          lastCompletedDate: action.payload.lastCompletedDate,
+          freezeCount: action.payload.freezeCount ?? state.streak.freezeCount
+        },
+        userStats: {
+          ...state.userStats,
+          longestStreak: Math.max(state.userStats.longestStreak, action.payload.longest)
+        }
       };
       break;
 
@@ -216,7 +421,12 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'SET_STREAK':
       newState = {
         ...state,
-        streak: action.payload
+        streak: {
+          current: action.payload.current,
+          longest: action.payload.longest,
+          lastCompletedDate: action.payload.lastCompletedDate,
+          freezeCount: action.payload.freezeCount ?? 3
+        }
       };
       break;
 
@@ -249,29 +459,60 @@ const appReducer = (state: AppState, action: Action): AppState => {
       break;
 
     case 'SET_ALL_DATA':
+      // Ensure we have default values for new properties
       newState = {
-        ...state,
-        ...action.payload
+        ...initialState,
+        ...action.payload,
+        availableAchievements: action.payload.availableAchievements || createAchievementTemplate(),
+        userStats: {
+          ...initialState.userStats,
+          ...action.payload.userStats,
+          level: calculateLevel(action.payload.userStats?.totalXP || 0)
+        },
+        dailyChallenges: action.payload.dailyChallenges || generateDailyChallenges(),
+        settings: {
+          ...initialState.settings,
+          ...action.payload.settings
+        },
+        coins: action.payload.coins || 100,
+        streak: {
+          ...initialState.streak,
+          ...action.payload.streak,
+          freezeCount: action.payload.streak?.freezeCount ?? 3
+        }
       };
       break;
 
     case 'RESET_STATE':
-      newState = {
-        tasks: [],
-        achievements: [],
-        streak: { current: 0, longest: 0, lastCompletedDate: '' },
-        importantDates: [],
-        questions: [],
-        moodEntries: [],
-        dailyProgress: []
-      };
+      newState = initialState;
       break;
 
     default:
       return state;
   }
 
-  // Save to Firebase will be handled by useEffect
+  // Check for new achievements after state update
+  if (action.type !== 'SET_ALL_DATA' && action.type !== 'RESET_STATE') {
+    const newUnlockedAchievements = checkAchievements(
+      newState.userStats,
+      newState.availableAchievements,
+      newState.achievements
+    );
+
+    if (newUnlockedAchievements.length > 0) {
+      newState = {
+        ...newState,
+        achievements: [...newState.achievements, ...newUnlockedAchievements],
+        userStats: {
+          ...newState.userStats,
+          totalXP: newState.userStats.totalXP + newUnlockedAchievements.reduce((sum, a) => sum + a.points, 0),
+          level: calculateLevel(newState.userStats.totalXP + newUnlockedAchievements.reduce((sum, a) => sum + a.points, 0))
+        },
+        coins: newState.coins + (newUnlockedAchievements.length * COIN_REWARDS.ACHIEVEMENT_UNLOCK)
+      };
+    }
+  }
+
   return newState;
 };
 
@@ -283,12 +524,18 @@ interface AppContextType {
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   addAchievement: (achievement: Omit<Achievement, 'id'>) => void;
+  unlockAchievement: (achievement: Achievement) => void;
+  addXP: (amount: number) => void;
+  addCoins: (amount: number) => void;
+  completeDailyChallenge: (challengeId: string) => void;
+  generateNewChallenges: () => void;
+  updateSettings: (settings: Partial<AppState['settings']>) => void;
   addImportantDate: (date: Omit<ImportantDate, 'id'>) => void;
   deleteImportantDate: (id: string) => void;
   addQuestion: (question: Omit<Question, 'id' | 'createdAt'>) => void;
   deleteQuestion: (id: string) => void;
   addMoodEntry: (mood: Omit<MoodEntry, 'id'>) => void;
-  updateStreak: (streak: { current: number; longest: number; lastCompletedDate: string }) => void;
+  updateStreak: (streak: { current: number; longest: number; lastCompletedDate: string; freezeCount?: number }) => void;
   addDailyProgress: (progress: DailyProgress) => void;
   saveToFirebase: () => Promise<void>;
   reloadFromFirebase: () => Promise<void>;
@@ -374,6 +621,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       lastSavedStateRef.current = '';
     }
   }, [currentUser]);
+
+  // Daily challenge refresh check
+  useEffect(() => {
+    const checkDailyChallenges = () => {
+      if (state.dailyChallenges.length > 0) {
+        const now = new Date();
+        const hasExpired = state.dailyChallenges.some(challenge => 
+          new Date(challenge.expiresAt) < now
+        );
+        
+        if (hasExpired) {
+          dispatch({ type: 'GENERATE_NEW_CHALLENGES' });
+        }
+      }
+    };
+
+    // Check on component mount and then every hour
+    checkDailyChallenges();
+    const interval = setInterval(checkDailyChallenges, 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [state.dailyChallenges]);
 
   // Reload data when page becomes visible (handles refresh)
   useEffect(() => {
@@ -463,6 +732,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'ADD_ACHIEVEMENT', payload: achievement });
   };
 
+  const unlockAchievement = (achievement: Achievement) => {
+    dispatch({ type: 'UNLOCK_ACHIEVEMENT', payload: achievement });
+  };
+
+  const addXP = (amount: number) => {
+    dispatch({ type: 'ADD_XP', payload: amount });
+  };
+
+  const addCoins = (amount: number) => {
+    dispatch({ type: 'ADD_COINS', payload: amount });
+  };
+
+  const completeDailyChallenge = (challengeId: string) => {
+    dispatch({ type: 'COMPLETE_DAILY_CHALLENGE', payload: challengeId });
+  };
+
+  const generateNewChallenges = () => {
+    dispatch({ type: 'GENERATE_NEW_CHALLENGES' });
+  };
+
+  const updateSettings = (settings: Partial<AppState['settings']>) => {
+    dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
+  };
+
   const addImportantDate = (date: Omit<ImportantDate, 'id'>) => {
     dispatch({ type: 'ADD_IMPORTANT_DATE', payload: date });
   };
@@ -483,7 +776,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'ADD_MOOD_ENTRY', payload: mood });
   };
 
-  const updateStreak = (streak: { current: number; longest: number; lastCompletedDate: string }) => {
+  const updateStreak = (streak: { current: number; longest: number; lastCompletedDate: string; freezeCount?: number }) => {
     dispatch({ type: 'UPDATE_STREAK', payload: streak });
   };
 
@@ -530,6 +823,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toggleTask,
     deleteTask,
     addAchievement,
+    unlockAchievement,
+    addXP,
+    addCoins,
+    completeDailyChallenge,
+    generateNewChallenges,
+    updateSettings,
     addImportantDate,
     deleteImportantDate,
     addQuestion,

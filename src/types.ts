@@ -13,15 +13,62 @@ export interface Achievement {
   id: string;
   title: string;
   description: string;
-  type: 'task' | 'streak' | 'milestone';
+  type: 'task' | 'streak' | 'milestone' | 'daily-challenge' | 'social' | 'special';
   date: string;
   points: number;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  icon?: string;
+  unlocked: boolean;
+}
+
+export interface UserLevel {
+  level: number;
+  currentXP: number;
+  xpToNext: number;
+  title: string;
+  totalXP: number;
+}
+
+export interface DailyChallenge {
+  id: string;
+  title: string;
+  description: string;
+  type: 'task-completion' | 'streak-maintain' | 'mood-track' | 'knowledge-add' | 'special';
+  target: number;
+  progress: number;
+  reward: {
+    xp: number;
+    coins: number;
+    achievement?: string;
+  };
+  expiresAt: string;
+  completed: boolean;
+}
+
+export interface UserStats {
+  totalTasksCompleted: number;
+  longestStreak: number;
+  totalXP: number;
+  totalCoins: number;
+  joinedDate: string;
+  favoriteActivity: string;
+  level: UserLevel;
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  level: number;
+  weeklyXP: number;
+  rank: number;
+  avatar?: string;
 }
 
 export interface Streak {
   current: number;
   longest: number;
   lastCompletedDate: string;
+  freezeCount: number; // Streak freezes available
 }
 
 export interface ImportantDate {
@@ -57,14 +104,28 @@ export interface DailyProgress {
   totalTasks: number;
   mood?: number;
   notes?: string;
+  xpEarned: number;
+  coinsEarned: number;
 }
 
 export interface AppState {
   tasks: Task[];
   achievements: Achievement[];
+  availableAchievements: Achievement[]; // All possible achievements
   streak: Streak;
   importantDates: ImportantDate[];
   questions: Question[];
   moodEntries: MoodEntry[];
   dailyProgress: DailyProgress[];
+  userStats: UserStats;
+  dailyChallenges: DailyChallenge[];
+  leaderboard: LeaderboardEntry[];
+  coins: number;
+  settings: {
+    theme: 'default' | 'forest' | 'ocean' | 'sunset' | 'galaxy';
+    notifications: boolean;
+    soundEffects: boolean;
+    username: string;
+    avatar: string;
+  };
 } 

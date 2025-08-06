@@ -273,7 +273,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="card text-center">
           <div className="streak mb-2">
             <TrendingUp size={20} />
@@ -415,7 +415,7 @@ const Dashboard: React.FC = () => {
       {/* Quick Actions */}
       <div className="card">
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button 
             onClick={handleAddStudyQuestion}
             className="btn btn-secondary flex items-center justify-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors"
