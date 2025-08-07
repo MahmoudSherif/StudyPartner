@@ -98,12 +98,12 @@ const Navigation: React.FC = () => {
       textColor: 'text-orange-700'
     },
     { 
-      path: '/mood', 
-      icon: Heart, 
-      label: 'Mood', 
-      color: 'from-pink-500 to-pink-600',
-      bgColor: 'bg-pink-50',
-      textColor: 'text-pink-700'
+      path: '/challenges', 
+      icon: Zap, 
+      label: 'Challenges', 
+      color: 'from-indigo-500 to-indigo-600',
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-700'
     },
     { 
       path: '/achievements', 
@@ -114,12 +114,12 @@ const Navigation: React.FC = () => {
       textColor: 'text-yellow-700'
     },
     { 
-      path: '/challenges', 
-      icon: Zap, 
-      label: 'Challenges', 
-      color: 'from-indigo-500 to-indigo-600',
-      bgColor: 'bg-indigo-50',
-      textColor: 'text-indigo-700'
+      path: '/mood', 
+      icon: Heart, 
+      label: 'Mood', 
+      color: 'from-pink-500 to-pink-600',
+      bgColor: 'bg-pink-50',
+      textColor: 'text-pink-700'
     },
   ];
 
