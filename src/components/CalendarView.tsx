@@ -1,6 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek } from 'date-fns';
+import { 
+  format, 
+  addMonths, 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isToday, 
+  startOfWeek, 
+  endOfWeek, 
+  isSameMonth,
+  isSameDay,
+  differenceInDays
+} from 'date-fns';
 import { 
   Plus, 
   Trash2, 
@@ -11,332 +24,789 @@ import {
   BookOpen,
   Clock,
   Flag,
-  X
+  X,
+  Grid,
+  List,
+  Bell
 } from 'lucide-react';
 
+// Import our enhanced styles
+import './SmartCalendar.css';
+
+// Enhanced Types
+interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string;
+  type: 'event' | 'exam' | 'assignment' | 'deadline';
+  description?: string;
+  reminder: boolean;
+  priority?: 'low' | 'medium' | 'high';
+  location?: string;
+  participants?: string[];
+}
+
+interface CalendarState {
+  currentDate: Date;
+  selectedDate: Date | null;
+  viewMode: 'month' | 'week' | 'list' | 'agenda';
+  showAddModal: boolean;
+  showEventModal: boolean;
+  selectedEvent: CalendarEvent | null;
+  filterType: string;
+  searchQuery: string;
+  showFilters: boolean;
+}
+
+// Advanced Calendar Hook with enhanced state management
+const useAdvancedCalendar = (initialDate = new Date()): [CalendarState, {
+  setCurrentDate: (date: Date) => void;
+  setSelectedDate: (date: Date | null) => void;
+  setViewMode: (mode: 'month' | 'week' | 'list' | 'agenda') => void;
+  setShowAddModal: (show: boolean) => void;
+  setShowEventModal: (show: boolean) => void;
+  setSelectedEvent: (event: CalendarEvent | null) => void;
+  setFilterType: (filter: string) => void;
+  setSearchQuery: (query: string) => void;
+  setShowFilters: (show: boolean) => void;
+  goToToday: () => void;
+  goToPreviousMonth: () => void;
+  goToNextMonth: () => void;
+  navigateToDate: (date: Date) => void;
+}] => {
+  const [state, setState] = useState<CalendarState>({
+    currentDate: initialDate,
+    selectedDate: null,
+    viewMode: 'month',
+    showAddModal: false,
+    showEventModal: false,
+    selectedEvent: null,
+    filterType: 'all',
+    searchQuery: '',
+    showFilters: false
+  });
+
+  const actions = useMemo(() => ({
+    setCurrentDate: (date: Date) => setState(prev => ({ ...prev, currentDate: date })),
+    setSelectedDate: (date: Date | null) => setState(prev => ({ ...prev, selectedDate: date })),
+    setViewMode: (mode: 'month' | 'week' | 'list' | 'agenda') => setState(prev => ({ ...prev, viewMode: mode })),
+    setShowAddModal: (show: boolean) => setState(prev => ({ ...prev, showAddModal: show })),
+    setShowEventModal: (show: boolean) => setState(prev => ({ ...prev, showEventModal: show })),
+    setSelectedEvent: (event: CalendarEvent | null) => setState(prev => ({ ...prev, selectedEvent: event })),
+    setFilterType: (filter: string) => setState(prev => ({ ...prev, filterType: filter })),
+    setSearchQuery: (query: string) => setState(prev => ({ ...prev, searchQuery: query })),
+    setShowFilters: (show: boolean) => setState(prev => ({ ...prev, showFilters: show })),
+    goToToday: () => setState(prev => ({ ...prev, currentDate: new Date() })),
+    goToPreviousMonth: () => setState(prev => ({ ...prev, currentDate: subMonths(prev.currentDate, 1) })),
+    goToNextMonth: () => setState(prev => ({ ...prev, currentDate: addMonths(prev.currentDate, 1) })),
+    navigateToDate: (date: Date) => setState(prev => ({ ...prev, currentDate: date, selectedDate: date }))
+  }), []);
+
+  return [state, actions];
+};
+
+// Enhanced Event utilities with advanced styling
+const getEventTypeConfig = (type: string) => {
+  const configs = {
+    exam: { 
+      icon: AlertTriangle, 
+      color: 'bg-gradient-to-r from-red-500 to-red-600', 
+      textColor: 'text-white',
+      borderColor: 'border-red-400/50',
+      bgColor: 'bg-red-500/10',
+      accentColor: 'text-red-400',
+      emoji: '📝',
+      gradient: 'from-red-500/20 to-red-600/20'
+    },
+    assignment: { 
+      icon: BookOpen, 
+      color: 'bg-gradient-to-r from-amber-500 to-orange-500', 
+      textColor: 'text-white',
+      borderColor: 'border-amber-400/50',
+      bgColor: 'bg-amber-500/10',
+      accentColor: 'text-amber-400',
+      emoji: '📚',
+      gradient: 'from-amber-500/20 to-orange-500/20'
+    },
+    deadline: { 
+      icon: Clock, 
+      color: 'bg-gradient-to-r from-orange-500 to-red-500', 
+      textColor: 'text-white',
+      borderColor: 'border-orange-400/50',
+      bgColor: 'bg-orange-500/10',
+      accentColor: 'text-orange-400',
+      emoji: '⏰',
+      gradient: 'from-orange-500/20 to-red-500/20'
+    },
+    event: { 
+      icon: Flag, 
+      color: 'bg-gradient-to-r from-blue-500 to-purple-500', 
+      textColor: 'text-white',
+      borderColor: 'border-blue-400/50',
+      bgColor: 'bg-blue-500/10',
+      accentColor: 'text-blue-400',
+      emoji: '📅',
+      gradient: 'from-blue-500/20 to-purple-500/20'
+    }
+  };
+  return configs[type as keyof typeof configs] || configs.event;
+};
+
+const getEventUrgency = (date: string) => {
+  const eventDate = new Date(date);
+  const today = new Date();
+  const daysUntil = differenceInDays(eventDate, today);
+  
+  if (daysUntil < 0) return { 
+    level: 'overdue', 
+    color: 'text-red-400', 
+    bg: 'bg-gradient-to-r from-red-500/20 to-red-600/30',
+    intensity: 'high',
+    label: `${Math.abs(daysUntil)} days overdue`
+  };
+  if (daysUntil === 0) return { 
+    level: 'today', 
+    color: 'text-yellow-400', 
+    bg: 'bg-gradient-to-r from-yellow-500/20 to-amber-500/30',
+    intensity: 'high',
+    label: 'Today'
+  };
+  if (daysUntil === 1) return { 
+    level: 'tomorrow', 
+    color: 'text-orange-400', 
+    bg: 'bg-gradient-to-r from-orange-500/20 to-orange-600/30',
+    intensity: 'medium',
+    label: 'Tomorrow'
+  };
+  if (daysUntil <= 3) return { 
+    level: 'soon', 
+    color: 'text-amber-400', 
+    bg: 'bg-gradient-to-r from-amber-500/10 to-amber-600/20',
+    intensity: 'medium',
+    label: `In ${daysUntil} days`
+  };
+  if (daysUntil <= 7) return { 
+    level: 'week', 
+    color: 'text-blue-400', 
+    bg: 'bg-gradient-to-r from-blue-500/10 to-blue-600/20',
+    intensity: 'low',
+    label: `In ${daysUntil} days`
+  };
+  return { 
+    level: 'future', 
+    color: 'text-gray-400', 
+    bg: 'bg-gradient-to-r from-gray-500/10 to-gray-600/20',
+    intensity: 'low',
+    label: `In ${daysUntil} days`
+  };
+};
+
+// Advanced Calendar Component
 const CalendarView: React.FC = () => {
-  const { state, addImportantDate, deleteImportantDate } = useApp();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newDate, setNewDate] = useState({
+  const { state: appState, addImportantDate, deleteImportantDate } = useApp();
+  const [calendarState, calendarActions] = useAdvancedCalendar();
+  
+  // Enhanced Form state with validation
+  const [formData, setFormData] = useState({
     title: '',
     date: '',
     type: 'event' as const,
     description: '',
-    reminder: true
+    reminder: true,
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    location: '',
+    participants: [] as string[]
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newDate.title.trim() && newDate.date) {
-      addImportantDate({
-        title: newDate.title.trim(),
-        date: newDate.date,
-        type: newDate.type,
-        description: newDate.description.trim(),
-        reminder: newDate.reminder
-      });
-      setNewDate({ title: '', date: '', type: 'event', description: '', reminder: true });
-      setShowAddForm(false);
-    }
-  };
-
-  const getCalendarDays = () => {
-    const start = startOfWeek(startOfMonth(currentDate));
-    const end = endOfWeek(endOfMonth(currentDate));
+  // Advanced computed values using useMemo for performance
+  const calendarDays = useMemo(() => {
+    const start = startOfWeek(startOfMonth(calendarState.currentDate));
+    const end = endOfWeek(endOfMonth(calendarState.currentDate));
     return eachDayOfInterval({ start, end });
-  };
+  }, [calendarState.currentDate]);
+
+  const filteredAndSearchedEvents = useMemo(() => {
+    let events = appState.importantDates;
+    
+    // Apply type filter
+    if (calendarState.filterType !== 'all') {
+      events = events.filter(event => event.type === calendarState.filterType);
+    }
+    
+    // Apply search query
+    if (calendarState.searchQuery.trim()) {
+      const query = calendarState.searchQuery.toLowerCase();
+      events = events.filter(event => 
+        event.title.toLowerCase().includes(query) ||
+        event.description?.toLowerCase().includes(query) ||
+        event.type.toLowerCase().includes(query)
+      );
+    }
+    
+    return events;
+  }, [appState.importantDates, calendarState.filterType, calendarState.searchQuery]);
+
+  const upcomingEvents = useMemo(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return filteredAndSearchedEvents
+      .filter(event => event.date >= today)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 15);
+  }, [filteredAndSearchedEvents]);
 
   const getEventsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return state.importantDates.filter(event => event.date === dateStr);
+    return filteredAndSearchedEvents.filter(event => event.date === dateStr);
   };
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'exam': return <AlertTriangle size={14} />;
-      case 'assignment': return <BookOpen size={14} />;
-      case 'deadline': return <Clock size={14} />;
-      default: return <Flag size={14} />;
+  // Enhanced Event handlers with validation
+  const resetForm = () => {
+    setFormData({ 
+      title: '', 
+      date: '', 
+      type: 'event', 
+      description: '', 
+      reminder: true,
+      priority: 'medium',
+      location: '',
+      participants: []
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.title.trim() && formData.date) {
+      addImportantDate({
+        title: formData.title.trim(),
+        date: formData.date,
+        type: formData.type,
+        description: formData.description.trim(),
+        reminder: formData.reminder
+      });
+      resetForm();
+      calendarActions.setShowAddModal(false);
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'exam': return 'bg-red-500 text-white';
-      case 'assignment': return 'bg-yellow-500 text-white';
-      case 'deadline': return 'bg-orange-500 text-white';
-      default: return 'bg-blue-500 text-white';
+  const handleDateClick = (date: Date) => {
+    calendarActions.setSelectedDate(date);
+    const events = getEventsForDate(date);
+    
+    if (events.length === 0) {
+      // Quick add event for this date
+      setFormData(prev => ({ ...prev, date: format(date, 'yyyy-MM-dd') }));
+      calendarActions.setShowAddModal(true);
+    } else if (events.length === 1) {
+      // Show single event details
+      calendarActions.setSelectedEvent(events[0] as CalendarEvent);
+      calendarActions.setShowEventModal(true);
     }
   };
 
-  const isCurrentMonth = (date: Date) => {
-    return date.getMonth() === currentDate.getMonth();
+  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+    e.stopPropagation();
+    calendarActions.setSelectedEvent(event);
+    calendarActions.setShowEventModal(true);
   };
+
+  // Enhanced Responsive breakpoints
+  const [screenSize, setScreenSize] = useState({
+    isMobile: false,
+    isTablet: false,
+    isDesktop: true
+  });
+
+  useEffect(() => {
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      setScreenSize({
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 1024,
+        isDesktop: width >= 1024
+      });
+    };
+    
+    updateScreenSize();
+    window.addEventListener('resize', updateScreenSize);
+    return () => window.removeEventListener('resize', updateScreenSize);
+  }, []);
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between card">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Calendar</h1>
-          <p className="text-gray-300 mt-1">Manage your schedule and important dates</p>
-        </div>
-        <button 
-          onClick={() => setShowAddForm(true)}
-          className="btn flex items-center gap-2"
-        >
-          <Plus size={18} />
-          Add Event
-        </button>
-      </div>
-
-      {/* Add Event Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="card max-w-md w-full">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Add New Event</h2>
-              <button 
-                onClick={() => setShowAddForm(false)}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <X size={24} />
-              </button>
+    <div className="smart-calendar">
+      <div className="calendar-container">
+        
+        {/* Modern Enhanced Header */}
+        <div className="calendar-header">
+          <div className="header-content">
+            <div className="title-section">
+              <div className="title-wrapper">
+                <div className="title-icon">
+                  <CalendarIcon size={screenSize.isMobile ? 28 : 32} />
+                </div>
+                <div>
+                  <h1 className="calendar-title">Smart Calendar</h1>
+                  <p className="calendar-subtitle">
+                    Intelligent scheduling and event management
+                  </p>
+                </div>
+              </div>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Event Title
-                </label>
-                <input
-                  type="text"
-                  value={newDate.title}
-                  onChange={(e) => setNewDate({ ...newDate, title: e.target.value })}
-                  placeholder="Enter event title"
-                  className="input"
-                  required
-                />
+            
+            <div className="controls-section">
+              {/* Search Bar */}
+              {!screenSize.isMobile && (
+                <div className="search-container">
+                  <input
+                    type="text"
+                    placeholder="Search events..."
+                    value={calendarState.searchQuery}
+                    onChange={(e) => calendarActions.setSearchQuery(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
+              )}
+              
+              {/* View Toggle */}
+              <div className="view-toggle">
+                {(['month', 'list'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => calendarActions.setViewMode(mode)}
+                    className={`view-button ${calendarState.viewMode === mode ? 'active' : ''}`}
+                  >
+                    {mode === 'month' ? <Grid size={18} /> : <List size={18} />}
+                    {!screenSize.isMobile && (
+                      <span>{mode === 'month' ? 'Calendar' : 'Agenda'}</span>
+                    )}
+                  </button>
+                ))}
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              {/* Filter Dropdown */}
+              <select
+                value={calendarState.filterType}
+                onChange={(e) => calendarActions.setFilterType(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Events</option>
+                <option value="event">📅 General</option>
+                <option value="exam">📝 Exams</option>
+                <option value="assignment">📚 Assignments</option>
+                <option value="deadline">⏰ Deadlines</option>
+              </select>
+              
+              {/* Add Event Button */}
+              <button
+                onClick={() => calendarActions.setShowAddModal(true)}
+                className="add-button"
+              >
+                <Plus size={20} />
+                {!screenSize.isMobile && <span>Add Event</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Modern Calendar Month View */}
+        {calendarState.viewMode === 'month' && (
+          <div className="calendar-grid-container">
+            {/* Navigation Header */}
+            <div className="calendar-navigation">
+              <div className="nav-controls">
+                <button
+                  onClick={calendarActions.goToPreviousMonth}
+                  className="nav-button"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                
+                <h2 className="current-month">
+                  {format(calendarState.currentDate, screenSize.isMobile ? 'MMM yyyy' : 'MMMM yyyy')}
+                </h2>
+                
+                <button
+                  onClick={calendarActions.goToNextMonth}
+                  className="nav-button"
+                  aria-label="Next month"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+              
+              <button
+                onClick={calendarActions.goToToday}
+                className="today-button"
+              >
+                Today
+              </button>
+            </div>
+
+            {/* Day Headers */}
+            <div className="calendar-weekdays">
+              {dayNames.map((day) => (
+                <div key={day} className="weekday-header">
+                  <span className="weekday-text">
+                    {screenSize.isMobile ? day.slice(0, 1) : screenSize.isTablet ? day.slice(0, 3) : day}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Enhanced Calendar Grid */}
+            <div className="calendar-days-grid">
+              {calendarDays.map((date, index) => {
+                const events = getEventsForDate(date);
+                const isCurrentMonth = isSameMonth(date, calendarState.currentDate);
+                const isTodayDate = isToday(date);
+                const isSelected = calendarState.selectedDate && isSameDay(date, calendarState.selectedDate);
+                const hasEvents = events.length > 0;
+                
+                return (
+                  <div
+                    key={index}
+                    onClick={() => handleDateClick(date)}
+                    className={`calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${
+                      isTodayDate ? 'today' : ''
+                    } ${isSelected ? 'selected' : ''} ${hasEvents ? 'has-events' : ''}`}
+                  >
+                    {/* Date Number */}
+                    <div className="day-number">
+                      {isTodayDate ? (
+                        <div className="today-indicator">
+                          <span className="today-number">{format(date, 'd')}</span>
+                        </div>
+                      ) : (
+                        <span className={`date-text ${!isCurrentMonth ? 'other-month-text' : ''}`}>
+                          {format(date, 'd')}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Events */}
+                    <div className="day-events">
+                      {events.slice(0, screenSize.isMobile ? 2 : screenSize.isTablet ? 3 : 4).map((event) => {
+                        const config = getEventTypeConfig(event.type);
+                        const urgency = getEventUrgency(event.date);
+                        
+                        return (
+                          <div
+                            key={event.id}
+                            onClick={(e) => handleEventClick(event as CalendarEvent, e)}
+                            className={`event-badge ${event.type} ${urgency.level}`}
+                            title={`${event.title} - ${format(new Date(event.date), 'MMM d')}`}
+                          >
+                            <div className="event-content">
+                              <config.icon size={screenSize.isMobile ? 10 : 12} />
+                              <span className="event-title">
+                                {event.title.length > (screenSize.isMobile ? 6 : screenSize.isTablet ? 10 : 15) 
+                                  ? event.title.slice(0, screenSize.isMobile ? 6 : screenSize.isTablet ? 10 : 15) + '...' 
+                                  : event.title
+                                }
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* More Events Indicator */}
+                      {events.length > (screenSize.isMobile ? 2 : screenSize.isTablet ? 3 : 4) && (
+                        <div className="more-events">
+                          +{events.length - (screenSize.isMobile ? 2 : screenSize.isTablet ? 3 : 4)} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced List/Agenda View */}
+        {calendarState.viewMode === 'list' && (
+          <div className="agenda-container">
+            <div className="agenda-header">
+              <div className="agenda-title">
+                <List size={24} />
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Date
-                  </label>
+                  <h2>Upcoming Events</h2>
+                  <p>{upcomingEvents.length} events scheduled</p>
+                </div>
+              </div>
+            </div>
+            
+            {upcomingEvents.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">
+                  <CalendarIcon size={48} />
+                </div>
+                <h3>No upcoming events</h3>
+                <p>Your schedule is clear. Time to plan something exciting!</p>
+                <button
+                  onClick={() => calendarActions.setShowAddModal(true)}
+                  className="empty-action-button"
+                >
+                  <Plus size={20} />
+                  Create Your First Event
+                </button>
+              </div>
+            ) : (
+              <div className="events-list">
+                {upcomingEvents.map((event) => {
+                  const config = getEventTypeConfig(event.type);
+                  const urgency = getEventUrgency(event.date);
+                  const eventDate = new Date(event.date);
+                  
+                  return (
+                    <div
+                      key={event.id}
+                      className={`event-card ${urgency.level}`}
+                      onClick={() => {
+                        calendarActions.setSelectedEvent(event as CalendarEvent);
+                        calendarActions.setShowEventModal(true);
+                      }}
+                    >
+                      <div className="event-card-content">
+                        <div className="event-main">
+                          <div className={`event-icon ${event.type}`}>
+                            <config.icon size={20} />
+                          </div>
+                          
+                          <div className="event-details">
+                            <h3 className="event-card-title">{event.title}</h3>
+                            
+                            <div className="event-meta">
+                              <span className="event-date">
+                                {format(eventDate, 'EEEE, MMM d, yyyy')}
+                              </span>
+                              <span className={`urgency-badge ${urgency.level}`}>
+                                {urgency.label}
+                              </span>
+                            </div>
+                            
+                            {event.description && (
+                              <p className="event-description">
+                                {event.description.length > 120 
+                                  ? event.description.slice(0, 120) + '...' 
+                                  : event.description
+                                }
+                              </p>
+                            )}
+                            
+                            <div className="event-tags">
+                              <span className={`type-tag ${event.type}`}>
+                                {config.emoji} {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                              </span>
+                              {event.reminder && (
+                                <span className="reminder-tag">
+                                  <Bell size={12} />
+                                  Reminder
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteImportantDate(event.id);
+                          }}
+                          className="delete-button"
+                          title="Delete event"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Enhanced Add Event Modal */}
+        {calendarState.showAddModal && (
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <div className="modal-header">
+                <div className="modal-title">
+                  <div className="modal-icon">
+                    <Plus size={20} />
+                  </div>
+                  <h2>Create Event</h2>
+                </div>
+                <button
+                  onClick={() => calendarActions.setShowAddModal(false)}
+                  className="modal-close"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="modal-form">
+                <div className="form-field">
+                  <label className="form-label">Event Title *</label>
                   <input
-                    type="date"
-                    value={newDate.date}
-                    onChange={(e) => setNewDate({ ...newDate, date: e.target.value })}
-                    className="input"
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g., Math Final Exam, Project Presentation"
+                    className="form-input"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Type
-                  </label>
-                  <select
-                    value={newDate.type}
-                    onChange={(e) => setNewDate({ ...newDate, type: e.target.value as any })}
-                    className="input"
-                  >
-                    <option value="event">Event</option>
-                    <option value="exam">Exam</option>
-                    <option value="assignment">Assignment</option>
-                    <option value="deadline">Deadline</option>
-                  </select>
+                
+                <div className="form-row">
+                  <div className="form-field">
+                    <label className="form-label">Date *</label>
+                    <input
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      className="form-input"
+                      required
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label className="form-label">Category *</label>
+                    <select
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                      className="form-select"
+                    >
+                      <option value="event">📅 General Event</option>
+                      <option value="exam">📝 Exam</option>
+                      <option value="assignment">📚 Assignment</option>
+                      <option value="deadline">⏰ Deadline</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description (Optional)
-                </label>
-                <textarea
-                  value={newDate.description}
-                  onChange={(e) => setNewDate({ ...newDate, description: e.target.value })}
-                  placeholder="Add event description"
-                  className="textarea"
-                  rows={3}
-                />
-              </div>
+                <div className="form-field">
+                  <label className="form-label">Description</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Add additional details, notes, or requirements..."
+                    className="form-textarea"
+                    rows={3}
+                  />
+                </div>
 
-              <div className="flex gap-3 pt-4">
-                <button type="submit" className="btn flex-1">
-                  Add Event
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddForm(false)}
-                  className="btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                <div className="form-checkbox">
+                  <input
+                    type="checkbox"
+                    id="reminder"
+                    checked={formData.reminder}
+                    onChange={(e) => setFormData({ ...formData, reminder: e.target.checked })}
+                    className="checkbox-input"
+                  />
+                  <label htmlFor="reminder" className="checkbox-label">
+                    <Bell size={16} />
+                    Enable notifications and reminders
+                  </label>
+                </div>
 
-      {/* Calendar */}
-      <div className="card">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <h2 className="text-2xl font-bold text-white">
-              {format(currentDate, 'MMMM yyyy')}
-            </h2>
-            <button
-              onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-          <button
-            onClick={() => setCurrentDate(new Date())}
-            className="text-blue-400 hover:text-blue-300 font-medium text-sm transition-colors"
-          >
-            Today
-          </button>
-        </div>
-
-        {/* Day Headers */}
-        <div className="grid grid-cols-7 mb-4">
-          {dayNames.map((day) => (
-            <div key={day} className="p-3 text-center border-b border-white/10">
-              <span className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
-                {day}
-              </span>
+                <div className="modal-actions">
+                  <button type="submit" className="button-primary">
+                    Create Event
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => calendarActions.setShowAddModal(false)}
+                    className="button-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
 
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-px bg-white/5 rounded-lg overflow-hidden">
-          {getCalendarDays().map((date, index) => {
-            const events = getEventsForDate(date);
-            const isCurrentMonthDay = isCurrentMonth(date);
-            const isTodayDate = isToday(date);
-            
-            return (
-              <div
-                key={index}
-                className={`min-h-[100px] p-3 bg-white/5 hover:bg-white/10 transition-colors ${
-                  !isCurrentMonthDay ? 'opacity-40' : ''
-                }`}
-              >
-                <div className={`text-sm font-medium mb-2 ${
-                  !isCurrentMonthDay 
-                    ? 'text-gray-500' 
-                    : isTodayDate 
-                    ? 'text-blue-400 font-bold' 
-                    : 'text-white'
-                }`}>
-                  {isTodayDate ? (
-                    <div className="flex items-center justify-center">
-                      <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                        {format(date, 'd')}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="text-center">{format(date, 'd')}</div>
+        {/* Enhanced Event Details Modal */}
+        {calendarState.showEventModal && calendarState.selectedEvent && (
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <div className="modal-header">
+                <div className="modal-title">
+                  <div className={`modal-icon ${calendarState.selectedEvent.type}`}>
+                    {React.createElement(
+                      getEventTypeConfig(calendarState.selectedEvent.type).icon, 
+                      { size: 20 }
+                    )}
+                  </div>
+                  <h2>Event Details</h2>
+                </div>
+                <button
+                  onClick={() => calendarActions.setShowEventModal(false)}
+                  className="modal-close"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="event-details-content">
+                <div className="event-header">
+                  <h3 className="event-title">{calendarState.selectedEvent.title}</h3>
+                  <div className="event-date">
+                    <CalendarIcon size={16} />
+                    <span>{format(new Date(calendarState.selectedEvent.date), 'EEEE, MMMM d, yyyy')}</span>
+                  </div>
+                </div>
+                
+                <div className="event-badges">
+                  <span className={`event-type-badge ${calendarState.selectedEvent.type}`}>
+                    {getEventTypeConfig(calendarState.selectedEvent.type).emoji}{' '}
+                    {calendarState.selectedEvent.type.charAt(0).toUpperCase() + calendarState.selectedEvent.type.slice(1)}
+                  </span>
+                  {calendarState.selectedEvent.reminder && (
+                    <span className="reminder-badge">
+                      <Bell size={14} />
+                      Reminder Enabled
+                    </span>
                   )}
                 </div>
                 
-                <div className="space-y-1">
-                  {events.slice(0, 3).map((event) => (
-                    <div
-                      key={event.id}
-                      className={`text-xs px-2 py-1 rounded ${getTypeColor(event.type)} cursor-pointer`}
-                      title={event.title}
-                    >
-                      <div className="flex items-center gap-1">
-                        {getTypeIcon(event.type)}
-                        <span className="truncate font-medium">{event.title}</span>
-                      </div>
+                {calendarState.selectedEvent.description && (
+                  <div className="event-description-section">
+                    <h4>Description</h4>
+                    <div className="event-description-text">
+                      {calendarState.selectedEvent.description}
                     </div>
-                  ))}
-                  {events.length > 3 && (
-                    <div className="text-xs text-gray-400 px-2 py-1 text-center">
-                      +{events.length - 3} more
-                    </div>
-                  )}
+                  </div>
+                )}
+                
+                <div className="modal-actions">
+                  <button
+                    onClick={() => {
+                      deleteImportantDate(calendarState.selectedEvent!.id);
+                      calendarActions.setShowEventModal(false);
+                    }}
+                    className="button-danger"
+                  >
+                    <Trash2 size={16} />
+                    Delete Event
+                  </button>
+                  <button
+                    onClick={() => calendarActions.setShowEventModal(false)}
+                    className="button-secondary"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Events List */}
-      <div className="card">
-        <div className="mb-6 pb-4 border-b border-white/10">
-          <h2 className="text-xl font-bold text-white">Upcoming Events</h2>
-        </div>
-        <div>
-          {state.importantDates.length === 0 ? (
-            <div className="text-center py-12">
-              <CalendarIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">No events scheduled</h3>
-              <p className="text-gray-400 mb-6">
-                Get started by creating your first event.
-              </p>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="btn flex items-center gap-2 mx-auto"
-              >
-                <Plus size={18} />
-                Add Event
-              </button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {state.importantDates
-                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                .map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex items-center justify-between p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`p-3 rounded-lg ${getTypeColor(event.type)}`}>
-                        {getTypeIcon(event.type)}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-white">{event.title}</h3>
-                        <p className="text-sm text-gray-300">
-                          {format(new Date(event.date), 'EEEE, MMM d, yyyy')}
-                        </p>
-                        {event.description && (
-                          <p className="text-sm text-gray-400 mt-1">{event.description}</p>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => deleteImportantDate(event.id)}
-                      className="text-gray-400 hover:text-red-400 p-2 transition-colors"
-                      title="Delete event"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default CalendarView; 
+export default CalendarView;

@@ -137,72 +137,72 @@ const Navigation: React.FC = () => {
 
   return (
     <>
-      {/* Enhanced Header with User Info */}
+      {/* Enhanced Header with User Info - Mobile Optimized */}
       <nav 
-        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-6 py-3 sm:py-4 shadow-lg"
+        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 shadow-lg safe-area-inset-top"
         style={{ background: theme.colors.headerGradient }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-          {/* User Stats - Hidden on small mobile, compact on medium */}
-          <div className="hidden sm:flex items-center gap-3 lg:gap-6">
-            {/* Level Badge */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 lg:px-3 py-1 lg:py-2 rounded-full border border-white/20">
-              <Crown className="text-yellow-300" size={16} />
-              <span className="text-white font-semibold text-sm">
+          {/* User Stats - Mobile Responsive */}
+          <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
+            {/* Level Badge - Always visible but smaller on mobile */}
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
+              <Crown className="text-yellow-300" size={14} />
+              <span className="text-white font-semibold text-xs sm:text-sm">
                 Lv.{state.userStats.level.level}
               </span>
             </div>
 
-            {/* XP Display - Hidden on medium, shown on large */}
-            <div className="hidden lg:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-3 py-2 rounded-full border border-white/20">
-              <Zap className="text-blue-300" size={18} />
-              <span className="text-white font-semibold">
+            {/* XP Display - Hidden on mobile, shown on larger screens */}
+            <div className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
+              <Zap className="text-blue-300" size={16} />
+              <span className="text-white font-semibold text-sm">
                 {state.userStats.totalXP.toLocaleString()} XP
               </span>
             </div>
 
-            {/* Coins */}
-            <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-2 lg:px-3 py-1 lg:py-2 rounded-full shadow-lg">
-              <span className="text-base lg:text-lg">🪙</span>
-              <span className="text-white font-bold text-sm lg:text-base">
+            {/* Coins - Smaller on mobile */}
+            <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-2 sm:px-3 py-1 sm:py-2 rounded-full shadow-lg">
+              <span className="text-sm sm:text-base">🪙</span>
+              <span className="text-white font-bold text-xs sm:text-sm">
                 {state.coins}
               </span>
             </div>
 
-            {/* Streak */}
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 lg:px-3 py-1 lg:py-2 rounded-full border border-white/20">
-              <span className="text-base lg:text-lg">🔥</span>
-              <span className="text-white font-semibold text-sm lg:text-base">
+            {/* Streak - Smaller on mobile */}
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
+              <span className="text-sm sm:text-base">🔥</span>
+              <span className="text-white font-semibold text-xs sm:text-sm">
                 {state.streak.current}
               </span>
             </div>
           </div>
           
-          {/* User Menu */}
-          <div className="flex items-center">
-            <span className="text-gray-200 hidden lg:block text-sm mr-4">
+          {/* User Menu - Mobile Optimized */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="text-gray-200 hidden lg:block text-sm mr-2">
               {state.settings.username}
             </span>
             
-            {/* Dashboard Button */}
+            {/* Dashboard Button - Mobile Optimized */}
             <Link 
               to="/"
-              className={`flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-4 ${
+              className={`flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform mr-2 sm:mr-4 touch-manipulation ${
                 isActive('/') ? 'text-yellow-300' : 'text-gray-200 hover:text-white'
               }`}
             >
               <span className="text-xs">Dashboard</span>
-              <Target size={16} />
+              <Target size={14} className="sm:size-4" />
             </Link>
             
-            {/* Avatar with Profile text */}
+            {/* Avatar with Profile text - Mobile Optimized */}
             <Link 
               to="/profile"
-              className="flex flex-col items-center space-y-1 hover:scale-105 transition-transform mr-4"
+              className="flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform mr-2 sm:mr-4 touch-manipulation"
             >
               <span className="text-gray-200 text-xs">Profile</span>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
-                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-lg sm:text-xl">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
+                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-base sm:text-lg lg:text-xl">
                   {state.settings.avatar}
                 </div>
               </div>
@@ -210,7 +210,7 @@ const Navigation: React.FC = () => {
             
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center space-x-1 sm:space-x-2 transition-colors duration-200 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-fit whitespace-nowrap"
+              className="flex items-center justify-center space-x-1 transition-colors duration-200 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-fit whitespace-nowrap min-h-[36px] sm:min-h-[40px] touch-manipulation"
               style={{
                 backgroundColor: '#000000',
                 borderColor: '#000000',
@@ -226,51 +226,56 @@ const Navigation: React.FC = () => {
                 e.currentTarget.style.backgroundColor = '#000000';
               }}
             >
-              <LogOut size={14} className="sm:size-[16px]" />
+              <LogOut size={12} className="sm:size-[14px] lg:size-[16px]" />
               <span className="text-xs sm:text-sm font-bold">EXIT</span>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Vertical Navigation for Other Tabs */}
+      {/* Mobile Bottom Navigation - Optimized for Touch */}
       <div 
-        className="fixed bottom-0 left-0 right-0 z-[999998] backdrop-blur-xl border-t shadow-2xl"
+        className="fixed bottom-0 left-0 right-0 z-[999998] backdrop-blur-xl border-t shadow-2xl safe-area-inset-bottom"
         style={{ 
-          background: getThemeBackground(state.settings.theme).replace('to bottom right', 'to top').replace('linear-gradient', 'linear-gradient') + ', rgba(255, 255, 255, 0.8)',
+          background: getThemeBackground(state.settings.theme).replace('to bottom right', 'to top').replace('linear-gradient', 'linear-gradient') + ', rgba(255, 255, 255, 0.9)',
           borderColor: 'rgba(255, 255, 255, 0.3)'
         }}
       >
-        <div className="flex flex-col max-w-sm mx-auto px-2 py-1 space-y-0">
-          {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others including Challenges
+        <div className="flex justify-around max-w-full mx-auto px-2 py-2 sm:py-3">
+          {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block w-full text-center px-4 py-3 rounded-lg transition-all duration-200 touch-manipulation ${
+                className={`flex-1 flex flex-col items-center justify-center px-2 py-2 sm:py-3 rounded-lg transition-all duration-200 touch-manipulation min-h-[52px] sm:min-h-[56px] relative ${
                   active 
-                    ? 'border-l-4' 
-                    : 'hover:bg-white/30 active:bg-white/40'
+                    ? 'scale-105' 
+                    : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
                   ...(active ? {
-                    background: `linear-gradient(to right, rgba(79, 70, 229, 0.125), rgba(99, 102, 241, 0.125))`, // Same as Challenges
-                    color: '#4f46e5', // Same indigo color
-                    borderLeftColor: '#4f46e5' // Same border color
+                    background: `linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(99, 102, 241, 0.15))`,
+                    color: '#4f46e5',
+                    boxShadow: '0 2px 8px rgba(79, 70, 229, 0.3)'
                   } : {
-                    color: 'rgba(0, 0, 0, 0.7)' // Same inactive color
+                    color: 'rgba(0, 0, 0, 0.7)'
                   })
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <span className="text-sm font-medium">
-                    {item.label}
-                  </span>
-                  <Icon size={16} />
-                </div>
+                {/* Active indicator */}
+                {active && (
+                  <div 
+                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                  />
+                )}
+                
+                <Icon size={18} className="sm:size-5 mb-1" />
+                <span className="text-xs sm:text-sm font-medium leading-tight text-center">
+                  {item.label}
+                </span>
               </Link>
             );
           })}
@@ -284,7 +289,7 @@ const AppContent: React.FC = () => {
   return (
     <AuthProvider>
       <AppProvider>
-        <div className="min-h-screen">
+        <div className="min-h-dvh safe-area-inset">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -311,11 +316,11 @@ const ThemedMainContent: React.FC = () => {
 
   return (
     <div 
-      className="min-h-screen"
+      className="min-h-dvh safe-area-inset"
       style={{ background: themeBackground }}
     >
       <Navigation />
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 pb-56 max-w-full overflow-x-hidden">
+      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/tasks" element={<TaskManager />} />
