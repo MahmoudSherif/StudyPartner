@@ -241,7 +241,7 @@ const Navigation: React.FC = () => {
           borderColor: 'rgba(255, 255, 255, 0.3)'
         }}
       >
-        <div className="flex max-w-full mx-auto px-1 py-1 sm:px-2 sm:py-2 overflow-x-auto scrollbar-hide">
+        <div className="flex max-w-full mx-auto px-1 py-1 sm:px-2 sm:py-2 overflow-x-auto scrollbar-hide gap-0.5 sm:gap-1">
           {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -249,18 +249,20 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center px-1 sm:px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[48px] sm:min-h-[56px] relative min-w-0 flex-1 ${
+                className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[58px] sm:min-h-[64px] relative ${
                   active 
-                    ? 'scale-105' 
+                    ? 'scale-105 z-10' 
                     : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  minWidth: 'calc(100vw / 7)', // Ensure minimum width for 7 items (6 nav + potential overflow)
+                  minWidth: 'calc((100vw - 32px) / 6)', // Better calculation for 6 items with gaps and padding
+                  maxWidth: 'calc((100vw - 32px) / 6)',
                   ...(active ? {
-                    background: `linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(99, 102, 241, 0.15))`,
+                    background: `linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(99, 102, 241, 0.2))`,
                     color: '#4f46e5',
-                    boxShadow: '0 2px 8px rgba(79, 70, 229, 0.3)'
+                    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.4)',
+                    border: '1px solid rgba(79, 70, 229, 0.3)'
                   } : {
                     color: 'rgba(0, 0, 0, 0.7)'
                   })
@@ -269,25 +271,25 @@ const Navigation: React.FC = () => {
                 {/* Active indicator */}
                 {active && (
                   <div 
-                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
                 )}
                 
-                <Icon size={16} className="sm:size-5 mb-0.5 sm:mb-1 flex-shrink-0" />
+                {/* Text first, then icon below */}
                 <span 
-                  className="text-[10px] sm:text-xs font-medium leading-tight text-center whitespace-nowrap overflow-hidden text-ellipsis w-full"
+                  className="text-[9px] sm:text-[10px] font-semibold leading-tight text-center mb-1 block w-full"
                   style={{ 
-                    maxWidth: '100%',
-                    fontSize: window.innerWidth < 350 ? '9px' : window.innerWidth < 400 ? '10px' : '11px'
+                    fontSize: window.innerWidth < 350 ? '8px' : window.innerWidth < 400 ? '9px' : '10px'
                   }}
                 >
                   {window.innerWidth < 350 
-                    ? item.label.length > 5 ? item.label.slice(0, 4) + '…' : item.label
+                    ? item.label.length > 4 ? item.label.slice(0, 3) + '…' : item.label
                     : window.innerWidth < 400
-                    ? item.label.length > 7 ? item.label.slice(0, 6) + '…' : item.label
+                    ? item.label.length > 6 ? item.label.slice(0, 5) + '…' : item.label
                     : item.label
                   }
                 </span>
+                <Icon size={14} className="sm:size-4 flex-shrink-0" />
               </Link>
             );
           })}
