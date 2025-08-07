@@ -233,7 +233,7 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation - Optimized for Touch */}
+      {/* Enhanced Mobile Bottom Navigation - Optimized for All Screen Sizes */}
       <div 
         className="fixed bottom-0 left-0 right-0 z-[999998] backdrop-blur-xl border-t shadow-2xl safe-area-inset-bottom"
         style={{ 
@@ -241,7 +241,7 @@ const Navigation: React.FC = () => {
           borderColor: 'rgba(255, 255, 255, 0.3)'
         }}
       >
-        <div className="flex justify-around max-w-full mx-auto px-2 py-2 sm:py-3">
+        <div className="flex max-w-full mx-auto px-1 py-1 sm:px-2 sm:py-2 overflow-x-auto scrollbar-hide">
           {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -249,13 +249,14 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex-1 flex flex-col items-center justify-center px-2 py-2 sm:py-3 rounded-lg transition-all duration-200 touch-manipulation min-h-[52px] sm:min-h-[56px] relative ${
+                className={`flex flex-col items-center justify-center px-1 sm:px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[48px] sm:min-h-[56px] relative min-w-0 flex-1 ${
                   active 
                     ? 'scale-105' 
                     : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
+                  minWidth: 'calc(100vw / 7)', // Ensure minimum width for 7 items (6 nav + potential overflow)
                   ...(active ? {
                     background: `linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(99, 102, 241, 0.15))`,
                     color: '#4f46e5',
@@ -268,13 +269,24 @@ const Navigation: React.FC = () => {
                 {/* Active indicator */}
                 {active && (
                   <div 
-                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
                 )}
                 
-                <Icon size={18} className="sm:size-5 mb-1" />
-                <span className="text-xs sm:text-sm font-medium leading-tight text-center">
-                  {item.label}
+                <Icon size={16} className="sm:size-5 mb-0.5 sm:mb-1 flex-shrink-0" />
+                <span 
+                  className="text-[10px] sm:text-xs font-medium leading-tight text-center whitespace-nowrap overflow-hidden text-ellipsis w-full"
+                  style={{ 
+                    maxWidth: '100%',
+                    fontSize: window.innerWidth < 350 ? '9px' : window.innerWidth < 400 ? '10px' : '11px'
+                  }}
+                >
+                  {window.innerWidth < 350 
+                    ? item.label.length > 5 ? item.label.slice(0, 4) + '…' : item.label
+                    : window.innerWidth < 400
+                    ? item.label.length > 7 ? item.label.slice(0, 6) + '…' : item.label
+                    : item.label
+                  }
                 </span>
               </Link>
             );
