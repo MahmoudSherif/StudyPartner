@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, Star, Zap, Sparkles, Crown, User, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, Star, Zap, Sparkles, Crown, User } from 'lucide-react';
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -197,17 +197,6 @@ const Signup: React.FC = () => {
               <div 
                 className="max-w-md w-full mx-auto backdrop-blur-2xl rounded-2xl sm:rounded-3xl lg:rounded-[2rem] shadow-[0_20px_40px_-8px_rgba(59,130,246,0.3)] sm:shadow-[0_25px_80px_-12px_rgba(59,130,246,0.4)] p-4 sm:p-6 md:p-8 lg:p-10 border border-white/20 bg-white/5"
               >
-                {/* Back Button */}
-                <div className="mb-4 sm:mb-6">
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors group"
-                  >
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:transform group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-sm sm:text-base font-medium">Back to Sign In</span>
-                  </Link>
-                </div>
-
                 {/* Logo and Title Section */}
                 <div className="text-center mb-6 sm:mb-8">
                   <div className="relative inline-block mb-4 sm:mb-6">
