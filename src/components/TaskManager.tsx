@@ -14,6 +14,7 @@ import {
   Zap
 } from 'lucide-react';
 import CelebrationOverlay from './CelebrationOverlay';
+import DailyTasksProgress from './DailyTasksProgress';
 
 const TaskManager: React.FC = () => {
   const { state, addTask, toggleTask, deleteTask, addAchievement, updateStreak } = useApp();
@@ -259,41 +260,47 @@ const TaskManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Daily Tasks Section */}
-      {dailyTasks.length > 0 && (
-        <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-2xl p-6 border border-blue-500/20">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white">Today's Tasks</h2>
-                <p className="text-blue-200 text-sm">
-                  {completedDailyTasks.length} of {dailyTasks.length} completed ({dailyTasksPercentage}%)
-                </p>
-              </div>
+      {/* Daily Tasks Section - Always Visible */}
+      <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-2xl p-4 sm:p-6 border border-blue-500/20">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
-            
-            {/* Daily Tasks Progress Bar - Right Side */}
-            <div className="flex items-center gap-4">
-              <div className="w-32 bg-slate-700 rounded-full h-3 border border-slate-600">
+            <div>
+              <h2 className="text-xl font-bold text-white">Today's Tasks</h2>
+              <p className="text-blue-200 text-sm">
+                {completedDailyTasks.length} of {dailyTasks.length} completed ({dailyTasksPercentage}%)
+              </p>
+            </div>
+          </div>
+          
+          {/* Mobile: Progress elements stacked, Desktop: Side by side */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+            {/* Progress Bar and Circle */}
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end">
+              <div className="w-24 sm:w-32 bg-slate-700 rounded-full h-3 border border-slate-600">
                 <div 
                   className="h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${dailyTasksPercentage}%` }}
                 ></div>
               </div>
-              <button
-                onClick={handleAddDailyTask}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-all duration-200 text-blue-200 hover:text-white border border-blue-500/30"
-              >
-                <Zap className="w-4 h-4" />
-                <span className="text-sm font-medium">Add Daily Task</span>
-              </button>
+              <DailyTasksProgress isCompact={true} />
             </div>
+            
+            {/* Add Task Button */}
+            <button
+              onClick={handleAddDailyTask}
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-all duration-200 text-blue-200 hover:text-white border border-blue-500/30 w-full sm:w-auto"
+            >
+              <Zap className="w-4 h-4" />
+              <span className="text-sm font-medium">Add Daily Task</span>
+            </button>
           </div>
+        </div>
 
-          {/* Daily Tasks List */}
+        {/* Daily Tasks List */}
+        {dailyTasks.length > 0 ? (
           <div className="grid gap-2">
             {dailyTasks.slice(0, 3).map(task => (
               <div key={task.id} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
@@ -321,17 +328,22 @@ const TaskManager: React.FC = () => {
               </p>
             )}
           </div>
-          
-          {dailyTasksPercentage === 100 && (
-            <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-green-400" />
-                <span className="text-green-200 font-medium">All daily tasks completed! 🎉</span>
-              </div>
+        ) : (
+          <div className="p-4 text-center bg-slate-800/30 rounded-lg border border-slate-700/50">
+            <p className="text-slate-400 text-sm mb-2">No daily tasks yet</p>
+            <p className="text-slate-500 text-xs">Click "Add Daily Task" to create your first daily task</p>
+          </div>
+        )}
+        
+        {dailyTasksPercentage === 100 && dailyTasks.length > 0 && (
+          <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-green-400" />
+              <span className="text-green-200 font-medium">All daily tasks completed! 🎉</span>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Add Task Form */}
       {showAddForm && (
