@@ -220,10 +220,10 @@ const Navigation: React.FC = () => {
                 fontWeight: 'bold'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#333333';
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#333333';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#000000';
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000';
               }}
             >
               <LogOut size={12} className="sm:size-[14px] lg:size-[16px]" />
@@ -249,14 +249,14 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[58px] sm:min-h-[64px] relative ${
+                className={`flex flex-row items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[42px] sm:min-h-[48px] relative ${
                   active 
                     ? 'scale-105 z-10' 
                     : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  minWidth: 'calc((100vw - 32px) / 6)', // Better calculation for 6 items with gaps and padding
+                  minWidth: 'calc((100vw - 32px) / 6)',
                   maxWidth: 'calc((100vw - 32px) / 6)',
                   ...(active ? {
                     background: `linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(99, 102, 241, 0.2))`,
@@ -274,22 +274,12 @@ const Navigation: React.FC = () => {
                     className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
                 )}
-                
-                {/* Text first, then icon below */}
+                <Icon size={14} className="flex-shrink-0" />
                 <span 
-                  className="text-[9px] sm:text-[10px] font-semibold leading-tight text-center mb-1 block w-full"
-                  style={{ 
-                    fontSize: window.innerWidth < 350 ? '8px' : window.innerWidth < 400 ? '9px' : '10px'
-                  }}
+                  className="text-[10px] sm:text-xs font-semibold leading-none whitespace-nowrap hidden xs:inline"
                 >
-                  {window.innerWidth < 350 
-                    ? item.label.length > 4 ? item.label.slice(0, 3) + '…' : item.label
-                    : window.innerWidth < 400
-                    ? item.label.length > 6 ? item.label.slice(0, 5) + '…' : item.label
-                    : item.label
-                  }
+                  {item.label}
                 </span>
-                <Icon size={14} className="sm:size-4 flex-shrink-0" />
               </Link>
             );
           })}
@@ -361,4 +351,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;

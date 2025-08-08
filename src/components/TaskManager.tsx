@@ -10,9 +10,9 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle,
-  Trophy,
-  Sparkles
+  Trophy
 } from 'lucide-react';
+import CelebrationOverlay from './CelebrationOverlay';
 
 const TaskManager: React.FC = () => {
   const { state, addTask, toggleTask, deleteTask, addAchievement, updateStreak } = useApp();
@@ -21,6 +21,9 @@ const TaskManager: React.FC = () => {
   const [sortBy, setSortBy] = useState<'priority' | 'dueDate' | 'createdAt'>('createdAt'); // Default to newest first
   const [completedTaskId, setCompletedTaskId] = useState<string | null>(null);
   const [showCompletionMessage, setShowCompletionMessage] = useState(false);
+  const [lastCompletedTitle, setLastCompletedTitle] = useState<string>('');
+  const [rewardPoints, setRewardPoints] = useState<number>(10);
+  const [rewardCoins, setRewardCoins] = useState<number>(2);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -43,6 +46,12 @@ const TaskManager: React.FC = () => {
       // Task is being completed
       toggleTask(taskId);
       setCompletedTaskId(taskId);
+      setLastCompletedTitle(task.title);
+      // Reward logic (slightly higher for high priority)
+      const points = task.priority === 'high' ? 25 : 15;
+      const coins = task.priority === 'high' ? 5 : 2;
+      setRewardPoints(points);
+      setRewardCoins(coins);
       setShowCompletionMessage(true);
       
       // Update streak using the new calculator
@@ -55,7 +64,9 @@ const TaskManager: React.FC = () => {
         description: `You completed: "${task.title}"`,
         date: new Date().toISOString(),
         type: 'task',
-        points: 10
+        points: 10,
+        rarity: 'common',
+        unlocked: true
       });
 
       // Add streak achievement if it's a milestone
@@ -65,7 +76,9 @@ const TaskManager: React.FC = () => {
           description: `Amazing consistency! You've completed tasks for ${newStreak.current} days in a row!`,
           date: new Date().toISOString(),
           type: 'streak',
-          points: newStreak.current * 5
+          points: newStreak.current * 5,
+          rarity: newStreak.current >= 30 ? 'epic' : newStreak.current >= 7 ? 'rare' : 'common',
+          unlocked: true
         });
       }
 
@@ -76,23 +89,24 @@ const TaskManager: React.FC = () => {
           description: `You've achieved your longest streak ever: ${newStreak.current} days!`,
           date: new Date().toISOString(),
           type: 'milestone',
-          points: newStreak.current * 10
+          points: newStreak.current * 10,
+          rarity: newStreak.current >= 50 ? 'legendary' : newStreak.current >= 25 ? 'epic' : 'rare',
+          unlocked: true
         });
       }
 
       // Auto-hide completed task after animation
       setTimeout(() => {
         setCompletedTaskId(null);
-        // Switch to pending view if we're on 'all' to hide completed task
         if (filter === 'all') {
           setFilter('pending');
         }
-      }, 2000);
+      }, 1200);
 
-      // Hide completion message after 5 seconds (longer for MEGA animation)
+      // Hide completion message after a few seconds
       setTimeout(() => {
         setShowCompletionMessage(false);
-      }, 5000);
+      }, 4200);
     } else {
       // Task is being uncompleted
       toggleTask(taskId);
@@ -155,114 +169,16 @@ const TaskManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* FULL-SCREEN MEGA CELEBRATION - Covers Entire Screen */}
-      {showCompletionMessage && (
-        <div className="fixed inset-0 z-50 bg-gradient-to-br from-green-400 via-blue-500 via-purple-500 via-pink-400 to-orange-400 animate-gradient-x flex items-center justify-center p-8">
-          {/* Animated Background Effects */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full animate-bounce"></div>
-            <div className="absolute top-20 right-20 w-24 h-24 bg-yellow-300/30 rounded-full animate-pulse"></div>
-            <div className="absolute bottom-20 left-20 w-40 h-40 bg-pink-300/20 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
-            <div className="absolute bottom-10 right-10 w-28 h-28 bg-green-300/30 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-            <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-blue-300/30 rounded-full animate-bounce" style={{animationDelay: '0.3s'}}></div>
-            <div className="absolute top-1/3 right-1/3 w-36 h-36 bg-purple-300/20 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
-          </div>
-
-          {/* Confetti Particles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <div
-                key={i}
-                className={`absolute w-4 h-4 rounded-full animate-ping ${
-                  i % 4 === 0 ? 'bg-yellow-400' :
-                  i % 4 === 1 ? 'bg-pink-400' :
-                  i % 4 === 2 ? 'bg-blue-400' : 'bg-green-400'
-                }`}
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`
-                }}
-              ></div>
-            ))}
-          </div>
-          
-          {/* Main Content - MASSIVE */}
-          <div className="relative z-10 text-center space-y-8 max-w-4xl">
-            
-            {/* Close Button */}
-            <button 
-              onClick={() => setShowCompletionMessage(false)}
-              className="absolute top-0 right-0 text-white/80 hover:text-white text-6xl font-bold w-16 h-16 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
-            >
-              ×
-            </button>
-            
-            {/* GIANT Emojis */}
-            <div className="flex items-center justify-center gap-8">
-              <div className="text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce">⚡</div>
-              <div className="text-8xl md:text-[10rem] lg:text-[12rem] animate-pulse">💎</div>
-              <div className="text-9xl md:text-[12rem] lg:text-[15rem] animate-bounce" style={{animationDelay: '0.2s'}}>🚀</div>
-            </div>
-            
-            {/* MASSIVE Sparkles */}
-            <Sparkles className="w-24 h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 animate-spin text-yellow-300 mx-auto drop-shadow-2xl" />
-            
-            {/* HUGE Title */}
-            <div className="space-y-6">
-              <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white drop-shadow-2xl animate-pulse">
-                EXCELLENT WORK! ⚡
-              </h1>
-              
-              <div className="bg-white/20 backdrop-blur-lg border-4 border-white/40 rounded-3xl p-8 shadow-2xl">
-                <p className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4">Task Successfully Completed!</p>
-                <p className="text-xl md:text-2xl lg:text-4xl text-yellow-200 italic bg-white/20 px-6 py-4 rounded-2xl inline-block font-medium">
-                  Achievement Unlocked!
-                </p>
-              </div>
-            </div>
-            
-            {/* HUGE Rewards */}
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-yellow-300 to-orange-400 text-black px-12 py-6 rounded-full shadow-2xl flex items-center justify-center gap-6 border-4 border-white/50">
-                <Trophy className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" />
-                <span className="font-black text-3xl md:text-4xl lg:text-6xl">+10 POINTS!</span>
-                <Trophy className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 animate-bounce drop-shadow-lg" style={{animationDelay: '0.1s'}} />
-              </div>
-              
-              {state.streak.current > 0 && (
-                <div className="bg-gradient-to-r from-red-400 to-pink-500 text-white px-8 py-4 rounded-full flex items-center justify-center gap-4 border-4 border-white/50 shadow-2xl">
-                  <span className="text-4xl md:text-5xl lg:text-6xl">🔥</span>
-                  <span className="font-bold text-2xl md:text-3xl lg:text-5xl">{state.streak.current} Day Streak!</span>
-                  <span className="text-4xl md:text-5xl lg:text-6xl">🔥</span>
-                </div>
-              )}
-            </div>
-            
-            {/* HUGE Motivational */}
-            <div className="bg-white/20 backdrop-blur-lg border-4 border-white/40 rounded-3xl p-8 shadow-2xl">
-              <div className="space-y-4">
-                <div className="text-3xl md:text-4xl lg:text-6xl font-black text-white drop-shadow-lg">You're CRUSHING your goals! 🎯</div>
-                <div className="text-xl md:text-2xl lg:text-4xl text-yellow-200 font-bold">Absolutely UNSTOPPABLE progress!</div>
-              </div>
-            </div>
-            
-            {/* MASSIVE Achievement Badge */}
-            <div className="bg-gradient-to-r from-green-400 to-emerald-500 text-white px-8 py-6 rounded-full border-4 border-white/50 shadow-2xl">
-              <div className="flex items-center justify-center gap-4">
-                <span className="text-4xl md:text-5xl lg:text-6xl">🏆</span>
-                <span className="font-black text-2xl md:text-3xl lg:text-5xl">PRODUCTIVITY MASTER!</span>
-                <span className="text-4xl md:text-5xl lg:text-6xl">🏆</span>
-              </div>
-            </div>
-            
-            {/* Auto-close indicator */}
-            <div className="text-xl md:text-2xl lg:text-3xl text-white/90 font-medium">
-              Celebrating your success! Auto-closing in a few seconds... ✨
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Celebration Overlay */}
+      <CelebrationOverlay
+        visible={showCompletionMessage}
+        onClose={() => setShowCompletionMessage(false)}
+        title="Excellent Work! ⚡"
+        subtitle={lastCompletedTitle ? `“${lastCompletedTitle}” completed` : 'Task completed'}
+        points={rewardPoints}
+        coins={rewardCoins}
+        streak={state.streak.current}
+      />
 
       <div className="flex justify-between items-center">
         <div>
@@ -517,4 +433,4 @@ const TaskManager: React.FC = () => {
   );
 };
 
-export default TaskManager; 
+export default TaskManager;
