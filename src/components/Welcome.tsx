@@ -140,6 +140,8 @@ const Welcome: React.FC = () => {
                     </linearGradient>
                   </defs>
 
+                  {/* Light blue background behind the graph for better contrast */}
+                  <rect width="1200" height="600" fill="#eff6ff" />
                   {/* Background grid */}
                   <rect width="1200" height="600" fill="url(#grid)" />
 
@@ -192,8 +194,7 @@ const Welcome: React.FC = () => {
                     <circle cx="20" cy="-70" r="5" />
                   </g>
                 </svg>
-                {/* Subtle vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
+                {/* Subtle vignette - removed for a cleaner, bright look */}
               </div>
             </div>
           </div>
@@ -219,7 +220,7 @@ const Welcome: React.FC = () => {
                 className="group bg-slate-800/70 rounded-2xl p-8 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-white/10"
               >
                 {/* Feature Preview Image */}
-                <div className="mb-6 rounded-xl overflow-hidden bg-slate-700/50 h-48">
+                <div className="mb-6 rounded-xl overflow-hidden bg-blue-50 h-48">
                   {index === 0 && (
                     <svg
                       viewBox="0 0 800 384"
@@ -230,8 +231,8 @@ const Welcome: React.FC = () => {
                     >
                       <defs>
                         <linearGradient id="kanbanBg" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f1f5f9" />
-                          <stop offset="100%" stopColor="#e2e8f0" />
+                          <stop offset="0%" stopColor="#eff6ff" />
+                          <stop offset="100%" stopColor="#dbeafe" />
                         </linearGradient>
                         <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
                           <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#0f172a" floodOpacity="0.15" />
@@ -288,7 +289,7 @@ const Welcome: React.FC = () => {
                       role="img"
                       aria-label="Digital calendar planner with events and clock"
                     >
-                      <rect width="800" height="384" fill="#eef2ff" />
+                      <rect width="800" height="384" fill="#eff6ff" />
                       <rect x="48" y="64" width="704" height="256" rx="16" fill="#ffffff" stroke="#e5e7eb" />
                       <rect x="48" y="64" width="704" height="48" rx="16" fill="#e0e7ff" />
                       <circle cx="88" cy="88" r="10" fill="#6366f1" />
@@ -334,7 +335,7 @@ const Welcome: React.FC = () => {
                       role="img"
                       aria-label="Golden trophy with laurels and stars"
                     >
-                      <rect width="800" height="384" fill="#fff7ed" />
+                      <rect width="800" height="384" fill="#eff6ff" />
                       <g transform="translate(400,190)">
                         <rect x="-80" y="80" width="160" height="20" rx="6" fill="#fbbf24" />
                         <rect x="-60" y="60" width="120" height="20" rx="6" fill="#f59e0b" />
