@@ -1487,6 +1487,57 @@ html, body {
   text-align: right;
 }
 
+/* Welcome page animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* Welcome page feature cards hover effects */
+.feature-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+/* Gradient background animation for hero */
+.hero-gradient {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #6b73ff, #9068be);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
 /* Top navigation enhancements */
 .top-nav-tabs {
   backdrop-filter: blur(12px);

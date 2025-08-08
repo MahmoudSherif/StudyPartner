@@ -19,6 +19,7 @@ import {
   Zap
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
+import Welcome from './components/Welcome';
 import TaskManager from './components/TaskManager';
 import CalendarView from './components/CalendarView';
 import KnowledgeBase from './components/KnowledgeBase';
@@ -63,7 +64,7 @@ const Navigation: React.FC = () => {
 
   const navItems = [
     { 
-      path: '/', 
+      path: '/dashboard', 
       icon: Target, 
       label: 'Dashboard', 
       color: 'from-blue-500 to-blue-600',
@@ -163,10 +164,10 @@ const Navigation: React.FC = () => {
           <div className="flex items-center gap-2 flex-shrink-0">            
             {/* Dashboard Button */}
             <Link 
-              to="/"
+              to="/dashboard"
               aria-label="Go to Dashboard"
               className={`user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation ${
-                isActive('/') 
+                isActive('/dashboard') 
                   ? 'bg-white/20 text-white' 
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
@@ -300,7 +301,8 @@ const ThemedMainContent: React.FC = () => {
       <Navigation />
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Welcome />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tasks" element={<TaskManager />} />
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/knowledge" element={<KnowledgeBase />} />
