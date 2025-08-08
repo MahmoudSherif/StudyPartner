@@ -142,44 +142,44 @@ const Navigation: React.FC = () => {
         className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 shadow-lg safe-area-inset-top"
         style={{ background: theme.colors.headerGradient }}
       >
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
           {/* User Stats - Mobile Responsive */}
-          <div className="flex flex-wrap items-center gap-1 sm:gap-2 lg:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 overflow-x-auto scrollbar-hide">
             {/* Level Badge - Always visible but smaller on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
-              <Crown className="text-yellow-300" size={14} />
-              <span className="text-white font-semibold text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-1.5 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20 flex-shrink-0">
+              <Crown className="text-yellow-300" size={12} />
+              <span className="text-white font-semibold text-xs">
                 Lv.{state.userStats.level.level}
               </span>
             </div>
 
             {/* XP Display - Hidden on mobile, shown on larger screens */}
-            <div className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
-              <Zap className="text-blue-300" size={16} />
-              <span className="text-white font-semibold text-sm">
+            <div className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20 flex-shrink-0">
+              <Zap className="text-blue-300" size={14} />
+              <span className="text-white font-semibold text-xs sm:text-sm">
                 {state.userStats.totalXP.toLocaleString()} XP
               </span>
             </div>
 
             {/* Coins - Smaller on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-2 sm:px-3 py-1 sm:py-2 rounded-full shadow-lg">
-              <span className="text-sm sm:text-base">🪙</span>
-              <span className="text-white font-bold text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-1.5 sm:px-3 py-1 sm:py-2 rounded-full shadow-lg flex-shrink-0">
+              <span className="text-xs sm:text-sm">🪙</span>
+              <span className="text-white font-bold text-xs">
                 {state.coins}
               </span>
             </div>
 
             {/* Streak - Smaller on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
-              <span className="text-sm sm:text-base">🔥</span>
-              <span className="text-white font-semibold text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-1.5 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20 flex-shrink-0">
+              <span className="text-xs sm:text-sm">🔥</span>
+              <span className="text-white font-semibold text-xs">
                 {state.streak.current}
               </span>
             </div>
           </div>
           
           {/* User Menu - Mobile Optimized */}
-          <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0">
+          <div className="flex items-center gap-2 sm:gap-3 justify-center sm:justify-end flex-shrink-0">
             <span className="text-gray-200 hidden lg:block text-sm mr-2">
               {state.settings.username}
             </span>
@@ -190,9 +190,9 @@ const Navigation: React.FC = () => {
               aria-label="Go to Dashboard"
               className={`${
                 isActive('/') ? 'text-yellow-300' : 'text-gray-200 hover:text-white'
-              } flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform touch-manipulation`}
+              } flex flex-col items-center space-y-0.5 hover:scale-105 transition-transform touch-manipulation min-w-[36px]`}
             >
-              <span className="hidden sm:inline text-xs">Dashboard</span>
+              <span className="hidden sm:inline text-xs whitespace-nowrap">Dashboard</span>
               <Target size={14} className="sm:size-4" />
             </Link>
             
@@ -200,11 +200,11 @@ const Navigation: React.FC = () => {
             <Link 
               to="/profile"
               aria-label="Open Profile"
-              className="flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform touch-manipulation"
+              className="flex flex-col items-center space-y-0.5 hover:scale-105 transition-transform touch-manipulation min-w-[36px]"
             >
-              <span className="hidden sm:inline text-gray-200 text-xs">Profile</span>
-              <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
-                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-base sm:text-lg lg:text-xl">
+              <span className="hidden sm:inline text-gray-200 text-xs whitespace-nowrap">Profile</span>
+              <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
+                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-sm sm:text-lg lg:text-xl">
                   {state.settings.avatar}
                 </div>
               </div>
@@ -213,7 +213,7 @@ const Navigation: React.FC = () => {
             <button
               onClick={handleLogout}
               aria-label="Sign out"
-              className="flex items-center justify-center space-x-1 transition-colors duration-200 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-0 whitespace-nowrap min-h-[36px] sm:min-h-[40px] touch-manipulation"
+              className="flex items-center justify-center space-x-1 transition-colors duration-200 px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-0 whitespace-nowrap min-h-[32px] sm:min-h-[40px] touch-manipulation"
               style={{
                 backgroundColor: '#000000',
                 borderColor: '#000000',
@@ -230,7 +230,7 @@ const Navigation: React.FC = () => {
               }}
             >
               <LogOut size={12} className="sm:size-[14px] lg:size-[16px]" />
-              <span className="hidden sm:inline text-xs sm:text-sm font-bold">EXIT</span>
+              <span className="hidden sm:inline text-xs font-bold whitespace-nowrap">EXIT</span>
             </button>
           </div>
         </div>
@@ -244,7 +244,7 @@ const Navigation: React.FC = () => {
           borderColor: 'rgba(255, 255, 255, 0.3)'
         }}
       >
-        <div className="flex max-w-full mx-auto px-1 py-1 sm:px-2 sm:py-2 overflow-x-auto scrollbar-hide gap-0.5 sm:gap-1">
+        <div className="flex max-w-full mx-auto px-1 py-1 sm:px-2 sm:py-2 gap-0.5 sm:gap-1">
           {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -252,27 +252,32 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[46px] sm:min-h-[52px] relative ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-1 sm:px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[46px] sm:min-h-[52px] relative flex-1 min-w-0 ${
                   active 
                     ? 'scale-105 z-10' 
                     : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  flex: '1 1 0%',
-                  minWidth: 0
+                  maxWidth: 'calc(100% / 5)' // Ensure even distribution across 5 items
                 }}
               >
                 {/* Active indicator */}
                 {active && (
                   <div 
-                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-6 sm:w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
                 )}
                 <Icon size={16} className="flex-shrink-0" />
                 <span 
-                  className="bottom-nav-label text-[10px] sm:text-xs font-semibold leading-none whitespace-nowrap"
-                  style={{ color: active ? '#4f46e5' : 'rgba(0,0,0,0.7)' }}
+                  className="bottom-nav-label text-[9px] sm:text-xs font-semibold leading-tight text-center overflow-hidden text-ellipsis"
+                  style={{ 
+                    color: active ? '#4f46e5' : 'rgba(0,0,0,0.7)',
+                    maxWidth: '100%',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 1,
+                    WebkitBoxOrient: 'vertical'
+                  }}
                 >
                   {item.label}
                 </span>

@@ -1155,7 +1155,20 @@ li {
   .bottom-navigation a {
     min-width: 0 !important;
     flex: 1 !important;
-    padding: 0.5rem 0.25rem !important;
+    padding: 0.5rem 0.125rem !important;
+    max-width: none !important;
+  }
+  
+  /* Header navigation improvements */
+  .max-w-7xl {
+    padding: 0 0.5rem !important;
+  }
+  
+  /* Prevent text overflow in navigation */
+  .bottom-nav-label {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
   
   /* Form elements mobile optimization */
@@ -1232,7 +1245,17 @@ li {
   }
   
   .bottom-navigation .text-\[10px\] {
-    font-size: 9px !important;
+    font-size: 8px !important;
+  }
+  
+  /* Header stats wrapping on extra small screens */
+  nav .flex-wrap {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+  
+  nav .flex-shrink-0 {
+    flex-shrink: 0 !important;
   }
   
   /* Quotes bar extra small screen */
@@ -1464,7 +1487,73 @@ html, body {
   text-align: right;
 }
 
-/* Bottom nav label visibility control for tiny screens */
-@media (max-width: 360px) {
-  .bottom-nav-label { display: none; }
+/* Bottom nav label visibility and text handling for mobile screens */
+@media (max-width: 480px) {
+  .bottom-nav-label { 
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+    max-width: 50px;
+    word-break: break-word;
+    hyphens: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  .bottom-nav-label { 
+    font-size: 7px !important;
+    line-height: 1 !important;
+    max-width: 40px;
+  }
+}
+
+@media (max-width: 320px) {
+  .bottom-nav-label { 
+    display: none; 
+  }
+}
+
+/* Mobile navigation improvements for overlap prevention */
+@media (max-width: 640px) {
+  /* Header navigation adjustments */
+  nav .max-w-7xl > div:first-child {
+    gap: 0.25rem !important;
+    min-width: 0;
+  }
+  
+  nav .max-w-7xl > div:first-child > div {
+    padding: 0.25rem 0.5rem !important;
+    min-width: 0;
+  }
+  
+  /* Bottom navigation label handling */
+  .bottom-nav-label {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    max-width: 60px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Ultra-compact mode for very small screens */
+@media (max-width: 480px) {
+  /* Header stats ultra-compact */
+  nav .max-w-7xl {
+    gap: 0.5rem !important;
+  }
+  
+  nav .bg-white\/10, 
+  nav .bg-gradient-to-r {
+    padding: 0.25rem 0.5rem !important;
+    gap: 0.25rem !important;
+  }
+  
+  nav span {
+    font-size: 10px !important;
+  }
+  
+  /* Bottom navigation ultra-compact */
+  .bottom-navigation {
+    padding: 0.125rem !important;
+  }
 }
