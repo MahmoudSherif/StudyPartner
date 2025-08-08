@@ -288,16 +288,16 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
               className="rounded-3xl p-6 sm:p-8 md:p-10 shadow-2xl border relative overflow-hidden"
               style={{
                 background:
-                  'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))',
-                borderImage: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #f59e0b) 1',
+                  'linear-gradient(145deg, rgba(16,185,129,0.95), rgba(5,150,105,0.90))',
+                borderImage: 'linear-gradient(135deg, #10b981, #059669, #0d9488) 1',
                 borderWidth: 2,
                 borderStyle: 'solid',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+                boxShadow: '0 25px 50px -12px rgba(16, 185, 129, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)'
               }}
             >
               {/* Enhanced inner glow with better visibility */}
               <div className="pointer-events-none absolute inset-0" style={{ 
-                background: 'radial-gradient(ellipse 120% 80% at 50% -10%, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1), transparent 70%)'
+                background: 'radial-gradient(ellipse 120% 80% at 50% -10%, rgba(16, 185, 129, 0.3), rgba(13, 148, 136, 0.2), transparent 70%)'
               }} />
 
               {/* Close */}
@@ -320,17 +320,17 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                 <h2 id={titleId} className="font-black text-transparent bg-clip-text animate-gradient-x"
                     style={{
                       backgroundImage:
-                        'linear-gradient(90deg, #1e40af, #7c3aed, #dc2626, #ea580c)',
-                      WebkitTextStroke: '1px rgba(0, 0, 0, 0.1)',
-                      filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
+                        'linear-gradient(90deg, #10b981, #0d9488, #14b8a6, #06b6d4)',
+                      WebkitTextStroke: '1px rgba(255, 255, 255, 0.2)',
+                      filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
                     }}
                 >
                   <span style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}>{title}</span>
                 </h2>
-                <p className="text-gray-800 font-semibold" 
+                <p className="text-white font-semibold" 
                    style={{ 
                      fontSize: 'clamp(16px, 3vw, 24px)',
-                     textShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                     textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
                    }}
                 >
                   {subtitle}
@@ -341,30 +341,30 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-6 sm:mt-8">
                 <div className="rounded-2xl p-4 text-center border-2 shadow-lg" 
                      style={{ 
-                       background: 'linear-gradient(180deg, rgba(59,130,246,0.20), rgba(37,99,235,0.30))', 
-                       borderColor: 'rgba(59,130,246,0.5)',
-                       boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.2)'
+                       background: 'linear-gradient(180deg, rgba(6,182,212,0.25), rgba(8,145,178,0.35))', 
+                       borderColor: 'rgba(6,182,212,0.6)',
+                       boxShadow: '0 4px 14px 0 rgba(6, 182, 212, 0.3)'
                      }}>
-                  <div className="text-blue-900 font-black drop-shadow-sm" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>+{points} XP</div>
-                  <div className="text-blue-800 text-sm font-semibold">Experience Points</div>
+                  <div className="text-white font-black drop-shadow-lg" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>+{points} XP</div>
+                  <div className="text-cyan-100 text-sm font-semibold">Experience Points</div>
                 </div>
                 <div className="rounded-2xl p-4 text-center border-2 shadow-lg" 
                      style={{ 
-                       background: 'linear-gradient(180deg, rgba(245,158,11,0.20), rgba(217,119,6,0.30))', 
-                       borderColor: 'rgba(245,158,11,0.6)',
-                       boxShadow: '0 4px 14px 0 rgba(245, 158, 11, 0.2)'
+                       background: 'linear-gradient(180deg, rgba(168,85,247,0.25), rgba(147,51,234,0.35))', 
+                       borderColor: 'rgba(168,85,247,0.6)',
+                       boxShadow: '0 4px 14px 0 rgba(168, 85, 247, 0.3)'
                      }}>
-                  <div className="text-amber-900 font-black drop-shadow-sm" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>+{coins} Coins</div>
-                  <div className="text-amber-800 text-sm font-semibold">Reward Coins</div>
+                  <div className="text-white font-black drop-shadow-lg" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>+{coins} Coins</div>
+                  <div className="text-purple-100 text-sm font-semibold">Reward Coins</div>
                 </div>
                 <div className="rounded-2xl p-4 text-center border-2 shadow-lg" 
                      style={{ 
-                       background: 'linear-gradient(180deg, rgba(239,68,68,0.20), rgba(220,38,38,0.30))', 
-                       borderColor: 'rgba(239,68,68,0.5)',
-                       boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.2)'
+                       background: 'linear-gradient(180deg, rgba(20,184,166,0.25), rgba(13,148,136,0.35))', 
+                       borderColor: 'rgba(20,184,166,0.6)',
+                       boxShadow: '0 4px 14px 0 rgba(20, 184, 166, 0.3)'
                      }}>
-                  <div className="text-red-900 font-black drop-shadow-sm" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>{streak} Day Streak</div>
-                  <div className="text-red-800 text-sm font-semibold">On Fire 🔥</div>
+                  <div className="text-white font-black drop-shadow-lg" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>{streak} Day Streak</div>
+                  <div className="text-teal-100 text-sm font-semibold">On Fire 🔥</div>
                 </div>
               </div>
 
@@ -387,20 +387,20 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                       />
                       <defs>
                         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#3b82f6" />
-                          <stop offset="50%" stopColor="#8b5cf6" />
-                          <stop offset="100%" stopColor="#f59e0b" />
+                          <stop offset="0%" stopColor="#10b981" />
+                          <stop offset="50%" stopColor="#0d9488" />
+                          <stop offset="100%" stopColor="#06b6d4" />
                         </linearGradient>
                       </defs>
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-base text-gray-800 font-bold drop-shadow-sm">Lvl {levelInfo.level}</div>
-                      <div className="text-sm text-gray-700 font-medium">{levelInfo.currentXP}/{levelInfo.currentXP + levelInfo.xpToNext} XP</div>
+                      <div className="text-base text-white font-bold drop-shadow-md">Lvl {levelInfo.level}</div>
+                      <div className="text-sm text-green-100 font-medium">{levelInfo.currentXP}/{levelInfo.currentXP + levelInfo.xpToNext} XP</div>
                     </div>
                   </div>
-                  <div className="text-gray-800 text-sm sm:text-base">
-                    <div className="font-bold">Next level in <span className="text-gray-900 font-black">{levelInfo.xpToNext} XP</span></div>
-                    <div className="text-gray-700 font-medium">Keep the momentum going!</div>
+                  <div className="text-white text-sm sm:text-base">
+                    <div className="font-bold">Next level in <span className="text-cyan-200 font-black">{levelInfo.xpToNext} XP</span></div>
+                    <div className="text-green-100 font-medium">Keep the momentum going!</div>
                   </div>
                 </div>
               </div>
