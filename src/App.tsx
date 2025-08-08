@@ -142,9 +142,9 @@ const Navigation: React.FC = () => {
         className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 shadow-lg safe-area-inset-top"
         style={{ background: theme.colors.headerGradient }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 sm:gap-4">
           {/* User Stats - Mobile Responsive */}
-          <div className="flex items-center gap-1 sm:gap-2 lg:gap-4">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 lg:gap-4">
             {/* Level Badge - Always visible but smaller on mobile */}
             <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20">
               <Crown className="text-yellow-300" size={14} />
@@ -179,7 +179,7 @@ const Navigation: React.FC = () => {
           </div>
           
           {/* User Menu - Mobile Optimized */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-between sm:justify-end pt-1 sm:pt-0">
             <span className="text-gray-200 hidden lg:block text-sm mr-2">
               {state.settings.username}
             </span>
@@ -187,20 +187,22 @@ const Navigation: React.FC = () => {
             {/* Dashboard Button - Mobile Optimized */}
             <Link 
               to="/"
-              className={`flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform mr-2 sm:mr-4 touch-manipulation ${
+              aria-label="Go to Dashboard"
+              className={`${
                 isActive('/') ? 'text-yellow-300' : 'text-gray-200 hover:text-white'
-              }`}
+              } flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform touch-manipulation`}
             >
-              <span className="text-xs">Dashboard</span>
+              <span className="hidden sm:inline text-xs">Dashboard</span>
               <Target size={14} className="sm:size-4" />
             </Link>
             
             {/* Avatar with Profile text - Mobile Optimized */}
             <Link 
               to="/profile"
-              className="flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform mr-2 sm:mr-4 touch-manipulation"
+              aria-label="Open Profile"
+              className="flex flex-col items-center space-y-0.5 sm:space-y-1 hover:scale-105 transition-transform touch-manipulation"
             >
-              <span className="text-gray-200 text-xs">Profile</span>
+              <span className="hidden sm:inline text-gray-200 text-xs">Profile</span>
               <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-base sm:text-lg lg:text-xl">
                   {state.settings.avatar}
@@ -210,7 +212,8 @@ const Navigation: React.FC = () => {
             
             <button
               onClick={handleLogout}
-              className="flex items-center justify-center space-x-1 transition-colors duration-200 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-fit whitespace-nowrap min-h-[36px] sm:min-h-[40px] touch-manipulation"
+              aria-label="Sign out"
+              className="flex items-center justify-center space-x-1 transition-colors duration-200 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-0 whitespace-nowrap min-h-[36px] sm:min-h-[40px] touch-manipulation"
               style={{
                 backgroundColor: '#000000',
                 borderColor: '#000000',
@@ -227,7 +230,7 @@ const Navigation: React.FC = () => {
               }}
             >
               <LogOut size={12} className="sm:size-[14px] lg:size-[16px]" />
-              <span className="text-xs sm:text-sm font-bold">EXIT</span>
+              <span className="hidden sm:inline text-xs sm:text-sm font-bold">EXIT</span>
             </button>
           </div>
         </div>
