@@ -1789,3 +1789,21 @@ html, body {
 .card p, .card span, .card div { 
   color: #cbd5e1 !important; 
 }
+
+/* Utility: ensure elements with `hidden` truly hide even without Tailwind */
+.hidden { display: none !important; }
+
+/* Enforce single label per platform for bottom nav */
+@media (min-width: 641px) {
+  .bottom-nav-label .mobile-short { display: none !important; }
+  .bottom-nav-label .mobile-full { display: inline !important; }
+}
+@media (max-width: 640px) {
+  .bottom-nav-label .mobile-full { display: none !important; }
+  .bottom-nav-label .mobile-short { display: inline !important; }
+}
+
+/* Keep Exit button black in header despite global nav white text */
+.exit-btn, .exit-btn * {
+  color: #000 !important;
+}
