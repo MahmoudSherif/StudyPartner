@@ -1489,6 +1489,9 @@ html, body {
 
 /* Bottom nav label visibility and text handling for mobile screens */
 @media (max-width: 480px) {
+  .bottom-nav-label .mobile-full { display: none; }
+  .bottom-nav-label .mobile-short { display: inline !important; }
+  
   .bottom-nav-label { 
     font-size: 8px !important;
     line-height: 1.1 !important;
@@ -1496,6 +1499,11 @@ html, body {
     word-break: break-word;
     hyphens: auto;
   }
+}
+
+@media (min-width: 481px) {
+  .bottom-nav-label .mobile-short { display: none !important; }
+  .bottom-nav-label .mobile-full { display: inline; }
 }
 
 @media (max-width: 380px) {
@@ -1523,6 +1531,17 @@ html, body {
   nav .max-w-7xl > div:first-child > div {
     padding: 0.25rem 0.5rem !important;
     min-width: 0;
+  }
+  
+  /* Bottom navigation improvements for 6 tabs */
+  .bottom-navigation {
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  .bottom-navigation::-webkit-scrollbar {
+    display: none !important;
   }
   
   /* Bottom navigation label handling */

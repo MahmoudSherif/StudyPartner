@@ -244,7 +244,7 @@ const Navigation: React.FC = () => {
           borderColor: 'rgba(255, 255, 255, 0.3)'
         }}
       >
-        <div className="flex max-w-full mx-auto px-1 py-1 sm:px-2 sm:py-2 gap-0.5 sm:gap-1">
+        <div className="flex max-w-full mx-auto px-0.5 py-1 sm:px-2 sm:py-2 gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide">
           {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -252,25 +252,26 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center justify-center gap-0.5 px-1 sm:px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[46px] sm:min-h-[52px] relative flex-1 min-w-0 ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-0.5 sm:px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[46px] sm:min-h-[52px] relative flex-shrink-0 ${
                   active 
                     ? 'scale-105 z-10' 
                     : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  maxWidth: 'calc(100% / 5)' // Ensure even distribution across 5 items
+                  minWidth: 'calc(100vw / 6.5)', // Ensure all 6 tabs fit with some margin
+                  maxWidth: 'calc(100vw / 5.5)'
                 }}
               >
                 {/* Active indicator */}
                 {active && (
                   <div 
-                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-6 sm:w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-4 sm:w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
                 )}
-                <Icon size={16} className="flex-shrink-0" />
+                <Icon size={14} className="flex-shrink-0 sm:size-4" />
                 <span 
-                  className="bottom-nav-label text-[9px] sm:text-xs font-semibold leading-tight text-center overflow-hidden text-ellipsis"
+                  className="bottom-nav-label text-[8px] sm:text-xs font-semibold leading-tight text-center overflow-hidden text-ellipsis"
                   style={{ 
                     color: active ? '#4f46e5' : 'rgba(0,0,0,0.7)',
                     maxWidth: '100%',
@@ -279,7 +280,13 @@ const Navigation: React.FC = () => {
                     WebkitBoxOrient: 'vertical'
                   }}
                 >
-                  {item.label}
+                  <span className="mobile-short hidden">{
+                    item.label === 'Achievements' ? 'Awards' :
+                    item.label === 'Challenges' ? 'Goals' :
+                    item.label === 'Knowledge' ? 'Learn' :
+                    item.label
+                  }</span>
+                  <span className="mobile-full">{item.label}</span>
                 </span>
               </Link>
             );
