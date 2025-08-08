@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft, Star, Zap, Target, Sparkles, Crown, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft, Star, Zap, Target, Sparkles, Crown } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -519,12 +519,12 @@ const Login: React.FC = () => {
                 className="group bg-slate-800/70 rounded-2xl p-5 sm:p-7 lg:p-8 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-white/10"
               >
                 {/* Feature Preview Image */}
-                <div className="mb-4 rounded-xl overflow-hidden bg-blue-50 h-28 sm:h-36 lg:h-28 xl:h-24 flex items-center justify-center">
+                <div className="mb-3 rounded-lg overflow-hidden bg-blue-50 h-16 sm:h-20 flex items-center justify-center border border-gray-200/50">
                   {index === 0 && (
                     <svg
                       viewBox="0 0 800 384"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-[90%] sm:w-[85%] lg:w-[65%] xl:w-[55%] h-auto block"
+                      className="w-12 h-6 sm:w-16 sm:h-8 block"
                       role="img"
                       aria-label="Digital Kanban board with To Do, Doing, and Done columns"
                     >
@@ -584,7 +584,7 @@ const Login: React.FC = () => {
                     <svg
                       viewBox="0 0 800 384"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-[90%] sm:w-[85%] lg:w-[65%] xl:w-[55%] h-auto block"
+                      className="w-12 h-6 sm:w-16 sm:h-8 block"
                       role="img"
                       aria-label="Digital calendar planner with events and clock"
                     >
@@ -630,7 +630,7 @@ const Login: React.FC = () => {
                     <svg
                       viewBox="0 0 800 384"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-[90%] sm:w-[85%] lg:w-[65%] xl:w-[55%] h-auto block"
+                      className="w-12 h-6 sm:w-16 sm:h-8 block"
                       role="img"
                       aria-label="Golden trophy with laurels and stars"
                     >
@@ -660,7 +660,7 @@ const Login: React.FC = () => {
                     <svg
                       viewBox="0 0 800 384"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-[90%] sm:w-[85%] lg:w-[65%] xl:w-[55%] h-auto block"
+                      className="w-12 h-6 sm:w-16 sm:h-8 block"
                       role="img"
                       aria-label="Stack of study books with checklist and lightning bolt"
                     >
@@ -696,28 +696,6 @@ const Login: React.FC = () => {
                 </p>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Call to Action Section (copied from Welcome) */}
-      <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your Studies?
-          </h2>
-          <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Join thousands of students who have already elevated their academic performance with StudyPartner.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/dashboard"
-              className="group inline-flex items-center gap-2 bg-slate-900/90 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-xl font-semibold shadow-xl ring-1 ring-white/20 hover:ring-white/30 hover:bg-slate-900 transform hover:-translate-y-1 transition-all duration-200"
-            >
-              Start Your Journey
-              <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-            </Link>
           </div>
         </div>
       </div>
