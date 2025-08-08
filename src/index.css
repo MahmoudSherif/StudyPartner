@@ -69,6 +69,10 @@ textarea,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Hide scrollbars for mobile horizontal scrollers */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* CSS Variables for theme support */
 :root {
   --theme-primary: #3b82f6;
@@ -151,11 +155,6 @@ textarea,
 }
 
 /* Removed old star background for clean theme support */
-
-#root {
-  min-height: 100vh;
-  padding-bottom: 60px; /* Space for the quotes bar */
-}
 
 .container {
   max-width: 1200px;
@@ -1463,4 +1462,9 @@ html, body {
 
 [dir="rtl"] .calendar-event {
   text-align: right;
+}
+
+/* Bottom nav label visibility control for tiny screens */
+@media (max-width: 360px) {
+  .bottom-nav-label { display: none; }
 }

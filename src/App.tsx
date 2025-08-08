@@ -249,23 +249,15 @@ const Navigation: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-row items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[42px] sm:min-h-[48px] relative ${
+                className={`flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[46px] sm:min-h-[52px] relative ${
                   active 
                     ? 'scale-105 z-10' 
                     : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  minWidth: 'calc((100vw - 32px) / 6)',
-                  maxWidth: 'calc((100vw - 32px) / 6)',
-                  ...(active ? {
-                    background: `linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(99, 102, 241, 0.2))`,
-                    color: '#4f46e5',
-                    boxShadow: '0 4px 12px rgba(79, 70, 229, 0.4)',
-                    border: '1px solid rgba(79, 70, 229, 0.3)'
-                  } : {
-                    color: 'rgba(0, 0, 0, 0.7)'
-                  })
+                  flex: '1 1 0%',
+                  minWidth: 0
                 }}
               >
                 {/* Active indicator */}
@@ -274,9 +266,10 @@ const Navigation: React.FC = () => {
                     className="absolute top-1 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                   />
                 )}
-                <Icon size={14} className="flex-shrink-0" />
+                <Icon size={16} className="flex-shrink-0" />
                 <span 
-                  className="text-[10px] sm:text-xs font-semibold leading-none whitespace-nowrap hidden xs:inline"
+                  className="bottom-nav-label text-[10px] sm:text-xs font-semibold leading-none whitespace-nowrap"
+                  style={{ color: active ? '#4f46e5' : 'rgba(0,0,0,0.7)' }}
                 >
                   {item.label}
                 </span>

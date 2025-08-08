@@ -128,7 +128,7 @@ const QuotesBar: React.FC = () => {
         {/* Single solid background container with responsive width */}
         <div className="w-full bg-slate-800 rounded-lg shadow-xl border-2 border-slate-600">
           {/* Content area with high contrast and responsive padding */}
-          <div className="w-full bg-slate-800 rounded-lg py-2 sm:py-3 md:py-4 px-3 sm:px-4 md:px-6">
+          <div className="w-full bg-slate-800 rounded-lg py-1.5 sm:py-3 md:py-4 px-2 sm:px-4 md:px-6">
             <div className="relative w-full max-w-none mx-auto">
               {/* Quote content with high contrast colors */}
               <div 
@@ -137,12 +137,12 @@ const QuotesBar: React.FC = () => {
                 }`}
               >
                 {currentQuote.arabic && (
-                  <p className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold quotes-arabic-text mb-1 sm:mb-2 md:mb-3 text-white drop-shadow-2xl tracking-wide leading-relaxed" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
+                  <p className="text-[0.9rem] sm:text-lg md:text-xl lg:text-2xl font-bold quotes-arabic-text mb-1 sm:mb-2 md:mb-3 text-white drop-shadow-2xl tracking-wide leading-relaxed" dir="rtl" style={{fontFamily: "'Playfair Display', 'Amiri', serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
                     "{currentQuote.arabic}"
                   </p>
                 )}
                 {currentQuote.english && (
-                  <p className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold quotes-english-text text-white drop-shadow-2xl tracking-wider leading-relaxed" style={{fontFamily: "'Poppins', 'Inter', sans-serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
+                  <p className="text-[0.7rem] sm:text-sm md:text-base lg:text-lg font-semibold quotes-english-text text-white drop-shadow-2xl tracking-wider leading-relaxed" style={{fontFamily: "'Poppins', 'Inter', sans-serif", textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)', color: '#ffffff !important'}}>
                     "{currentQuote.english}"
                   </p>
                 )}
@@ -159,4 +159,4 @@ const QuotesBar: React.FC = () => {
   );
 };
 
-export default QuotesBar; 
+export default QuotesBar;

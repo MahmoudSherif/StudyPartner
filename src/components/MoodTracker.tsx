@@ -71,7 +71,7 @@ const MoodTracker: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-800">Mood Tracker</h1>
         <button 
           onClick={() => setShowAddForm(true)}
@@ -290,4 +290,4 @@ const MoodTracker: React.FC = () => {
   );
 };
 
-export default MoodTracker; 
+export default MoodTracker;

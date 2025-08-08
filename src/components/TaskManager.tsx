@@ -180,7 +180,7 @@ const TaskManager: React.FC = () => {
         streak={state.streak.current}
       />
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Task Manager</h1>
           <p className="text-gray-600 mt-1">

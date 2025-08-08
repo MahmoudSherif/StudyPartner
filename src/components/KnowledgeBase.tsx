@@ -51,7 +51,7 @@ const KnowledgeBase: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-800">Knowledge Base</h1>
         <button 
           onClick={() => setShowAddForm(true)}
@@ -142,7 +142,7 @@ const KnowledgeBase: React.FC = () => {
       {/* Search and Filters */}
       <div className="card">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-[300px]">
+          <div className="flex-1 min-w-0 sm:min-w-[300px]">
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -253,6 +253,6 @@ const KnowledgeBase: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
-export default KnowledgeBase; 
+export default KnowledgeBase;

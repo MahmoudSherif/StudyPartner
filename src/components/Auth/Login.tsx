@@ -253,7 +253,6 @@ const Login: React.FC = () => {
         </div>
 
         {/* Main Login Container - Mobile Optimized */}
-                {/* Main Login Container */}
         <div className="relative z-10 w-full max-w-sm sm:max-w-md lg:max-w-lg mx-auto px-3 sm:px-4 md:px-6 flex flex-col justify-center min-h-[calc(100vh-2rem)] sm:min-h-screen">
           {!showForgotPassword ? (
             <div 
@@ -271,8 +270,7 @@ const Login: React.FC = () => {
                 `
               }}
             >
-              {/* Logo and Title Section - Mobile Responsive */}
-                            {/* Logo and Title Section */}
+              {/* Logo and Title Section */}
               <div className="text-center mb-6 sm:mb-8 lg:mb-12">
                 {/* Animated Logo with enhanced gaming effects */}
                 <div className="relative inline-block mb-4 sm:mb-6 lg:mb-10">
@@ -301,8 +299,7 @@ const Login: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* Welcome Text with gradient - Mobile Optimized */}
-                                {/* Welcome Text with gradient */}
+                {/* Welcome Text */}
                 <h1 
                   className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 sm:mb-3 lg:mb-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x leading-tight px-2 sm:px-0"
                   style={{ fontFamily: 'Poppins, sans-serif' }}
@@ -312,27 +309,7 @@ const Login: React.FC = () => {
                 <p className="text-gray-700 text-sm sm:text-base lg:text-lg xl:text-xl font-medium mb-1.5 sm:mb-2 lg:mb-4 leading-relaxed px-2 sm:px-0">Ready to continue your epic journey? ⚡</p>
                 <p className="text-gray-600 text-xs sm:text-sm lg:text-base xl:text-lg leading-relaxed px-2 sm:px-0">Level up your productivity and unlock achievements! 🚀</p>
                 
-                {/* Enhanced Stats Bar with more gaming elements */}
-                <div className="flex justify-center gap-2 sm:gap-3 lg:gap-6 mt-4 sm:mt-6 lg:mt-10 flex-wrap px-2 sm:px-0">
-                  <div 
-                    className="bg-gradient-to-r from-blue-100 to-blue-50 px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-4 rounded-xl sm:rounded-2xl border border-blue-200 sm:border-2 sm:border-blue-300 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl transition-all hover:scale-105 transform"
-                    style={{ borderImage: 'linear-gradient(45deg, #3B82F6, #1D4ED8) 1' }}
-                  >
-                    <span className="text-blue-700 text-xs sm:text-sm lg:text-base font-bold flex items-center gap-1 sm:gap-2">
-                      🏆 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent whitespace-nowrap">1000+ Heroes</span>
-                    </span>
-                  </div>
-                  <div 
-                    className="bg-gradient-to-r from-emerald-100 to-emerald-50 px-2 sm:px-3 lg:px-6 py-1.5 sm:py-2 lg:py-4 rounded-xl sm:rounded-2xl border border-emerald-200 sm:border-2 sm:border-emerald-300 shadow-md sm:shadow-lg hover:shadow-lg sm:hover:shadow-xl transition-all hover:scale-105 transform"
-                    style={{ borderImage: 'linear-gradient(45deg, #10B981, #34D399) 1' }}
-                  >
-                    <span className="text-emerald-700 text-xs sm:text-sm lg:text-base font-bold flex items-center gap-1 sm:gap-2">
-                      ⭐ <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent whitespace-nowrap">Legendary</span>
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Enhanced Stats Bar with mobile optimization */}
+                {/* Highlights (deduped) */}
                 <div className="flex flex-col xs:flex-row justify-center items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6 mt-4 sm:mt-6 lg:mt-10">
                   <div 
                     className="bg-gradient-to-r from-blue-100 to-blue-50 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 rounded-xl sm:rounded-2xl border-2 border-blue-300 shadow-md hover:shadow-lg transition-all hover:scale-105 transform w-full xs:w-auto max-w-[200px]"
@@ -379,6 +356,7 @@ const Login: React.FC = () => {
                       placeholder="hero@motivate.com"
                       disabled={loading}
                       required
+                      style={{ fontSize: '16px' }}
                     />
                     <Mail className="absolute left-3 sm:left-4 lg:left-5 top-3 sm:top-4 lg:top-5 w-4 h-4 sm:w-5 sm:h-5 lg:w-7 lg:h-7 text-gray-500" />
                     {email && !emailError && (
@@ -407,6 +385,7 @@ const Login: React.FC = () => {
                       placeholder="Your secret key"
                       disabled={loading}
                       required
+                      style={{ fontSize: '16px' }}
                     />
                     <Lock className="absolute left-3 sm:left-4 lg:left-5 top-3 sm:top-4 lg:top-5 w-4 h-4 sm:w-5 sm:h-5 lg:w-7 lg:h-7 text-gray-500" />
                     <button
@@ -616,6 +595,7 @@ const Login: React.FC = () => {
                           placeholder="Enter your email"
                           disabled={resetLoading}
                           required
+                          style={{ fontSize: '16px' }}
                         />
                         <Mail className="absolute left-2.5 sm:left-3 top-2.5 sm:top-3.5 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
                       </div>
@@ -661,4 +641,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login; 
+export default Login;
