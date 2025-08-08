@@ -14,17 +14,14 @@ import {
   CheckSquare,
   BookOpen,
   Target,
-  Heart,
   Trophy,
   LogOut,
-  Zap,
-  Crown
+  Zap
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import TaskManager from './components/TaskManager';
 import CalendarView from './components/CalendarView';
 import KnowledgeBase from './components/KnowledgeBase';
-import MoodTracker from './components/MoodTracker';
 import Achievements from './components/Achievements';
 import NatureGallery from './components/NatureGallery';
 import QuotesBar from './components/QuotesBar';
@@ -113,14 +110,6 @@ const Navigation: React.FC = () => {
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-700'
     },
-    { 
-      path: '/mood', 
-      icon: Heart, 
-      label: 'Mood', 
-      color: 'from-pink-500 to-pink-600',
-      bgColor: 'bg-pink-50',
-      textColor: 'text-pink-700'
-    },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -137,100 +126,77 @@ const Navigation: React.FC = () => {
 
   return (
     <>
-      {/* Enhanced Header with User Info - Mobile Optimized */}
+      {/* Enhanced Header with Navigation Tabs - Mobile Optimized */}
       <nav 
-        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 shadow-lg safe-area-inset-top"
+        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 shadow-lg safe-area-inset-top"
         style={{ background: theme.colors.headerGradient }}
       >
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-          {/* User Stats - Mobile Responsive */}
-          <div className="flex items-center gap-1 sm:gap-2 lg:gap-4 overflow-x-auto scrollbar-hide">
-            {/* Level Badge - Always visible but smaller on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-1.5 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20 flex-shrink-0">
-              <Crown className="text-yellow-300" size={12} />
-              <span className="text-white font-semibold text-xs">
-                Lv.{state.userStats.level.level}
-              </span>
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          {/* Left Section - Logo/Brand */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="brand-logo w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
+              <Target className="text-white" size={18} />
             </div>
-
-            {/* XP Display - Hidden on mobile, shown on larger screens */}
-            <div className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20 flex-shrink-0">
-              <Zap className="text-blue-300" size={14} />
-              <span className="text-white font-semibold text-xs sm:text-sm">
-                {state.userStats.totalXP.toLocaleString()} XP
-              </span>
-            </div>
-
-            {/* Coins - Smaller on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 px-1.5 sm:px-3 py-1 sm:py-2 rounded-full shadow-lg flex-shrink-0">
-              <span className="text-xs sm:text-sm">🪙</span>
-              <span className="text-white font-bold text-xs">
-                {state.coins}
-              </span>
-            </div>
-
-            {/* Streak - Smaller on mobile */}
-            <div className="flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm px-1.5 sm:px-3 py-1 sm:py-2 rounded-full border border-white/20 flex-shrink-0">
-              <span className="text-xs sm:text-sm">🔥</span>
-              <span className="text-white font-semibold text-xs">
-                {state.streak.current}
-              </span>
+            <div className="hidden sm:block">
+              <h1 className="text-white font-bold text-lg">StudyPartner</h1>
+              <p className="text-white/70 text-xs">Your Learning Hub</p>
             </div>
           </div>
+
+          {/* Center Section - Navigation Tabs */}
+          <div className="top-nav-tabs flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-1 border border-white/20 flex-1 max-w-md justify-center">
+            {/* Learn Tab */}
+            <Link
+              to="/knowledge"
+              className={`top-nav-tab flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 touch-manipulation ${
+                isActive('/knowledge') 
+                  ? 'active bg-white/20 text-white shadow-lg backdrop-blur-sm' 
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <BookOpen size={16} />
+              <span className="font-medium text-sm">Learn</span>
+            </Link>
+          </div>
           
-          {/* User Menu - Mobile Optimized */}
-          <div className="flex items-center gap-2 sm:gap-3 justify-center sm:justify-end flex-shrink-0">
-            <span className="text-gray-200 hidden lg:block text-sm mr-2">
-              {state.settings.username}
-            </span>
-            
-            {/* Dashboard Button - Mobile Optimized */}
+          {/* Right Section - User Menu */}
+          <div className="flex items-center gap-2 flex-shrink-0">            
+            {/* Dashboard Button */}
             <Link 
               to="/"
               aria-label="Go to Dashboard"
-              className={`${
-                isActive('/') ? 'text-yellow-300' : 'text-gray-200 hover:text-white'
-              } flex flex-col items-center space-y-0.5 hover:scale-105 transition-transform touch-manipulation min-w-[36px]`}
+              className={`user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation ${
+                isActive('/') 
+                  ? 'bg-white/20 text-white' 
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              }`}
             >
-              <span className="hidden sm:inline text-xs whitespace-nowrap">Dashboard</span>
-              <Target size={14} className="sm:size-4" />
+              <Target size={16} />
+              <span className="hidden sm:inline text-sm font-medium">Dashboard</span>
             </Link>
             
-            {/* Avatar with Profile text - Mobile Optimized */}
+            {/* Profile Button */}
             <Link 
               to="/profile"
               aria-label="Open Profile"
-              className="flex flex-col items-center space-y-0.5 hover:scale-105 transition-transform touch-manipulation min-w-[36px]"
+              className="user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation text-white/80 hover:text-white hover:bg-white/10"
             >
-              <span className="hidden sm:inline text-gray-200 text-xs whitespace-nowrap">Profile</span>
-              <div className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
-                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-sm sm:text-lg lg:text-xl">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
+                <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-sm">
                   {state.settings.avatar}
                 </div>
               </div>
+              <span className="hidden lg:inline text-sm font-medium">{state.settings.username}</span>
             </Link>
             
+            {/* Logout Button */}
             <button
               onClick={handleLogout}
               aria-label="Sign out"
-              className="flex items-center justify-center space-x-1 transition-colors duration-200 px-1.5 sm:px-3 py-1.5 sm:py-2 rounded-lg shadow-lg min-w-0 whitespace-nowrap min-h-[32px] sm:min-h-[40px] touch-manipulation"
-              style={{
-                backgroundColor: '#000000',
-                borderColor: '#000000',
-                borderWidth: '2px',
-                borderStyle: 'solid',
-                color: '#ffffff',
-                fontWeight: 'bold'
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#333333';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#000000';
-              }}
+              className="user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation bg-black/80 text-white border border-gray-700 hover:bg-black hover:border-gray-600"
             >
-              <LogOut size={12} className="sm:size-[14px] lg:size-[16px]" />
-              <span className="hidden sm:inline text-xs font-bold whitespace-nowrap">EXIT</span>
+              <LogOut size={16} />
+              <span className="hidden sm:inline text-sm font-medium">Exit</span>
             </button>
           </div>
         </div>
@@ -245,7 +211,7 @@ const Navigation: React.FC = () => {
         }}
       >
         <div className="flex max-w-full mx-auto px-0.5 py-1 sm:px-2 sm:py-2 gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide">
-          {navItems.slice(1).map((item) => { // Exclude Dashboard (index 0) but include all others
+          {navItems.slice(1).filter(item => item.path !== '/knowledge').map((item) => { // Exclude Dashboard and Knowledge
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
@@ -259,8 +225,8 @@ const Navigation: React.FC = () => {
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  minWidth: 'calc(100vw / 6.5)', // Ensure all 6 tabs fit with some margin
-                  maxWidth: 'calc(100vw / 5.5)'
+                  minWidth: 'calc(100vw / 4.5)', // Now only 4 tabs
+                  maxWidth: 'calc(100vw / 3.5)'
                 }}
               >
                 {/* Active indicator */}
@@ -338,7 +304,6 @@ const ThemedMainContent: React.FC = () => {
           <Route path="/tasks" element={<TaskManager />} />
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/mood" element={<MoodTracker />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/challenges" element={<DailyChallenges />} />
           <Route path="/profile" element={<UserProfile />} />

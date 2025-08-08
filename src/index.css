@@ -1487,6 +1487,62 @@ html, body {
   text-align: right;
 }
 
+/* Top navigation enhancements */
+.top-nav-tabs {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.top-nav-tab {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-nav-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.top-nav-tab:hover::before {
+  left: 100%;
+}
+
+.top-nav-tab.active {
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Logo section enhancement */
+.brand-logo {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2), 
+    rgba(255, 255, 255, 0.05));
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* User menu enhancements */
+.user-menu-item {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.user-menu-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Bottom nav label visibility and text handling for mobile screens */
 @media (max-width: 480px) {
   .bottom-nav-label .mobile-full { display: none; }
@@ -1522,18 +1578,18 @@ html, body {
 
 /* Mobile navigation improvements for overlap prevention */
 @media (max-width: 640px) {
-  /* Header navigation adjustments */
-  nav .max-w-7xl > div:first-child {
-    gap: 0.25rem !important;
-    min-width: 0;
+  /* Top navigation responsive adjustments */
+  .top-nav-tabs {
+    max-width: 150px; /* Smaller since only one tab now */
+    padding: 0.25rem;
   }
   
-  nav .max-w-7xl > div:first-child > div {
-    padding: 0.25rem 0.5rem !important;
-    min-width: 0;
+  .brand-logo {
+    width: 2rem !important;
+    height: 2rem !important;
   }
   
-  /* Bottom navigation improvements for 6 tabs */
+  /* Bottom navigation improvements for 4 tabs */
   .bottom-navigation {
     overflow-x: auto !important;
     scrollbar-width: none !important;

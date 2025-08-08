@@ -78,7 +78,7 @@ const initialState: AppState = {
     theme: 'default',
     notifications: true,
     soundEffects: true,
-    username: 'Motivator',
+    username: 'Profile',
     avatar: '🎯'
   }
 };
