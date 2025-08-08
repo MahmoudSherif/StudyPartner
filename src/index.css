@@ -1812,3 +1812,30 @@ html, body {
 .header-label { display: none; }
 @media (min-width: 640px) { .header-label { display: inline !important; } }
 @media (max-width: 380px) { .header-label { display: none !important; } }
+
+/* Header labels on mobile: show words but compact */
+@media (max-width: 640px) {
+  .header-label {
+    display: inline !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    max-width: 64px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  /* Slightly tighter spacing for header items on mobile */
+  nav .user-menu-item {
+    gap: 0.25rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-label {
+    max-width: 48px;
+    font-size: 11px !important;
+  }
+}
