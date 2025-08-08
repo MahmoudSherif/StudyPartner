@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 * {
   margin: 0;
@@ -21,10 +21,11 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f8fafc; /* Light gray fallback */
+  /* Use themed background and text for consistent contrast */
+  background: var(--theme-background, #0f172a);
+  color: var(--theme-text, #e5e7eb);
   min-height: 100vh;
   min-height: 100dvh; /* Dynamic viewport height for mobile */
-  color: #1f2937; /* Dark gray text */
   position: relative;
   overflow-x: hidden;
   /* Enhanced touch interactions */
@@ -45,6 +46,139 @@ textarea,
   -moz-user-select: text;
   -ms-user-select: text;
   user-select: text;
+}
+
+/* CSS Variables for theme support */
+:root {
+  --theme-primary: #3b82f6;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #06b6d4;
+  --theme-surface: #0b1220; /* dark surface default */
+  --theme-text: #e5e7eb; /* light text on dark */
+  --theme-header-gradient: linear-gradient(to right, #1e3a8a, #4c1d95, #312e81);
+  --theme-background: linear-gradient(to bottom right, #0b1220, #0f172a, #111827);
+
+  /* Layered dark surfaces for clear window boundaries */
+  --surface-0: rgba(2, 6, 23, 1);    /* base slate-950 */
+  --surface-1: rgba(11, 18, 32, 0.65); /* subtle elevation */
+  --surface-2: rgba(15, 23, 42, 0.72); /* default card */
+  --surface-3: rgba(30, 41, 59, 0.8);  /* higher elevation */
+  --surface-border: rgba(148, 163, 184, 0.28);
+  --surface-border-strong: rgba(148, 163, 184, 0.42);
+}
+
+/* Theme overrides set via JS remain supported with data-theme */
+[data-theme="forest"] {
+  --theme-primary: #10b981;
+  --theme-secondary: #059669;
+  --theme-accent: #34d399;
+}
+[data-theme="ocean"] {
+  --theme-primary: #0ea5e9;
+  --theme-secondary: #06b6d4;
+  --theme-accent: #38bdf8;
+}
+[data-theme="sunset"] {
+  --theme-primary: #f97316;
+  --theme-secondary: #ec4899;
+  --theme-accent: #fb7185;
+}
+[data-theme="galaxy"] {
+  --theme-primary: #8b5cf6;
+  --theme-secondary: #6366f1;
+  --theme-accent: #a855f7;
+}
+
+/* Dark-surface cards and controls for clear contrast */
+.card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  color: var(--theme-text);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Ensure headings and text inside cards match calendar contrast */
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+  color: #f8fafc !important; /* white headings on glass */
+  font-weight: 600;
+}
+
+.card p, .card span, .card div {
+  color: #cbd5e1; /* slate-300 body text like calendar */
+}
+
+/* Hairline divider for grouping content inside cards */
+.divider { height: 1px; background: linear-gradient(to right, transparent, rgba(148,163,184,0.25), transparent); border: 0; }
+
+/* Inputs and textareas on dark surfaces */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75); /* slate-950 */
+  color: #e5e7eb;
+  backdrop-filter: blur(10px);
+}
+
+.input::placeholder { color: rgba(148, 163, 184, 0.75); }
+.input:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75);
+  color: #e5e7eb;
+  backdrop-filter: blur(10px);
+}
+
+.textarea::placeholder { color: rgba(148, 163, 184, 0.75); }
+.textarea:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Secondary buttons on dark bg */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
 }
 
 /* Safe area support for mobile devices with notches */
@@ -155,40 +289,6 @@ textarea,
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* CSS Variables for theme support */
-:root {
-  --theme-primary: #3b82f6;
-  --theme-secondary: #8b5cf6;
-  --theme-accent: #06b6d4;
-  --theme-surface: #ffffff;
-  --theme-text: #1f2937;
-}
-
-/* Theme-specific styles can be added here */
-[data-theme="forest"] {
-  --theme-primary: #10b981;
-  --theme-secondary: #059669;
-  --theme-accent: #34d399;
-}
-
-[data-theme="ocean"] {
-  --theme-primary: #0ea5e9;
-  --theme-secondary: #06b6d4;
-  --theme-accent: #38bdf8;
-}
-
-[data-theme="sunset"] {
-  --theme-primary: #f97316;
-  --theme-secondary: #ec4899;
-  --theme-accent: #fb7185;
-}
-
-[data-theme="galaxy"] {
-  --theme-primary: #8b5cf6;
-  --theme-secondary: #6366f1;
-  --theme-accent: #a855f7;
-}
-
 /* Ensure quotes bar height is accounted for */
 #root {
   min-height: 100vh;
@@ -244,32 +344,6 @@ textarea,
   padding: 0 20px;
 }
 
-.card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  margin-bottom: 20px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  color: #1f2937; /* Ensure dark text on light background */
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-  border-color: rgba(229, 231, 235, 1);
-}
-
-.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
-  color: #111827; /* Darker headings for better contrast */
-}
-
-.card p {
-  color: #374151; /* Dark gray for paragraphs */
-}
-
 .btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -291,65 +365,65 @@ textarea,
 }
 
 .btn-secondary {
-  background: rgba(243, 244, 246, 1);
-  color: #374151; /* Dark gray text for light background */
-  border: 1px solid rgba(209, 213, 219, 1);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.3);
   backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-  background: rgba(229, 231, 235, 1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  color: #111827; /* Even darker on hover */
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
 }
 
 .input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid rgba(229, 231, 235, 0.6);
+  border: 2px solid rgba(148, 163, 184, 0.35);
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.2s ease;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1f2937;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75); /* slate-950 */
+  color: #e5e7eb;
   backdrop-filter: blur(10px);
 }
 
 .input::placeholder {
-  color: rgba(107, 114, 128, 0.8);
+  color: rgba(148, 163, 184, 0.75);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--theme-primary);
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
 .textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid rgba(229, 231, 235, 0.6);
+  border: 2px solid rgba(148, 163, 184, 0.35);
   border-radius: 8px;
   font-size: 16px;
   font-family: inherit;
   resize: vertical;
   min-height: 100px;
-  transition: border-color 0.2s ease;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1f2937; /* Dark text for light background */
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75);
+  color: #e5e7eb; /* Dark text for light background */
   backdrop-filter: blur(10px);
 }
 
 .textarea::placeholder {
-  color: rgba(107, 114, 128, 0.8);
+  color: rgba(148, 163, 184, 0.75);
 }
 
 .textarea:focus {
   outline: none;
   border-color: var(--theme-primary);
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
 }
 
 .badge {
@@ -1764,4 +1838,400 @@ html, body {
   .bottom-navigation {
     padding: 0.125rem !important;
   }
+}
+
+/* Mobile-first approach - Extra small screens */
+@media (max-width: 380px) {
+  .container {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  .card {
+    padding: 0.5rem !important;
+    margin: 0.25rem 0 !important;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+  }
+  
+  .text-sm { font-size: 0.8125rem !important; }
+  .text-base { font-size: 0.875rem !important; }
+  .text-lg { font-size: 1rem !important; }
+  
+  /* Extra small navigation adjustments */
+  .bottom-navigation a {
+    padding: 0.375rem 0.125rem !important;
+  }
+  
+  .bottom-navigation .text-\[10px\] {
+    font-size: 8px !important;
+  }
+  
+  /* Header stats wrapping on extra small screens */
+  nav .flex-wrap {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+  
+  nav .flex-shrink-0 {
+    flex-shrink: 0 !important;
+  }
+  
+  /* Quotes bar extra small screen */
+  .quotes-bar-fixed {
+    font-size: 0.8125rem !important;
+  }
+}
+
+/* Prevent horizontal scrolling issues */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* ===== ENHANCED CALENDAR STYLES ===== */
+/* Calendar-specific mobile optimizations */
+.calendar-grid {
+  touch-action: manipulation;
+}
+
+.calendar-day {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+}
+
+.calendar-day:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.calendar-day-today {
+  animation: pulse-today 2s infinite;
+}
+
+@keyframes pulse-today {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  70% { 
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.calendar-event {
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.calendar-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Event type specific gradients */
+.event-exam {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.event-assignment {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.event-deadline {
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.event-general {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Calendar responsiveness enhancements */
+@media (max-width: 640px) {
+  .calendar-day {
+    min-height: 70px !important;
+    padding: 0.5rem !important;
+  }
+  
+  .calendar-event {
+    font-size: 0.625rem !important;
+    padding: 2px 4px !important;
+    border-radius: 3px !important;
+  }
+  
+  .calendar-day-number {
+    font-size: 0.75rem !important;
+  }
+  
+  .calendar-header-month {
+    font-size: 1.125rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    min-height: 60px !important;
+    padding: 0.25rem !important;
+  }
+  
+  .calendar-event {
+    font-size: 0.5rem !important;
+    padding: 1px 3px !important;
+  }
+  
+  .calendar-day-number {
+    font-size: 0.625rem !important;
+  }
+}
+
+/* List view enhancements */
+.event-list-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid transparent;
+}
+
+.event-list-item:hover {
+  transform: translateX(4px);
+  border-left-color: #3b82f6;
+}
+
+.event-list-item.urgent {
+  border-left-color: #dc2626;
+  animation: urgentPulse 3s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { 
+    border-left-color: #dc2626;
+  }
+  50% { 
+    border-left-color: #ef4444;
+  }
+}
+
+/* Modal enhancements */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  animation: slideUpFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Progress bar animations */
+.progress-bar {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Enhanced touch interactions */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+/* Calendar accessibility improvements */
+.calendar-day[aria-selected="true"] {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.calendar-day:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Dark mode calendar adjustments */
+.dark .calendar-day {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .calendar-event {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* RTL support for Arabic text */
+[dir="rtl"] .calendar-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .calendar-event {
+  text-align: right;
+}
+
+/* Welcome page animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* Welcome page feature cards hover effects */
+.feature-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+/* Gradient background animation for hero */
+.hero-gradient {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #6b73ff, #9068be);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+/* Top navigation enhancements */
+.top-nav-tabs {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.top-nav-tab {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-nav-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.top-nav-tab:hover::before {
+  left: 100%;
+}
+
+.top-nav-tab.active {
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Logo section enhancement */
+.brand-logo {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2), 
+    rgba(255, 255, 255, 0.05));
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* User menu enhancements */
+.user-menu-item {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.user-menu-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Smart Calendar window style overrides (final) */
+.card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+.card:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 { 
+  color: #f8fafc !important; 
+}
+.card p, .card span, .card div { 
+  color: #cbd5e1 !important; 
 }

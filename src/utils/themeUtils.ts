@@ -22,11 +22,13 @@ export const themes: Record<string, ThemeConfig> = {
       primary: '#3b82f6',
       secondary: '#8b5cf6',
       accent: '#06b6d4',
-      background: 'linear-gradient(to bottom right, #f9fafb, #dbeafe, #e0e7ff)',
-      surface: '#ffffff',
-      text: '#1f2937',
+      // Darker app background
+      background: 'linear-gradient(to bottom right, #0b1220, #0f172a, #111827)',
+      surface: '#0b1220',
+      text: '#e5e7eb',
       gradient: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
-      headerGradient: 'linear-gradient(to right, #2563eb, #7c3aed, #4f46e5)'
+      // Darker header gradient
+      headerGradient: 'linear-gradient(to right, #1e3a8a, #4c1d95, #312e81)'
     }
   },
   forest: {
@@ -36,11 +38,11 @@ export const themes: Record<string, ThemeConfig> = {
       primary: '#10b981',
       secondary: '#059669',
       accent: '#34d399',
-      background: 'linear-gradient(to bottom right, #f0fdf4, #d1fae5, #a7f3d0)',
-      surface: '#ffffff',
-      text: '#1f2937',
+      background: 'linear-gradient(to bottom right, #052e2b, #064e3b, #0c4a44)',
+      surface: '#041f1d',
+      text: '#e5e7eb',
       gradient: 'linear-gradient(to right, #10b981, #059669)',
-      headerGradient: 'linear-gradient(to right, #059669, #047857, #14b8a6)'
+      headerGradient: 'linear-gradient(to right, #064e3b, #065f46, #0f766e)'
     }
   },
   ocean: {
@@ -50,11 +52,11 @@ export const themes: Record<string, ThemeConfig> = {
       primary: '#0ea5e9',
       secondary: '#06b6d4',
       accent: '#38bdf8',
-      background: 'linear-gradient(to bottom right, #f0f9ff, #e0f2fe, #cffafe)',
-      surface: '#ffffff',
-      text: '#1f2937',
+      background: 'linear-gradient(to bottom right, #031b2e, #0b2942, #0f3a5a)',
+      surface: '#081826',
+      text: '#e5e7eb',
       gradient: 'linear-gradient(to right, #0ea5e9, #06b6d4)',
-      headerGradient: 'linear-gradient(to right, #0284c7, #0891b2, #0e7490)'
+      headerGradient: 'linear-gradient(to right, #0b2942, #0e7490, #065f73)'
     }
   },
   sunset: {
@@ -64,11 +66,11 @@ export const themes: Record<string, ThemeConfig> = {
       primary: '#f97316',
       secondary: '#ec4899',
       accent: '#fb7185',
-      background: 'linear-gradient(to bottom right, #fff7ed, #fce7f3, #ffe4e6)',
-      surface: '#ffffff',
-      text: '#1f2937',
+      background: 'linear-gradient(to bottom right, #2a0a0a, #3b0a2a, #3a0f1f)',
+      surface: '#1a0a0a',
+      text: '#fde68a',
       gradient: 'linear-gradient(to right, #f97316, #ec4899)',
-      headerGradient: 'linear-gradient(to right, #ea580c, #db2777, #f43f5e)'
+      headerGradient: 'linear-gradient(to right, #7c2d12, #831843, #9f1239)'
     }
   },
   galaxy: {
@@ -78,11 +80,11 @@ export const themes: Record<string, ThemeConfig> = {
       primary: '#8b5cf6',
       secondary: '#6366f1',
       accent: '#a855f7',
-      background: 'linear-gradient(to bottom right, #faf5ff, #ede9fe, #e9d5ff)',
-      surface: '#ffffff',
-      text: '#1f2937',
+      background: 'linear-gradient(to bottom right, #0b1020, #1e1b4b, #312e81)',
+      surface: '#0b1020',
+      text: '#e5e7eb',
       gradient: 'linear-gradient(to right, #8b5cf6, #6366f1)',
-      headerGradient: 'linear-gradient(to right, #7c3aed, #4f46e5, #6d28d9)'
+      headerGradient: 'linear-gradient(to right, #1e1b4b, #312e81, #3730a3)'
     }
   }
 };
@@ -124,4 +126,4 @@ export const getThemeBackground = (themeId: string): string => {
 export const getHeaderGradient = (themeId: string): string => {
   const theme = getTheme(themeId);
   return theme.colors.headerGradient;
-}; 
+};

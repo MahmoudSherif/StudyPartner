@@ -74,9 +74,9 @@ const Welcome: React.FC = () => {
             {/* Left Column - Text Content */}
             <div className="text-center lg:text-left">
               <div className="mb-8">
-                <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-white/40">
-                  <Sparkles className="text-purple-500" size={20} />
-                  <span className="text-gray-700 font-medium">Welcome to the Future of Learning</span>
+                <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full shadow-lg border border-white/20">
+                  <Sparkles className="text-purple-300" size={20} />
+                  <span className="text-white font-medium">Welcome to the Future of Learning</span>
                 </div>
                 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
@@ -99,7 +99,7 @@ const Welcome: React.FC = () => {
                   
                   <Link
                     to="/dashboard"
-                    className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-8 py-4 rounded-xl font-semibold shadow-lg border border-gray-200 hover:bg-white hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
+                    className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-semibold shadow-lg border border-white/20 hover:bg-white/20 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
                   >
                     Explore Features
                   </Link>
@@ -201,13 +201,13 @@ const Welcome: React.FC = () => {
       </div>
 
       {/* Features Section */}
-      <div className="py-20 bg-white/50 backdrop-blur-sm">
+      <div className="py-20 bg-slate-900/40 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Everything You Need to Succeed
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
               Discover the powerful features that make StudyPartner the perfect companion for your academic journey.
             </p>
           </div>
@@ -216,10 +216,10 @@ const Welcome: React.FC = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="group bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 border border-gray-100"
+                className="group bg-slate-800/70 rounded-2xl p-8 shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border border-white/10"
               >
                 {/* Feature Preview Image */}
-                <div className="mb-6 rounded-xl overflow-hidden bg-gray-50 h-48">
+                <div className="mb-6 rounded-xl overflow-hidden bg-slate-700/50 h-48">
                   {index === 0 && (
                     <svg
                       viewBox="0 0 800 384"
@@ -387,18 +387,18 @@ const Welcome: React.FC = () => {
                 </div>
 
                 {/* Feature Content */}
-                <h3 className="text-xl font-bold text-gray-800 mb-4 group-hover:text-indigo-600 transition-colors">
+                <h3 className="text-xl font-bold text-white mb-4 group-hover:text-indigo-300 transition-colors">
                   {feature.title}
                 </h3>
                 
-                <p className="text-gray-600 mb-6 leading-relaxed">
+                <p className="text-slate-300 mb-6 leading-relaxed">
                   {feature.description}
                 </p>
 
                 {/* Feature Link */}
                 <Link
                   to={feature.link}
-                  className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 group-hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-indigo-300 font-semibold hover:text-indigo-200 group-hover:gap-3 transition-all"
                 >
                   {feature.title}
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -422,7 +422,7 @@ const Welcome: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/dashboard"
-              className="group inline-flex items-center gap-2 bg-white text-indigo-600 px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200"
+              className="group inline-flex items-center gap-2 bg-slate-900/90 text-white px-8 py-4 rounded-xl font-semibold shadow-xl ring-1 ring-white/20 hover:ring-white/30 hover:bg-slate-900 transform hover:-translate-y-1 transition-all duration-200"
             >
               Start Your Journey
               <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
@@ -432,8 +432,8 @@ const Welcome: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <div className="py-8 bg-gray-50 text-center">
-        <p className="text-gray-600">
+      <div className="py-8 bg-slate-900 text-center">
+        <p className="text-slate-400">
           Built with ❤️ for students who aspire to achieve more
         </p>
       </div>

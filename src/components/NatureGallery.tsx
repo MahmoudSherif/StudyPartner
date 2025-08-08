@@ -111,8 +111,8 @@ const NatureGallery: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">🌿 Nature Gallery</h1>
-        <p className="text-gray-600">Find inspiration in the beauty of nature</p>
+        <h1 className="text-3xl font-bold text-slate-100 mb-2">🌿 Nature Gallery</h1>
+        <p className="text-slate-400">Find inspiration in the beauty of nature</p>
       </div>
 
       {/* Search and Filters */}
@@ -120,7 +120,7 @@ const NatureGallery: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
@@ -131,7 +131,7 @@ const NatureGallery: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-sm text-gray-600 text-center sm:text-left">
+          <div className="text-sm text-slate-400 text-center sm:text-left">
             {filteredImages.length} image{filteredImages.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -139,8 +139,8 @@ const NatureGallery: React.FC = () => {
 
       {/* Auto-scrolling Nature Gallery */}
       <div className="card p-0">
-        <div className="p-4 bg-gray-100 bg-opacity-20 rounded-t-lg">
-          <span className="text-sm text-gray-600">🔄 Auto-scrolling nature gallery</span>
+        <div className="p-4 bg-slate-800/60 rounded-t-lg ring-1 ring-white/10">
+          <span className="text-sm text-slate-400">🔄 Auto-scrolling nature gallery</span>
         </div>
         
         <div
@@ -175,10 +175,10 @@ const NatureGallery: React.FC = () => {
       {filteredImages.length === 0 && (
         <div className="card text-center py-8 sm:py-12">
           <div className="text-4xl sm:text-6xl mb-4">🌿</div>
-          <h3 className="text-lg font-medium text-gray-600 mb-2">
+          <h3 className="text-lg font-medium text-slate-200 mb-2">
             No images found
           </h3>
-          <p className="text-gray-500">
+          <p className="text-slate-400">
             Try adjusting your search or filters
           </p>
         </div>
@@ -187,4 +187,4 @@ const NatureGallery: React.FC = () => {
   );
 };
 
-export default NatureGallery; 
+export default NatureGallery;

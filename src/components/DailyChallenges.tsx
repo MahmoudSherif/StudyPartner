@@ -1,6 +1,5 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { format } from 'date-fns';
 import { 
   Target, 
   Zap, 
@@ -64,43 +63,43 @@ const DailyChallenges: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-          <Zap className="text-yellow-500" size={32} />
+        <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
+          <Zap className="text-yellow-300" size={32} />
           Daily Challenges
         </h1>
-        <p className="text-gray-600">Complete challenges to earn bonus XP and coins!</p>
+        <p className="text-slate-300">Complete challenges to earn bonus XP and coins!</p>
       </div>
 
       {/* Challenge Stats */}
       <div className="grid grid-cols-2 gap-4">
         <div className="card text-center">
           <div className="text-2xl mb-2">⚡</div>
-          <div className="text-2xl font-bold text-yellow-600 mb-2">
+          <div className="text-2xl font-bold text-yellow-300 mb-2">
             {activeChallenges.filter(c => c.completed).length}
           </div>
-          <p className="text-sm text-gray-600">Completed Today</p>
+          <p className="text-sm text-slate-300">Completed Today</p>
         </div>
 
         <div className="card text-center">
           <div className="text-2xl mb-2">🎯</div>
-          <div className="text-2xl font-bold text-blue-600 mb-2">
+          <div className="text-2xl font-bold text-blue-300 mb-2">
             {activeChallenges.length}
           </div>
-          <p className="text-sm text-gray-600">Active Challenges</p>
+          <p className="text-sm text-slate-300">Active Challenges</p>
         </div>
       </div>
 
       {/* Active Challenges */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-800">Today's Challenges</h2>
+        <h2 className="text-xl font-semibold text-white">Today's Challenges</h2>
         
         {activeChallenges.length === 0 ? (
           <div className="card text-center py-12">
-            <Target size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">
+            <Target size={48} className="mx-auto text-slate-400 mb-4" />
+            <h3 className="text-lg font-medium text-slate-200 mb-2">
               No active challenges
             </h3>
-            <p className="text-gray-500">
+            <p className="text-slate-400">
               New challenges will be available tomorrow!
             </p>
           </div>
@@ -116,47 +115,47 @@ const DailyChallenges: React.FC = () => {
                 key={challenge.id}
                 className={`card relative overflow-hidden transition-all duration-300 ${
                   isCompleted 
-                    ? 'bg-green-50 border-green-200 opacity-90' 
+                    ? 'bg-emerald-900/20 border-emerald-500/30' 
                     : canComplete 
-                    ? 'border-yellow-300 bg-yellow-50 shadow-lg' 
+                    ? 'ring-1 ring-yellow-400/40' 
                     : 'hover:shadow-md'
                 }`}
               >
                 {/* Background Gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${getChallengeColor(challenge.type)} opacity-5`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-r ${getChallengeColor(challenge.type)} opacity-10`}></div>
                 
                 <div className="relative">
                   <div className="flex items-start gap-4">
                     {/* Challenge Icon */}
-                    <div className={`p-3 rounded-full bg-gradient-to-r ${getChallengeColor(challenge.type)} text-white shadow-lg`}>
+                    <div className={`p-3 rounded-full bg-gradient-to-r ${getChallengeColor(challenge.type)} text-white shadow-lg ring-1 ring-white/20`}>
                       {getChallengeIcon(challenge.type)}
                     </div>
 
                     {/* Challenge Details */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
                           {challenge.title}
-                          {isCompleted && <CheckCircle2 size={20} className="text-green-500" />}
+                          {isCompleted && <CheckCircle2 size={20} className="text-emerald-400" />}
                         </h3>
                         
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex items-center gap-2 text-sm text-slate-300">
                           <Clock size={16} />
                           {getTimeRemaining(challenge.expiresAt)}
                         </div>
                       </div>
 
-                      <p className="text-gray-700 mb-3">{challenge.description}</p>
+                      <p className="text-slate-300 mb-3">{challenge.description}</p>
 
                       {/* Progress Bar */}
                       <div className="mb-3">
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="font-medium">
+                          <span className="font-medium text-white">
                             Progress: {progress}/{challenge.target}
                           </span>
-                          <span className="text-gray-600">{progressPercentage.toFixed(0)}%</span>
+                          <span className="text-slate-300">{progressPercentage.toFixed(0)}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden ring-1 ring-white/5">
                           <div
                             className={`h-full bg-gradient-to-r ${getChallengeColor(challenge.type)} transition-all duration-500 ease-out`}
                             style={{ width: `${progressPercentage}%` }}
@@ -167,11 +166,11 @@ const DailyChallenges: React.FC = () => {
                       {/* Rewards */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1 text-sm font-medium text-blue-600">
+                          <div className="flex items-center gap-1 text-sm font-medium text-blue-300">
                             <Star size={16} />
                             +{challenge.reward.xp} XP
                           </div>
-                          <div className="flex items-center gap-1 text-sm font-medium text-yellow-600">
+                          <div className="flex items-center gap-1 text-sm font-medium text-yellow-300">
                             <span className="text-base">🪙</span>
                             +{challenge.reward.coins}
                           </div>
@@ -189,7 +188,7 @@ const DailyChallenges: React.FC = () => {
                         )}
 
                         {isCompleted && (
-                          <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2">
+                          <div className="bg-emerald-900/30 text-emerald-300 px-4 py-2 rounded-lg font-medium flex items-center gap-2 border border-emerald-500/30">
                             <CheckCircle2 size={16} />
                             Completed!
                           </div>
@@ -206,25 +205,25 @@ const DailyChallenges: React.FC = () => {
 
       {/* Challenge Tips */}
       <div className="card">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Star className="text-yellow-500" size={20} />
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
+          <Star className="text-yellow-300" size={20} />
           Challenge Tips
         </h2>
-        <div className="space-y-3 text-sm text-gray-700">
+        <div className="space-y-3 text-sm text-slate-300">
           <div className="flex items-start gap-2">
-            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
             <p>Complete challenges before they expire to earn bonus rewards</p>
           </div>
           <div className="flex items-start gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+            <div className="w-2 h-2 bg-green-400 rounded-full mt-2 flex-shrink-0"></div>
             <p>New challenges refresh daily at midnight</p>
           </div>
           <div className="flex items-start gap-2">
-            <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+            <div className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></div>
             <p>Higher difficulty challenges offer better rewards</p>
           </div>
           <div className="flex items-start gap-2">
-            <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+            <div className="w-2 h-2 bg-orange-400 rounded-full mt-2 flex-shrink-0"></div>
             <p>Some challenges contribute to multiple achievements</p>
           </div>
         </div>
@@ -233,4 +232,4 @@ const DailyChallenges: React.FC = () => {
   );
 };
 
-export default DailyChallenges; 
+export default DailyChallenges;

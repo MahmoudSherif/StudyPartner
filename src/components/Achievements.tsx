@@ -7,7 +7,6 @@ import {
   Target,
   TrendingUp,
   Calendar,
-  Award,
   Lock,
   CheckCircle2,
   Zap,
@@ -80,12 +79,12 @@ const Achievements: React.FC = () => {
 
   const getAchievementTypeColor = (type: string) => {
     switch (type) {
-      case 'task': return 'bg-green-100 text-green-800';
-      case 'streak': return 'bg-orange-100 text-orange-800';
-      case 'milestone': return 'bg-purple-100 text-purple-800';
-      case 'daily-challenge': return 'bg-yellow-100 text-yellow-800';
-      case 'special': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'task': return 'bg-green-900/30 text-green-300 border border-green-500/30';
+      case 'streak': return 'bg-orange-900/30 text-orange-300 border border-orange-500/30';
+      case 'milestone': return 'bg-purple-900/30 text-purple-300 border border-purple-500/30';
+      case 'daily-challenge': return 'bg-yellow-900/30 text-yellow-300 border border-yellow-500/30';
+      case 'special': return 'bg-pink-900/30 text-pink-300 border border-pink-500/30';
+      default: return 'bg-slate-800/50 text-slate-200 border border-slate-500/30';
     }
   };
 
@@ -106,70 +105,70 @@ const Achievements: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-          <Trophy className="text-yellow-500" size={28} />
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
+          <Trophy className="text-yellow-300" size={28} />
           Achievements
         </h1>
-        <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">{getMotivationalMessage()}</p>
+        <p className="text-sm sm:text-base text-slate-300 mb-4 px-2">{getMotivationalMessage()}</p>
       </div>
 
       {/* Achievement Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="card text-center p-3 sm:p-4">
           <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🏆</div>
-          <div className="text-lg sm:text-2xl font-bold text-yellow-600 mb-1 sm:mb-2">
+          <div className="text-lg sm:text-2xl font-bold text-yellow-300 mb-1 sm:mb-2">
             {achievementCount}
           </div>
-          <p className="text-xs sm:text-sm text-gray-600">Unlocked</p>
+          <p className="text-xs sm:text-sm text-slate-300">Unlocked</p>
         </div>
 
         <div className="card text-center p-3 sm:p-4">
           <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">⭐</div>
-          <div className="text-lg sm:text-2xl font-bold text-blue-600 mb-1 sm:mb-2">
+          <div className="text-lg sm:text-2xl font-bold text-blue-300 mb-1 sm:mb-2">
             {totalPoints}
           </div>
-          <p className="text-xs sm:text-sm text-gray-600">Total Points</p>
+          <p className="text-xs sm:text-sm text-slate-300">Total Points</p>
         </div>
 
         <div className="card text-center p-3 sm:p-4">
           <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">📊</div>
-          <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1 sm:mb-2">
+          <div className="text-lg sm:text-2xl font-bold text-green-300 mb-1 sm:mb-2">
             {completionPercentage.toFixed(1)}%
           </div>
-          <p className="text-xs sm:text-sm text-gray-600">Complete</p>
+          <p className="text-xs sm:text-sm text-slate-300">Complete</p>
         </div>
 
         <div className="card text-center p-3 sm:p-4">
           <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">🔥</div>
-          <div className="text-lg sm:text-2xl font-bold text-orange-600 mb-1 sm:mb-2">
+          <div className="text-lg sm:text-2xl font-bold text-orange-300 mb-1 sm:mb-2">
             {state.streak.current}
           </div>
-          <p className="text-xs sm:text-sm text-gray-600">Current Streak</p>
+          <p className="text-xs sm:text-sm text-slate-300">Current Streak</p>
         </div>
       </div>
 
       {/* Rarity Breakdown */}
       <div className="card">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <Crown className="text-purple-500" size={20} />
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
+          <Crown className="text-purple-400" size={20} />
           Rarity Collection
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">{rarityStats.common}</div>
-            <div className="text-sm text-gray-500">Common</div>
+            <div className="text-2xl font-bold text-slate-200">{rarityStats.common}</div>
+            <div className="text-sm text-slate-400">Common</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{rarityStats.rare}</div>
-            <div className="text-sm text-blue-500">Rare</div>
+            <div className="text-2xl font-bold text-blue-300">{rarityStats.rare}</div>
+            <div className="text-sm text-blue-300/80">Rare</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{rarityStats.epic}</div>
-            <div className="text-sm text-purple-500">Epic</div>
+            <div className="text-2xl font-bold text-purple-300">{rarityStats.epic}</div>
+            <div className="text-sm text-purple-300/80">Epic</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{rarityStats.legendary}</div>
-            <div className="text-sm text-yellow-500">Legendary</div>
+            <div className="text-2xl font-bold text-yellow-300">{rarityStats.legendary}</div>
+            <div className="text-sm text-yellow-300/80">Legendary</div>
           </div>
         </div>
       </div>
@@ -177,13 +176,13 @@ const Achievements: React.FC = () => {
       {/* Filters */}
       <div className="card">
         <div className="flex items-center gap-4 mb-4">
-          <Filter size={20} className="text-gray-600" />
-          <span className="text-lg font-medium text-gray-700">Filters</span>
+          <Filter size={20} className="text-slate-300" />
+          <span className="text-lg font-medium text-slate-200">Filters</span>
         </div>
         
         <div className="flex flex-col space-y-4 sm:grid sm:grid-cols-1 md:grid-cols-3 sm:gap-4 sm:space-y-0">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Type</label>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
@@ -199,7 +198,7 @@ const Achievements: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rarity</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Rarity</label>
             <select
               value={rarityFilter}
               onChange={(e) => setRarityFilter(e.target.value as any)}
@@ -214,21 +213,17 @@ const Achievements: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className="block text-sm font-medium text-slate-300 mb-2">Status</label>
             <select
               value={showUnlocked}
               onChange={(e) => setShowUnlocked(e.target.value as any)}
               className="input w-full"
             >
-              <option value="all">All Achievements</option>
-              <option value="unlocked">Unlocked Only</option>
-              <option value="locked">Locked Only</option>
+              <option value="all">All</option>
+              <option value="unlocked">Unlocked</option>
+              <option value="locked">Locked</option>
             </select>
           </div>
-        </div>
-        
-        <div className="mt-4 text-sm text-gray-600">
-          Showing {filteredAchievements.length} achievement{filteredAchievements.length !== 1 ? 's' : ''}
         </div>
       </div>
 
@@ -386,4 +381,4 @@ const Achievements: React.FC = () => {
   );
 };
 
-export default Achievements; 
+export default Achievements;

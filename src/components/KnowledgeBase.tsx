@@ -52,7 +52,7 @@ const KnowledgeBase: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold text-gray-800">Knowledge Base</h1>
+        <h1 className="text-3xl font-bold text-white">Knowledge Base</h1>
         <button 
           onClick={() => setShowAddForm(true)}
           className="btn"
@@ -65,10 +65,10 @@ const KnowledgeBase: React.FC = () => {
       {/* Add Question Form */}
       {showAddForm && (
         <div className="card">
-          <h2 className="text-xl font-semibold mb-4">Add New Question</h2>
+          <h2 className="text-xl font-semibold mb-4 text-white">Add New Question</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Question *
               </label>
               <textarea
@@ -82,7 +82,7 @@ const KnowledgeBase: React.FC = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Answer *
               </label>
               <textarea
@@ -97,7 +97,7 @@ const KnowledgeBase: React.FC = () => {
 
             <div className="grid grid-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Category
                 </label>
                 <input
@@ -110,7 +110,7 @@ const KnowledgeBase: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Tags (comma-separated)
                 </label>
                 <input
@@ -144,7 +144,7 @@ const KnowledgeBase: React.FC = () => {
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-0 sm:min-w-[300px]">
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchTerm}
@@ -155,7 +155,7 @@ const KnowledgeBase: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-slate-300">
             <Filter size={16} />
             <select
               value={selectedCategory}
@@ -170,7 +170,7 @@ const KnowledgeBase: React.FC = () => {
             </select>
           </div>
 
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-slate-400">
             {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
           </div>
         </div>
@@ -180,11 +180,11 @@ const KnowledgeBase: React.FC = () => {
       <div className="space-y-4">
         {filteredQuestions.length === 0 ? (
           <div className="card text-center py-12">
-            <BookOpen size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">
+            <BookOpen size={48} className="mx-auto text-slate-400 mb-4" />
+            <h3 className="text-lg font-medium text-slate-200 mb-2">
               {searchTerm || selectedCategory !== 'all' ? 'No questions found' : 'No questions yet'}
             </h3>
-            <p className="text-gray-500">
+            <p className="text-slate-400">
               {searchTerm || selectedCategory !== 'all' 
                 ? 'Try adjusting your search or filters' 
                 : 'Add your first study question to get started!'
@@ -196,12 +196,12 @@ const KnowledgeBase: React.FC = () => {
             <div key={question.id} className="card">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  <h3 className="text-lg font-semibold text-white mb-2">
                     {question.question}
                   </h3>
                   
                   <div className="prose max-w-none">
-                    <p className="text-gray-700 whitespace-pre-wrap">
+                    <p className="text-slate-300 whitespace-pre-wrap">
                       {question.answer}
                     </p>
                   </div>
@@ -209,14 +209,14 @@ const KnowledgeBase: React.FC = () => {
                 
                 <button
                   onClick={() => deleteQuestion(question.id)}
-                  className="text-red-500 hover:text-red-700 transition-colors ml-4"
+                  className="text-red-400 hover:text-red-300 transition-colors ml-4"
                   title="Delete question"
                 >
                   <Trash2 size={16} />
                 </button>
               </div>
               
-              <div className="flex items-center justify-between text-sm text-gray-500">
+              <div className="flex items-center justify-between text-sm text-slate-400">
                 <div className="flex items-center gap-4">
                   {question.category && (
                     <span className="flex items-center gap-1">
@@ -234,11 +234,11 @@ const KnowledgeBase: React.FC = () => {
                 {question.tags.length > 0 && (
                   <div className="flex items-center gap-2">
                     <Tag size={14} />
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap">
                       {question.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          className="px-2 py-1 bg-blue-900/30 text-blue-300 text-xs rounded-full border border-blue-500/30"
                         >
                           {tag}
                         </span>

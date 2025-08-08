@@ -129,18 +129,18 @@ const Navigation: React.FC = () => {
     <>
       {/* Enhanced Header with Navigation Tabs - Mobile Optimized */}
       <nav 
-        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 shadow-lg safe-area-inset-top"
+        className="backdrop-blur-md border-b border-white/10 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 shadow-lg safe-area-inset-top text-gray-100"
         style={{ background: theme.colors.headerGradient }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Left Section - Logo/Brand */}
           <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="brand-logo w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
+            <div className="brand-logo w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shadow-lg">
               <Target className="text-white" size={18} />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-white font-bold text-lg">StudyPartner</h1>
-              <p className="text-white/70 text-xs">Your Learning Hub</p>
+              <p className="text-white/80 text-xs">Your Learning Hub</p>
             </div>
           </div>
 
@@ -194,7 +194,7 @@ const Navigation: React.FC = () => {
             <button
               onClick={handleLogout}
               aria-label="Sign out"
-              className="user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation bg-black/80 text-white border border-gray-700 hover:bg-black hover:border-gray-600"
+              className="user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation bg-black/70 text-white border border-white/20 hover:bg-black/80"
             >
               <LogOut size={16} />
               <span className="hidden sm:inline text-sm font-medium">Exit</span>
@@ -205,10 +205,10 @@ const Navigation: React.FC = () => {
 
       {/* Enhanced Mobile Bottom Navigation - Optimized for All Screen Sizes */}
       <div 
-        className="fixed bottom-0 left-0 right-0 z-[999998] backdrop-blur-xl border-t shadow-2xl safe-area-inset-bottom"
+        className="fixed bottom-0 left-0 right-0 z-[999998] backdrop-blur-xl border-t shadow-2xl safe-area-inset-bottom text-white"
         style={{ 
-          background: getThemeBackground(state.settings.theme).replace('to bottom right', 'to top').replace('linear-gradient', 'linear-gradient') + ', rgba(255, 255, 255, 0.9)',
-          borderColor: 'rgba(255, 255, 255, 0.3)'
+          background: 'rgba(15, 23, 42, 0.85)',
+          borderColor: 'rgba(255, 255, 255, 0.15)'
         }}
       >
         <div className="flex max-w-full mx-auto px-0.5 py-1 sm:px-2 sm:py-2 gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide">
@@ -221,26 +221,26 @@ const Navigation: React.FC = () => {
                 to={item.path}
                 className={`flex flex-col items-center justify-center gap-0.5 px-0.5 sm:px-2 py-2 rounded-lg transition-all duration-200 touch-manipulation min-h-[46px] sm:min-h-[52px] relative flex-shrink-0 ${
                   active 
-                    ? 'scale-105 z-10' 
-                    : 'hover:bg-white/30 active:bg-white/40 active:scale-95'
+                    ? 'scale-105 z-10 bg-white/10' 
+                    : 'hover:bg-white/10 active:bg-white/20 active:scale-95'
                 }`}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
-                  minWidth: 'calc(100vw / 4.5)', // Now only 4 tabs
+                  minWidth: 'calc(100vw / 4.5)',
                   maxWidth: 'calc(100vw / 3.5)'
                 }}
               >
                 {/* Active indicator */}
                 {active && (
                   <div 
-                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-4 sm:w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                    className="absolute top-1 left-1/2 transform -translate-x-1/2 w-4 sm:w-8 h-0.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400"
                   />
                 )}
                 <Icon size={14} className="flex-shrink-0 sm:size-4" />
                 <span 
                   className="bottom-nav-label text-[8px] sm:text-xs font-semibold leading-tight text-center overflow-hidden text-ellipsis"
                   style={{ 
-                    color: active ? '#4f46e5' : 'rgba(0,0,0,0.7)',
+                    color: active ? '#c7d2fe' : 'rgba(255,255,255,0.85)',
                     maxWidth: '100%',
                     display: '-webkit-box',
                     WebkitLineClamp: 1,
@@ -268,7 +268,7 @@ const AppContent: React.FC = () => {
   return (
     <AuthProvider>
       <AppProvider>
-        <div className="min-h-dvh safe-area-inset">
+        <div className="min-h-dvh safe-area-inset bg-slate-900 text-gray-100">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -295,7 +295,7 @@ const ThemedMainContent: React.FC = () => {
 
   return (
     <div 
-      className="min-h-dvh safe-area-inset"
+      className="min-h-dvh safe-area-inset text-gray-100"
       style={{ background: themeBackground }}
     >
       <Navigation />

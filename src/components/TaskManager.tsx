@@ -153,10 +153,10 @@ const TaskManager: React.FC = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'high': return 'text-red-300 bg-red-900/30 border border-red-500/30';
+      case 'medium': return 'text-yellow-300 bg-yellow-900/20 border border-yellow-500/30';
+      case 'low': return 'text-emerald-300 bg-emerald-900/30 border border-emerald-500/30';
+      default: return 'text-slate-300 bg-slate-800/50 border border-white/10';
     }
   };
 
@@ -182,8 +182,8 @@ const TaskManager: React.FC = () => {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Task Manager</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-slate-100">Task Manager</h1>
+          <p className="text-slate-400 mt-1">
             {pendingTasksCount} pending • {completedTasksCount} completed
           </p>
         </div>
@@ -199,10 +199,10 @@ const TaskManager: React.FC = () => {
       {/* Add Task Form */}
       {showAddForm && (
         <div className="card">
-          <h2 className="text-xl font-semibold mb-4">Add New Task</h2>
+          <h2 className="text-xl font-semibold mb-4 text-slate-100">Add New Task</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Task Title *
               </label>
               <input
@@ -216,7 +216,7 @@ const TaskManager: React.FC = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-300 mb-1">
                 Description
               </label>
               <textarea
@@ -230,7 +230,7 @@ const TaskManager: React.FC = () => {
 
             <div className="grid grid-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Priority
                 </label>
                 <select
@@ -245,7 +245,7 @@ const TaskManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-300 mb-1">
                   Due Date
                 </label>
                 <input
@@ -304,7 +304,7 @@ const TaskManager: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-slate-400">
             {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''} shown
           </div>
         </div>
@@ -316,31 +316,31 @@ const TaskManager: React.FC = () => {
           <div className="card text-center py-12">
             {filter === 'pending' ? (
               <>
-                <CheckCircle size={48} className="mx-auto text-green-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                <CheckCircle size={48} className="mx-auto text-emerald-400 mb-4" />
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
                   🎉 All caught up!
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-slate-400">
                   You have no pending tasks. Great work!
                 </p>
               </>
             ) : filter === 'completed' ? (
               <>
                 <Trophy size={48} className="mx-auto text-yellow-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
                   No completed tasks yet
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-slate-400">
                   Complete some tasks to see your achievements here!
                 </p>
               </>
             ) : (
               <>
-                <CheckCircle size={48} className="mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                <CheckCircle size={48} className="mx-auto text-slate-400 mb-4" />
+                <h3 className="text-lg font-medium text-slate-200 mb-2">
                   No tasks found
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-slate-400">
                   Add your first task to get started!
                 </p>
               </>
@@ -351,9 +351,9 @@ const TaskManager: React.FC = () => {
             <div
               key={task.id}
               className={`card transition-all duration-500 ${
-                task.completed ? 'opacity-75 bg-green-50 border-green-200' : ''
+                task.completed ? 'opacity-80 bg-emerald-500/5 border-emerald-500/30' : ''
               } ${
-                completedTaskId === task.id ? 'animate-pulse bg-green-100 scale-[1.02] shadow-lg' : ''
+                completedTaskId === task.id ? 'animate-pulse bg-emerald-500/10 scale-[1.02] ring-1 ring-emerald-500/30' : ''
               }`}
             >
               <div className="flex items-start justify-between">
@@ -362,25 +362,25 @@ const TaskManager: React.FC = () => {
                     type="checkbox"
                     checked={task.completed}
                     onChange={() => handleTaskToggle(task.id)}
-                    className="w-5 h-5 text-green-600 rounded focus:ring-green-500 mt-1 transition-all duration-200"
+                    className="w-5 h-5 text-emerald-500 rounded focus:ring-emerald-500 mt-1 transition-all duration-200 bg-slate-800/60 border-white/20"
                   />
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className={`font-medium ${
-                        task.completed ? 'line-through text-gray-500' : ''
+                        task.completed ? 'line-through text-slate-400' : 'text-slate-200'
                       } ${
-                        completedTaskId === task.id ? 'text-green-600' : ''
+                        completedTaskId === task.id ? 'text-emerald-400' : ''
                       }`}>
                         {task.title}
                         {completedTaskId === task.id && (
-                          <span className="ml-2 text-green-500">
+                          <span className="ml-2 text-emerald-400">
                             <CheckCircle size={16} className="inline animate-bounce" />
                           </span>
                         )}
                       </h3>
                       {task.dueDate && isOverdue(task.dueDate) && !task.completed && (
-                        <span className="text-red-500 text-sm flex items-center gap-1">
+                        <span className="text-red-400 text-sm flex items-center gap-1">
                           <AlertTriangle size={14} />
                           Overdue
                         </span>
@@ -388,12 +388,12 @@ const TaskManager: React.FC = () => {
                     </div>
                     
                     {task.description && (
-                      <p className={`text-sm text-gray-600 mb-2 ${task.completed ? 'line-through' : ''}`}>
+                      <p className={`text-sm text-slate-400 mb-2 ${task.completed ? 'line-through' : ''}`}>
                         {task.description}
                       </p>
                     )}
                     
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
                       <span className={`px-2 py-1 rounded-full ${getPriorityColor(task.priority)}`}>
                         {task.priority}
                       </span>
@@ -406,7 +406,7 @@ const TaskManager: React.FC = () => {
                       )}
                       
                       {task.completedAt && (
-                        <span className="flex items-center gap-1 text-green-600">
+                        <span className="flex items-center gap-1 text-emerald-400">
                           <CheckCircle size={12} />
                           Completed {format(new Date(task.completedAt), 'MMM do')}
                         </span>
@@ -418,7 +418,7 @@ const TaskManager: React.FC = () => {
                 <div className="flex items-center gap-2 ml-4">
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="text-red-500 hover:text-red-700 transition-colors"
+                    className="text-red-400 hover:text-red-300 transition-colors"
                     title="Delete task"
                   >
                     <Trash2 size={16} />

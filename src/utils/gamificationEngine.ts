@@ -396,20 +396,20 @@ export const checkAchievements = (
 
 export const getRarityColor = (rarity: string): string => {
   switch (rarity) {
-    case 'common': return 'text-gray-600 bg-gray-100';
-    case 'rare': return 'text-blue-600 bg-blue-100';
-    case 'epic': return 'text-purple-600 bg-purple-100';
-    case 'legendary': return 'text-yellow-600 bg-yellow-100';
-    default: return 'text-gray-600 bg-gray-100';
+    case 'common': return 'text-slate-300 bg-slate-800/60';
+    case 'rare': return 'text-blue-300 bg-blue-900/30';
+    case 'epic': return 'text-purple-300 bg-purple-900/30';
+    case 'legendary': return 'text-yellow-300 bg-yellow-900/20';
+    default: return 'text-slate-300 bg-slate-800/60';
   }
 };
 
 export const getRarityBorder = (rarity: string): string => {
   switch (rarity) {
-    case 'common': return 'border-gray-300';
-    case 'rare': return 'border-blue-300';
-    case 'epic': return 'border-purple-300';
-    case 'legendary': return 'border-yellow-300';
-    default: return 'border-gray-300';
+    case 'common': return 'border-slate-500/30';
+    case 'rare': return 'border-blue-500/30';
+    case 'epic': return 'border-purple-500/30';
+    case 'legendary': return 'border-yellow-500/30';
+    default: return 'border-slate-500/30';
   }
-}; 
+};
