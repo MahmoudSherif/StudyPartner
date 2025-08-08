@@ -302,12 +302,18 @@ const ThemedMainContent: React.FC = () => {
     >
       <Navigation />
       
-      {/* Daily Tasks Progress - appears below navigation on all pages */}
-      <div className="bg-slate-800/30 border-b border-white/10 backdrop-blur-sm">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-2">
-          <div className="flex justify-end">
-            <DailyTasksProgress isCompact={true} />
-          </div>
+      {/* Daily Tasks Progress - positioned at the top left, just below nav bar */}
+      <div 
+        className="fixed z-50" 
+        style={{ 
+          position: 'fixed',
+          top: '80px', 
+          left: '20px',
+          zIndex: 9999
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'flex-start', width: 'auto' }}>
+          <DailyTasksProgress isCompact={true} />
         </div>
       </div>
       

@@ -76,7 +76,16 @@ const DailyTasksProgress: React.FC<DailyTasksProgressProps> = ({ isCompact = fal
 
   return (
     <>
-      <div className={`flex items-center gap-2 ${isCompact ? 'px-2' : 'px-4'}`}>
+      <div 
+        className={`flex items-center gap-2 ${isCompact ? 'px-0' : 'px-4'}`}
+        style={isCompact ? { 
+          position: 'relative',
+          right: '0',
+          marginLeft: 'auto',
+          display: 'flex',
+          justifyContent: 'flex-end'
+        } : {}}
+      >
         {/* Progress Circle */}
         <div className="relative">
           <svg 
