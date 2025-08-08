@@ -173,7 +173,7 @@ const Navigation: React.FC = () => {
               }`}
             >
               <Target size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Dashboard</span>
+              <span className="header-label text-sm font-medium">Dashboard</span>
             </Link>
             
             {/* Profile Button */}
@@ -181,13 +181,14 @@ const Navigation: React.FC = () => {
               to="/profile"
               aria-label="Open Profile"
               className="user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation text-white/80 hover:text-white hover:bg-white/10"
+              title={state.settings.username}
             >
               <div className="w-6 h-6 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 p-0.5">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-sm">
                   {state.settings.avatar}
                 </div>
               </div>
-              <span className="hidden lg:inline text-sm font-medium">{state.settings.username}</span>
+              <span className="header-label text-sm font-medium">Profile</span>
             </Link>
             
             {/* Logout Button */}
@@ -197,7 +198,7 @@ const Navigation: React.FC = () => {
               className="exit-btn user-menu-item flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 touch-manipulation bg-white text-black border border-black/20 hover:bg-white/90"
             >
               <LogOut size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Exit</span>
+              <span className="header-label text-sm font-medium">Exit</span>
             </button>
           </div>
         </div>

@@ -1807,3 +1807,8 @@ html, body {
 .exit-btn, .exit-btn * {
   color: #000 !important;
 }
+
+/* Header label visibility: visible on >=640px, hidden on very small screens */
+.header-label { display: none; }
+@media (min-width: 640px) { .header-label { display: inline !important; } }
+@media (max-width: 380px) { .header-label { display: none !important; } }
