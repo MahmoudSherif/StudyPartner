@@ -113,14 +113,22 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
         o.stop(now + start + dur + 0.02);
       };
 
-      // Sparkly arpeggio (C5, E5, G5)
-      makeTone(523.25, 0.00, 0.50, 'triangle', 0.16);
-      makeTone(659.25, 0.06, 0.45, 'triangle', 0.14);
-      makeTone(783.99, 0.12, 0.40, 'triangle', 0.12);
-      // Shimmer overlay C6
-      makeTone(1046.50, 0.00, 0.30, 'sine', 0.12);
-      // Coin ping (B6)
-      makeTone(1975.53, 0.22, 0.22, 'square', 0.10);
+      // Sparkly arpeggio (C5, E5, G5) - made longer and more joyful
+      makeTone(523.25, 0.00, 0.80, 'triangle', 0.18);
+      makeTone(659.25, 0.08, 0.75, 'triangle', 0.16);
+      makeTone(783.99, 0.16, 0.70, 'triangle', 0.14);
+      // Higher harmonics for sparkle
+      makeTone(1046.50, 0.00, 0.50, 'sine', 0.14);
+      makeTone(1318.51, 0.08, 0.45, 'sine', 0.12);
+      makeTone(1567.98, 0.16, 0.40, 'sine', 0.10);
+      // Joyful coin cascade
+      makeTone(1975.53, 0.30, 0.35, 'square', 0.12);
+      makeTone(2217.46, 0.38, 0.30, 'square', 0.10);
+      makeTone(2637.02, 0.46, 0.25, 'square', 0.08);
+      // Final triumphant chord (C6 major)
+      makeTone(1046.50, 0.60, 0.60, 'triangle', 0.16);
+      makeTone(1318.51, 0.60, 0.60, 'triangle', 0.14);
+      makeTone(1567.98, 0.60, 0.60, 'triangle', 0.12);
     } catch {}
   };
 
@@ -280,14 +288,17 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
               className="rounded-3xl p-6 sm:p-8 md:p-10 shadow-2xl border relative overflow-hidden"
               style={{
                 background:
-                  'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94))',
-                borderImage: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary)) 1',
-                borderWidth: 1,
-                borderStyle: 'solid'
+                  'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))',
+                borderImage: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #f59e0b) 1',
+                borderWidth: 2,
+                borderStyle: 'solid',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)'
               }}
             >
-              {/* gentle inner glow */}
-              <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(60rem 40rem at 50% -10%, rgba(255,255,255,0.25), transparent 60%)' }} />
+              {/* Enhanced inner glow with better visibility */}
+              <div className="pointer-events-none absolute inset-0" style={{ 
+                background: 'radial-gradient(ellipse 120% 80% at 50% -10%, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.1), transparent 70%)'
+              }} />
 
               {/* Close */}
               <button
@@ -299,37 +310,61 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                 ×
               </button>
 
-              {/* Header */}
+              {/* Header with improved visibility */}
               <div className="text-center space-y-3 md:space-y-4">
                 <div className="flex items-center justify-center gap-3">
-                  <Zap className="text-yellow-300" size={28} />
-                  <Sparkles className="text-yellow-200" size={28} />
-                  <Trophy className="text-amber-300" size={32} />
+                  <Zap className="text-yellow-400 drop-shadow-lg" size={32} />
+                  <Sparkles className="text-blue-400 drop-shadow-lg" size={32} />
+                  <Trophy className="text-amber-400 drop-shadow-lg" size={36} />
                 </div>
                 <h2 id={titleId} className="font-black text-transparent bg-clip-text animate-gradient-x"
                     style={{
                       backgroundImage:
-                        `linear-gradient(90deg, ${themePalette[0]}, ${themePalette[1]}, ${themePalette[3]}, ${themePalette[2]})`
+                        'linear-gradient(90deg, #1e40af, #7c3aed, #dc2626, #ea580c)',
+                      WebkitTextStroke: '1px rgba(0, 0, 0, 0.1)',
+                      filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
                     }}
                 >
-                  <span style={{ fontSize: 'clamp(28px, 4vw, 60px)' }}>{title}</span>
+                  <span style={{ fontSize: 'clamp(32px, 5vw, 64px)' }}>{title}</span>
                 </h2>
-                <p className="text-gray-700" style={{ fontSize: 'clamp(14px, 2.4vw, 22px)' }}>{subtitle}</p>
+                <p className="text-gray-800 font-semibold" 
+                   style={{ 
+                     fontSize: 'clamp(16px, 3vw, 24px)',
+                     textShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                   }}
+                >
+                  {subtitle}
+                </p>
               </div>
 
-              {/* Rewards & Level */}
+              {/* Rewards & Level with enhanced colors */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-6 sm:mt-8">
-                <div className="rounded-2xl p-4 text-center border" style={{ background: 'linear-gradient(180deg, rgba(59,130,246,0.10), rgba(59,130,246,0.20))', borderColor: 'rgba(59,130,246,0.25)' }}>
-                  <div className="text-blue-700 font-extrabold" style={{ fontSize: 'clamp(18px, 3vw, 32px)' }}>+{points} XP</div>
-                  <div className="text-blue-600 text-sm">Experience</div>
+                <div className="rounded-2xl p-4 text-center border-2 shadow-lg" 
+                     style={{ 
+                       background: 'linear-gradient(180deg, rgba(59,130,246,0.20), rgba(37,99,235,0.30))', 
+                       borderColor: 'rgba(59,130,246,0.5)',
+                       boxShadow: '0 4px 14px 0 rgba(59, 130, 246, 0.2)'
+                     }}>
+                  <div className="text-blue-900 font-black drop-shadow-sm" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>+{points} XP</div>
+                  <div className="text-blue-800 text-sm font-semibold">Experience Points</div>
                 </div>
-                <div className="rounded-2xl p-4 text-center border" style={{ background: 'linear-gradient(180deg, rgba(245,158,11,0.10), rgba(245,158,11,0.22))', borderColor: 'rgba(245,158,11,0.30)' }}>
-                  <div className="text-amber-700 font-extrabold" style={{ fontSize: 'clamp(18px, 3vw, 32px)' }}>+{coins} Coins</div>
-                  <div className="text-amber-700 text-sm">Rewards</div>
+                <div className="rounded-2xl p-4 text-center border-2 shadow-lg" 
+                     style={{ 
+                       background: 'linear-gradient(180deg, rgba(245,158,11,0.20), rgba(217,119,6,0.30))', 
+                       borderColor: 'rgba(245,158,11,0.6)',
+                       boxShadow: '0 4px 14px 0 rgba(245, 158, 11, 0.2)'
+                     }}>
+                  <div className="text-amber-900 font-black drop-shadow-sm" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>+{coins} Coins</div>
+                  <div className="text-amber-800 text-sm font-semibold">Reward Coins</div>
                 </div>
-                <div className="rounded-2xl p-4 text-center border" style={{ background: 'linear-gradient(180deg, rgba(244,63,94,0.10), rgba(244,63,94,0.20))', borderColor: 'rgba(244,63,94,0.25)' }}>
-                  <div className="text-rose-700 font-extrabold" style={{ fontSize: 'clamp(18px, 3vw, 32px)' }}>{streak} Day Streak</div>
-                  <div className="text-rose-700 text-sm">On Fire 🔥</div>
+                <div className="rounded-2xl p-4 text-center border-2 shadow-lg" 
+                     style={{ 
+                       background: 'linear-gradient(180deg, rgba(239,68,68,0.20), rgba(220,38,38,0.30))', 
+                       borderColor: 'rgba(239,68,68,0.5)',
+                       boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.2)'
+                     }}>
+                  <div className="text-red-900 font-black drop-shadow-sm" style={{ fontSize: 'clamp(20px, 3.5vw, 36px)' }}>{streak} Day Streak</div>
+                  <div className="text-red-800 text-sm font-semibold">On Fire 🔥</div>
                 </div>
               </div>
 
@@ -359,13 +394,13 @@ const CelebrationOverlay: React.FC<CelebrationOverlayProps> = ({
                       </defs>
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-sm text-gray-600 font-semibold">Lvl {levelInfo.level}</div>
-                      <div className="text-xs text-gray-500">{levelInfo.currentXP}/{levelInfo.currentXP + levelInfo.xpToNext} XP</div>
+                      <div className="text-base text-gray-800 font-bold drop-shadow-sm">Lvl {levelInfo.level}</div>
+                      <div className="text-sm text-gray-700 font-medium">{levelInfo.currentXP}/{levelInfo.currentXP + levelInfo.xpToNext} XP</div>
                     </div>
                   </div>
-                  <div className="text-gray-700 text-sm sm:text-base">
-                    <div className="font-semibold">Next level in <span className="text-gray-900">{levelInfo.xpToNext} XP</span></div>
-                    <div className="text-gray-600">Keep the momentum going!</div>
+                  <div className="text-gray-800 text-sm sm:text-base">
+                    <div className="font-bold">Next level in <span className="text-gray-900 font-black">{levelInfo.xpToNext} XP</span></div>
+                    <div className="text-gray-700 font-medium">Keep the momentum going!</div>
                   </div>
                 </div>
               </div>

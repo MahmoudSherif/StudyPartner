@@ -10,7 +10,8 @@ import {
   Calendar,
   AlertTriangle,
   CheckCircle,
-  Trophy
+  Trophy,
+  Zap
 } from 'lucide-react';
 import CelebrationOverlay from './CelebrationOverlay';
 
@@ -95,6 +96,41 @@ const TaskManager: React.FC = () => {
         });
       }
 
+      // Check if this completion results in all daily tasks being completed
+      const today = new Date().toISOString().split('T')[0];
+      const allDailyTasks = state.tasks.filter(t => {
+        // Task is daily if:
+        // 1. It has "daily" in title or description (case-insensitive)
+        // 2. Its due date is today
+        // 3. It was created today (fallback for older logic)
+        const hasDaily = t.title.toLowerCase().includes('daily') || 
+                        t.description?.toLowerCase().includes('daily');
+        const isDueToday = t.dueDate === today;
+        const wasCreatedToday = t.createdAt.split('T')[0] === today;
+        
+        return hasDaily || isDueToday || wasCreatedToday;
+      });
+      
+      // Count completed daily tasks after this task is toggled
+      const completedDailyTasksAfterToggle = allDailyTasks.filter(t => 
+        t.id === taskId ? true : t.completed // This task will be completed, others keep their current state
+      );
+      
+      // If all daily tasks are now completed, check if we should show daily celebration
+      if (allDailyTasks.length > 0 && completedDailyTasksAfterToggle.length === allDailyTasks.length) {
+        const celebrationKey = `dailyTasksCelebration_${today}`;
+        try {
+          const alreadyShown = localStorage.getItem(celebrationKey) === 'shown';
+          if (!alreadyShown) {
+            localStorage.setItem(celebrationKey, 'shown');
+            // We could trigger a different celebration here or extend the current one
+            // For now, we'll let the individual task celebration show, and the daily progress indicator will update
+          }
+        } catch {
+          // Ignore localStorage errors
+        }
+      }
+
       // Auto-hide completed task after animation
       setTimeout(() => {
         setCompletedTaskId(null);
@@ -167,6 +203,33 @@ const TaskManager: React.FC = () => {
   const pendingTasksCount = state.tasks.filter(t => !t.completed).length;
   const completedTasksCount = state.tasks.filter(t => t.completed).length;
 
+  // Daily tasks logic
+  const today = new Date().toISOString().split('T')[0];
+  const dailyTasks = state.tasks.filter(task => {
+    // Task is daily if:
+    // 1. It has "daily" in title or description (case-insensitive)
+    // 2. Its due date is today
+    // 3. It was created today (fallback for older logic)
+    const hasDaily = task.title.toLowerCase().includes('daily') || 
+                    task.description?.toLowerCase().includes('daily');
+    const isDueToday = task.dueDate === today;
+    const wasCreatedToday = task.createdAt.split('T')[0] === today;
+    
+    return hasDaily || isDueToday || wasCreatedToday;
+  });
+  const completedDailyTasks = dailyTasks.filter(task => task.completed);
+  const dailyTasksPercentage = dailyTasks.length > 0 ? Math.round((completedDailyTasks.length / dailyTasks.length) * 100) : 0;
+
+  const handleAddDailyTask = () => {
+    setNewTask({ 
+      title: '', 
+      description: 'Daily task - complete today', 
+      priority: 'medium', 
+      dueDate: today 
+    });
+    setShowAddForm(true);
+  };
+
   return (
     <div className="space-y-6">
       {/* Celebration Overlay */}
@@ -195,6 +258,80 @@ const TaskManager: React.FC = () => {
           Add Task
         </button>
       </div>
+
+      {/* Daily Tasks Section */}
+      {dailyTasks.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-2xl p-6 border border-blue-500/20">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Today's Tasks</h2>
+                <p className="text-blue-200 text-sm">
+                  {completedDailyTasks.length} of {dailyTasks.length} completed ({dailyTasksPercentage}%)
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleAddDailyTask}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-all duration-200 text-blue-200 hover:text-white border border-blue-500/30"
+            >
+              <Zap className="w-4 h-4" />
+              <span className="text-sm font-medium">Add Daily Task</span>
+            </button>
+          </div>
+          
+          {/* Daily Tasks Progress Bar */}
+          <div className="mb-4">
+            <div className="w-full bg-slate-700 rounded-full h-2">
+              <div 
+                className="h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${dailyTasksPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Daily Tasks List */}
+          <div className="grid gap-2">
+            {dailyTasks.slice(0, 3).map(task => (
+              <div key={task.id} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                <button
+                  onClick={() => handleTaskToggle(task.id)}
+                  className={`w-5 h-5 rounded border-2 transition-all duration-200 flex items-center justify-center ${
+                    task.completed 
+                      ? 'bg-green-500 border-green-500 text-white' 
+                      : 'border-slate-400 hover:border-blue-400'
+                  }`}
+                >
+                  {task.completed && <CheckCircle size={14} />}
+                </button>
+                <span className={`flex-1 ${task.completed ? 'text-slate-400 line-through' : 'text-white'}`}>
+                  {task.title}
+                </span>
+                <span className={`text-xs px-2 py-1 rounded ${getPriorityColor(task.priority)}`}>
+                  {task.priority}
+                </span>
+              </div>
+            ))}
+            {dailyTasks.length > 3 && (
+              <p className="text-slate-400 text-sm text-center mt-2">
+                +{dailyTasks.length - 3} more daily tasks
+              </p>
+            )}
+          </div>
+          
+          {dailyTasksPercentage === 100 && (
+            <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-green-400" />
+                <span className="text-green-200 font-medium">All daily tasks completed! 🎉</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Add Task Form */}
       {showAddForm && (
