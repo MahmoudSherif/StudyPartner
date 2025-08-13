@@ -276,26 +276,15 @@ const Login: React.FC = () => {
                   }}></div>
                 </div>
                 
-                                <h1 style={{
-                  fontSize: '24px',
+                <h1 style={{
+                  fontSize: '28px',
                   fontWeight: 'bold',
-                  color: '#ffffff',
-                  marginBottom: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  flexWrap: 'nowrap',
-                  whiteSpace: 'nowrap'
+                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  marginBottom: '8px'
                 }}>
-                  <span style={{ fontSize: '24px' }}>✨</span>
-                  <span style={{
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    whiteSpace: 'nowrap'
-                  }}>Join Us and Achieve More</span>
-                  <span style={{ fontSize: '24px' }}>🚀</span>
+                  🚀 Welcome to Space Login 🌟
                 </h1>
                 <p style={{
                   color: '#9ca3af',
@@ -573,7 +562,7 @@ const Login: React.FC = () => {
                   to="/signup" 
                   style={{
                     width: '100%',
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
                     color: 'white',
                     fontWeight: 'bold',
                     fontSize: '18px',
@@ -585,7 +574,7 @@ const Login: React.FC = () => {
                     justifyContent: 'center',
                     gap: '12px',
                     transition: 'all 0.3s ease',
-                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
+                    boxShadow: '0 10px 30px rgba(139, 92, 246, 0.3)'
                   }}
                   onMouseEnter={(e) => ((e.target as HTMLElement).style.transform = 'translateY(-2px)')}
                   onMouseLeave={(e) => ((e.target as HTMLElement).style.transform = 'translateY(0)')}
@@ -817,15 +806,6 @@ const Login: React.FC = () => {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 400px) {
-          .responsive-title {
-            font-size: 20px !important;
-          }
-          .responsive-title span {
-            font-size: 20px !important;
-          }
         }
       `}</style>
     </div>

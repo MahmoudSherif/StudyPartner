@@ -214,15 +214,6 @@ const Signup: React.FC = () => {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        
-        @media (max-width: 400px) {
-          .responsive-title {
-            font-size: 20px !important;
-          }
-          .responsive-title span {
-            font-size: 20px !important;
-          }
-        }
       `}</style>
 
       {/* SIGNUP FORM - USING FLEXBOX TABLE DISPLAY */}
@@ -280,27 +271,15 @@ const Signup: React.FC = () => {
               }}></div>
             </div>
             
-            <h1 className="responsive-title" style={{
-              fontSize: '24px',
+            <h1 style={{
+              fontSize: '28px',
               fontWeight: 'bold',
-              marginBottom: '8px',
-              lineHeight: '1.2',
-              textAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              flexWrap: 'nowrap',
-              whiteSpace: 'nowrap'
+              background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              marginBottom: '8px'
             }}>
-              <span style={{ fontSize: '24px' }}>✨</span>
-              <span style={{
-                background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                whiteSpace: 'nowrap'
-              }}>Join Us and Achieve More</span>
-              <span style={{ fontSize: '24px' }}>🚀</span>
+              ✨ Join the Space Academy 🚀
             </h1>
             <p style={{
               color: '#9ca3af',
