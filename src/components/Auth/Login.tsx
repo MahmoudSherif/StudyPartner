@@ -218,36 +218,25 @@ const Login: React.FC = () => {
         }
       `}</style>
 
-      {/* LOGIN FORM - USING FLEXBOX TABLE DISPLAY */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '20px',
-        position: 'relative',
-        zIndex: 10
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '450px',
-          background: 'rgba(15, 23, 42, 0.95)',
-          border: '2px solid rgba(59, 130, 246, 0.4)',
-          borderRadius: '24px',
-          padding: '40px',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
-          animation: 'glow 3s ease-in-out infinite'
-        }}>
-          
-          {!showForgotPassword ? (
-            /* LOGIN FORM */
-            <>
-              {/* Logo and Title */}
-              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <div style={{
-                  display: 'inline-block',
-                  position: 'relative',
-                  marginBottom: '20px'
+      {/* LOGIN FORM - RESPONSIVE DESIGN */}
+      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 relative z-10">
+        <div className="w-full max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl mx-auto">
+          <div 
+            className="backdrop-blur-xl rounded-3xl p-6 sm:p-8 lg:p-12 border-4 shadow-2xl"
+            style={{
+              background: 'rgba(15, 23, 42, 0.95)',
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+              animation: 'glow 3s ease-in-out infinite'
+            }}
+          >
+            
+            {!showForgotPassword ? (
+              /* LOGIN FORM */
+              <>
+                {/* Logo and Title */}
+                <div className="text-center mb-6 sm:mb-8">
+                  <div className="inline-block relative mb-4 sm:mb-6">
                 }}>
                   <div style={{
                     width: '80px',
