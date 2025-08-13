@@ -217,7 +217,7 @@ const EnhancedSignup: React.FC = () => {
       setError('');
       setLoading(true);
       await signup(email, password);
-      navigate('/dashboard');
+      navigate('/');
     } catch (error: any) {
       console.error('Signup error:', error);
       const errorMessage = error.message.toLowerCase();
