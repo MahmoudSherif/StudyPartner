@@ -27,10 +27,30 @@ export const loadUserStateLocal = (userId: string): AppState => {
   return {
     tasks: [],
     achievements: [],
-    streak: { current: 0, longest: 0, lastCompletedDate: '' },
+    availableAchievements: [],
+    streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 0 },
     importantDates: [],
     questions: [],
     moodEntries: [],
-    dailyProgress: []
+    dailyProgress: [],
+    userStats: {
+      totalTasksCompleted: 0,
+      longestStreak: 0,
+      totalXP: 0,
+      totalCoins: 0,
+      joinedDate: new Date().toISOString().split('T')[0],
+      favoriteActivity: '',
+      level: { level: 1, currentXP: 0, xpToNext: 100, title: 'Novice', totalXP: 0 }
+    },
+    dailyChallenges: [],
+    leaderboard: [],
+    coins: 0,
+    settings: {
+      theme: 'default' as const,
+      notifications: true,
+      soundEffects: true,
+      username: '',
+      avatar: '🎓'
+    }
   };
 }; 

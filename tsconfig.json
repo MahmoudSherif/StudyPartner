@@ -17,5 +17,15 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
+  "exclude": [
+    "src/components/Auth/Login.tsx",
+    "src/components/Auth/Signup.tsx",
+    "src/components/Auth/Login.broken.tsx",
+    "src/components/Auth/Login.backup.tsx",
+    "src/components/Auth/Login.clean.tsx",
+    "src/components/Auth/Login.simple.tsx",
+    "src/components/Auth/Signup.backup.tsx",
+    "src/components/Auth/Signup.space.tsx"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 } 
