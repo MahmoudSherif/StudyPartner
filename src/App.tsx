@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
-import Login from './components/Auth/EnhancedLogin';
-import Signup from './components/Auth/EnhancedSignup';
+import Login from './components/Auth/Login.clean';
+import Signup from './components/Auth/Signup';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineIndicator from './components/OfflineIndicator';
 import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
@@ -16,7 +16,9 @@ import {
   Target,
   Trophy,
   LogOut,
-  Zap
+  Zap,
+  Menu,
+  X
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Welcome from './components/Welcome';
@@ -60,6 +62,7 @@ const Navigation: React.FC = () => {
   const location = useLocation();
   const { state } = useApp();
   const { currentUser, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -69,6 +72,14 @@ const Navigation: React.FC = () => {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   if (!currentUser) return null;
@@ -105,7 +116,9 @@ const Navigation: React.FC = () => {
             opacity: 0.75
           }}
         ></div>
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-24 sm:py-32 lg:py-40">
+        
+        {/* Desktop Navigation */}
+        <div className="hidden lg:block relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-24 sm:py-32 lg:py-40">
           <div className="flex items-center justify-between h-32 sm:h-40 lg:h-48">
             
             {/* Premium Logo Section */}
@@ -310,10 +323,152 @@ const Navigation: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {/* Mobile Navigation */}
+        <div className="lg:hidden relative px-4 py-6">
+          <div className="flex items-center justify-between">
+            {/* Mobile Logo */}
+            <Link to="/dashboard" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
+                <div 
+                  className="relative p-2 rounded-xl shadow-lg"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
+                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
+                  }}
+                >
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <span className="font-black text-lg text-white tracking-wide">StudyPartner</span>
+            </Link>
+
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={toggleMobileMenu}
+              className="relative p-2 rounded-xl backdrop-blur-xl border-2 transition-all duration-300"
+              style={{
+                backgroundColor: 'rgba(10, 1, 24, 0.8)',
+                borderColor: 'rgba(255, 255, 255, 0.8)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
+              }}
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6 text-white" />
+              ) : (
+                <Menu className="w-6 h-6 text-white" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 overflow-hidden">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 backdrop-blur-xl"
+              style={{ 
+                backgroundColor: 'rgba(10, 1, 24, 0.95)'
+              }}
+              onClick={closeMobileMenu}
+            ></div>
+            
+            {/* Menu Content */}
+            <div className="relative h-full overflow-y-auto">
+              <div className="flex flex-col min-h-full">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b-2" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="p-2 rounded-xl"
+                      style={{ 
+                        background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
+                      }}
+                    >
+                      <Target className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-black text-xl text-white">Menu</span>
+                  </div>
+                  <button
+                    onClick={closeMobileMenu}
+                    className="p-2 rounded-xl text-white hover:bg-white/10 transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Menu Items */}
+                <div className="flex-1 p-6">
+                  <div className="space-y-4">
+                    {[
+                      { path: '/dashboard', icon: Target, label: 'Dashboard', color: 'from-blue-500 to-purple-600' },
+                      { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
+                      { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
+                      { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
+                      { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
+                      { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' },
+                      { path: '/profile', icon: Target, label: 'Profile', color: 'from-blue-500 to-cyan-500' }
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={closeMobileMenu}
+                          className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${
+                            active 
+                              ? 'text-white shadow-2xl border-2 border-white' 
+                              : 'text-slate-200 hover:text-white border-2 border-transparent hover:border-blue-300'
+                          }`}
+                          style={{
+                            backgroundColor: active ? 'rgba(59, 130, 246, 0.4)' : 'rgba(10, 1, 24, 0.6)',
+                            boxShadow: active ? '0 0 30px rgba(59, 130, 246, 0.5)' : '0 4px 12px rgba(0, 0, 0, 0.3)'
+                          }}
+                        >
+                          <div className={`p-3 rounded-xl bg-gradient-to-r ${item.color} shadow-lg`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                          <span className="font-bold text-lg">{item.label}</span>
+                          {active && (
+                            <div className="ml-auto w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="p-6 border-t-2" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      closeMobileMenu();
+                    }}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 text-slate-200 hover:text-red-300 border-2 border-transparent hover:border-red-400"
+                    style={{
+                      backgroundColor: 'rgba(10, 1, 24, 0.6)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                    }}
+                  >
+                    <div className="p-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 shadow-lg">
+                      <LogOut className="w-6 h-6 text-white" />
+                    </div>
+                    <span className="font-bold text-lg">Logout</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </nav>
 
       {/* Add top padding to prevent content overlap */}
-      <div className="h-64 sm:h-80 lg:h-96 xl:h-[28rem]"></div>
+      <div className="h-20 lg:h-64 lg:sm:h-80 lg:lg:h-96 lg:xl:h-[28rem]"></div>
     </>
   );
 };
