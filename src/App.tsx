@@ -105,8 +105,8 @@ const Navigation: React.FC = () => {
             opacity: 0.75
           }}
         ></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-          <div className="flex items-center justify-between h-24 sm:h-28 lg:h-32">
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-24 sm:py-32 lg:py-40">
+          <div className="flex items-center justify-between h-32 sm:h-40 lg:h-48">
             
             {/* Premium Logo Section */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -123,10 +123,10 @@ const Navigation: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4 sm:gap-6">
-                <span className="font-bold text-xl sm:text-2xl text-white tracking-wide">Home</span>
+                <span className="font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-wide">Home</span>
                 <div className="hidden sm:block">
                   <h1 
-                    className="text-3xl sm:text-4xl font-black leading-none"
+                    className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-none"
                     style={{
                       background: 'linear-gradient(45deg, #ffffff 0%, #e879f9 25%, #9333ea 50%, #3b82f6 75%, #10b981 100%)',
                       backgroundClip: 'text',
@@ -146,7 +146,7 @@ const Navigation: React.FC = () => {
                       }}
                     ></div>
                     <span 
-                      className="text-sm sm:text-base font-medium tracking-wider"
+                      className="text-base sm:text-lg lg:text-xl font-medium tracking-wider"
                       style={{ color: '#c084fc' }}
                     >
                       COSMIC LEARNING 🌌
@@ -160,11 +160,11 @@ const Navigation: React.FC = () => {
             <div className="flex items-center gap-3 sm:gap-6">
               {/* Main Navigation Items */}
               <div 
-                className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8 backdrop-blur-xl rounded-full p-6 sm:p-8 lg:p-10 border-4"
+                className="flex flex-wrap items-center gap-6 sm:gap-8 lg:gap-12 xl:gap-16 backdrop-blur-xl rounded-full p-10 sm:p-14 lg:p-18 xl:p-24 border-6"
                 style={{ 
                   backgroundColor: 'rgba(10, 1, 24, 0.8)', 
                   borderColor: 'rgba(255, 255, 255, 0.8)',
-                  boxShadow: '0 6px 30px rgba(255, 255, 255, 0.2)'
+                  boxShadow: '0 8px 40px rgba(255, 255, 255, 0.3)'
                 }}
               >
                 {[
@@ -180,40 +180,40 @@ const Navigation: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`relative group flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 rounded-2xl transition-all duration-300 overflow-hidden border-4 ${
+                      className={`relative group flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 px-6 sm:px-12 lg:px-18 xl:px-24 py-8 sm:py-12 lg:py-16 xl:py-20 rounded-3xl transition-all duration-300 overflow-hidden border-6 ${
                         active 
                           ? 'shadow-2xl scale-105 text-white border-white' 
                           : 'text-slate-200 hover:text-white hover:scale-105 border-white hover:border-blue-300'
                       }`}
                       style={{
                         backgroundColor: active ? 'rgba(59, 130, 246, 0.4)' : 'rgba(10, 1, 24, 0.8)',
-                        boxShadow: active ? '0 0 40px rgba(59, 130, 246, 0.6)' : '0 4px 12px rgba(0, 0, 0, 0.5)',
+                        boxShadow: active ? '0 0 50px rgba(59, 130, 246, 0.7)' : '0 6px 16px rgba(0, 0, 0, 0.6)',
                         borderColor: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                        minWidth: '120px'
+                        minWidth: '160px'
                       }}
                       onMouseEnter={(e) => {
                         if (!active) {
                           e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                          e.currentTarget.style.boxShadow = '0 0 35px rgba(59, 130, 246, 0.5)';
+                          e.currentTarget.style.boxShadow = '0 0 45px rgba(59, 130, 246, 0.6)';
                           e.currentTarget.style.borderColor = '#93c5fd';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!active) {
                           e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.8)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5)';
+                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.6)';
                           e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
                         }
                       }}
                     >
                       {active && (
                         <>
-                          <div className={`absolute inset-0 bg-gradient-to-r ${item.galaxyColor} opacity-20 rounded-2xl`}></div>
-                          <div className={`absolute inset-0 bg-gradient-to-r ${item.galaxyColor} opacity-10 rounded-2xl blur-md`}></div>
+                          <div className={`absolute inset-0 bg-gradient-to-r ${item.galaxyColor} opacity-20 rounded-3xl`}></div>
+                          <div className={`absolute inset-0 bg-gradient-to-r ${item.galaxyColor} opacity-10 rounded-3xl blur-md`}></div>
                         </>
                       )}
-                      <Icon className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 relative z-10 flex-shrink-0 ${active ? 'drop-shadow-2xl' : ''}`} />
-                      <span className="relative z-10 font-black text-lg sm:text-xl lg:text-3xl xl:text-4xl tracking-wide text-center sm:text-left whitespace-nowrap">
+                      <Icon className={`w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 xl:w-24 xl:h-24 relative z-10 flex-shrink-0 ${active ? 'drop-shadow-2xl' : ''}`} />
+                      <span className="relative z-10 font-black text-xl sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl tracking-wide text-center sm:text-left whitespace-nowrap">
                         {item.label}
                       </span>
                     </Link>
@@ -222,32 +222,32 @@ const Navigation: React.FC = () => {
               </div>
 
               {/* Separate User Actions */}
-              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+              <div className="flex flex-wrap items-center gap-6 sm:gap-8">
                 {/* Profile Button */}
                 <Link
                   to="/profile"
-                  className={`group relative flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 rounded-2xl transition-all duration-300 overflow-hidden border-4 ${
+                  className={`group relative flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 px-6 sm:px-12 lg:px-18 xl:px-24 py-8 sm:py-12 lg:py-16 xl:py-20 rounded-3xl transition-all duration-300 overflow-hidden border-6 ${
                     isActive('/profile')
                       ? 'shadow-2xl text-white scale-105 border-white'
                       : 'text-slate-200 hover:text-white hover:scale-105 border-white hover:border-blue-300'
                   }`}
                   style={{
                     backgroundColor: isActive('/profile') ? 'rgba(59, 130, 246, 0.4)' : 'rgba(10, 1, 24, 0.8)',
-                    boxShadow: isActive('/profile') ? '0 0 40px rgba(59, 130, 246, 0.6)' : '0 4px 12px rgba(0, 0, 0, 0.5)',
+                    boxShadow: isActive('/profile') ? '0 0 50px rgba(59, 130, 246, 0.7)' : '0 6px 16px rgba(0, 0, 0, 0.6)',
                     borderColor: isActive('/profile') ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                    minWidth: '120px'
+                    minWidth: '160px'
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive('/profile')) {
                       e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                      e.currentTarget.style.boxShadow = '0 0 35px rgba(59, 130, 246, 0.5)';
+                      e.currentTarget.style.boxShadow = '0 0 45px rgba(59, 130, 246, 0.6)';
                       e.currentTarget.style.borderColor = '#93c5fd';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive('/profile')) {
                       e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.8)';
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.6)';
                       e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
                     }
                   }}
@@ -255,11 +255,11 @@ const Navigation: React.FC = () => {
                   {isActive('/profile') && (
                     <>
                       <div 
-                        className="absolute inset-0 rounded-2xl"
+                        className="absolute inset-0 rounded-3xl"
                         style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
                       ></div>
                       <div 
-                        className="absolute inset-0 rounded-2xl blur-md"
+                        className="absolute inset-0 rounded-3xl blur-md"
                         style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
                       ></div>
                     </>
@@ -270,41 +270,41 @@ const Navigation: React.FC = () => {
                       style={{ backgroundColor: '#3b82f6' }}
                     ></div>
                     <div 
-                      className="relative w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl lg:text-3xl font-black shadow-2xl"
+                      className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black shadow-2xl"
                       style={{ 
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)',
-                        boxShadow: '0 0 25px rgba(59, 130, 246, 0.7)'
+                        boxShadow: '0 0 30px rgba(59, 130, 246, 0.8)'
                       }}
                     >
                       {state.settings.avatar}
                     </div>
                   </div>
-                  <span className="relative z-10 font-black text-lg sm:text-xl lg:text-3xl xl:text-4xl tracking-wide text-center sm:text-left whitespace-nowrap">Profile</span>
+                  <span className="relative z-10 font-black text-xl sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl tracking-wide text-center sm:text-left whitespace-nowrap">Profile</span>
                 </Link>
 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="group relative flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-4 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 rounded-2xl transition-all duration-300 overflow-hidden text-slate-200 hover:text-red-300 hover:scale-105 border-4 border-white hover:border-red-400"
+                  className="group relative flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 px-6 sm:px-12 lg:px-18 xl:px-24 py-8 sm:py-12 lg:py-16 xl:py-20 rounded-3xl transition-all duration-300 overflow-hidden text-slate-200 hover:text-red-300 hover:scale-105 border-6 border-white hover:border-red-400"
                   style={{ 
                     backgroundColor: 'rgba(10, 1, 24, 0.8)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.6)',
                     borderColor: 'rgba(255, 255, 255, 0.8)',
-                    minWidth: '120px'
+                    minWidth: '160px'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.3)';
-                    e.currentTarget.style.boxShadow = '0 0 35px rgba(220, 38, 38, 0.5)';
+                    e.currentTarget.style.boxShadow = '0 0 45px rgba(220, 38, 38, 0.6)';
                     e.currentTarget.style.borderColor = '#f87171';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.8)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.5)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.6)';
                     e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
                   }}
                 >
-                  <LogOut className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 relative z-10 flex-shrink-0" />
-                  <span className="relative z-10 font-black text-lg sm:text-xl lg:text-3xl xl:text-4xl tracking-wide text-center sm:text-left whitespace-nowrap">Logout</span>
+                  <LogOut className="w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 xl:w-24 xl:h-24 relative z-10 flex-shrink-0" />
+                  <span className="relative z-10 font-black text-xl sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl tracking-wide text-center sm:text-left whitespace-nowrap">Logout</span>
                 </button>
               </div>
             </div>
@@ -313,7 +313,7 @@ const Navigation: React.FC = () => {
       </nav>
 
       {/* Add top padding to prevent content overlap */}
-      <div className="h-48 sm:h-56 lg:h-64"></div>
+      <div className="h-64 sm:h-80 lg:h-96 xl:h-[28rem]"></div>
     </>
   );
 };
