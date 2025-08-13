@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft, Star, Zap, Target, Crown } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft, Target } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -25,34 +25,36 @@ const Login: React.FC = () => {
       const starsContainer = document.getElementById('stars-container');
       if (!starsContainer) return;
 
-      // Clear existing stars
       starsContainer.innerHTML = '';
-
-      const numStars = 150;
+      const numStars = window.innerWidth < 640 ? 80 : 150; // Fewer stars on mobile
+      
       for (let i = 0; i < numStars; i++) {
         const star = document.createElement('div');
+        star.className = 'star';
         star.style.cssText = `
           position: absolute;
-          width: ${Math.random() * 4 + 1}px;
-          height: ${Math.random() * 4 + 1}px;
+          width: ${Math.random() * 3 + 1}px;
+          height: ${Math.random() * 3 + 1}px;
           background: white;
           border-radius: 50%;
           left: ${Math.random() * 100}%;
           top: ${Math.random() * 100}%;
           animation: twinkle ${Math.random() * 4 + 2}s infinite;
           opacity: ${Math.random() * 0.8 + 0.3};
-          box-shadow: 0 0 10px rgba(255,255,255,0.5);
+          box-shadow: 0 0 8px rgba(255,255,255,0.4);
         `;
         starsContainer.appendChild(star);
       }
     };
 
     createStars();
+    window.addEventListener('resize', createStars);
+    return () => window.removeEventListener('resize', createStars);
   }, []);
 
-  const validateEmail = (email: string) => {
+  const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
+    if (!email.trim()) {
       setEmailError('Email is required');
       return false;
     }
@@ -64,13 +66,13 @@ const Login: React.FC = () => {
     return true;
   };
 
-  const validatePassword = (password: string) => {
-    if (!password) {
+  const validatePassword = (password: string): boolean => {
+    if (!password.trim()) {
       setPasswordError('Password is required');
       return false;
     }
     if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+      setPasswordError('Password must be at least 6 characters long');
       return false;
     }
     setPasswordError('');
@@ -80,16 +82,20 @@ const Login: React.FC = () => {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
-    if (value && emailError) {
+    if (value.trim()) {
       validateEmail(value);
+    } else {
+      setEmailError('');
     }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPassword(value);
-    if (value && passwordError) {
+    if (value.trim()) {
       validatePassword(value);
+    } else {
+      setPasswordError('');
     }
   };
 
@@ -107,15 +113,13 @@ const Login: React.FC = () => {
       setError('');
       setLoading(true);
       await login(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error);
       const errorMessage = error.message.toLowerCase();
-      if (errorMessage.includes('user-not-found')) {
-        setError('No account found with this email address');
-      } else if (errorMessage.includes('wrong-password')) {
-        setError('Incorrect password');
-      } else if (errorMessage.includes('invalid-email')) {
-        setError('Invalid email address');
+      
+      if (errorMessage.includes('user-not-found') || errorMessage.includes('wrong-password')) {
+        setError('Invalid email or password');
       } else if (errorMessage.includes('too-many-requests')) {
         setError('Too many failed attempts. Please try again later');
       } else {
@@ -156,665 +160,260 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #1e1b4b 75%, #0f172a 100%)',
-      position: 'relative',
-      overflow: 'hidden',
-      fontFamily: 'Inter, sans-serif'
+    <div className="min-h-screen relative overflow-hidden font-sans" style={{
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #1e1b4b 75%, #0f172a 100%)'
     }}>
+      
       {/* Stars Container */}
-      <div id="stars-container" style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 1
-      }}></div>
+      <div id="stars-container" className="absolute inset-0 z-10"></div>
       
-      {/* Animated Nebula Effects */}
-      <div style={{
-        position: 'absolute',
-        top: '20%',
-        left: '20%',
-        width: '400px',
-        height: '400px',
-        background: 'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(80px)',
-        animation: 'pulse 4s ease-in-out infinite',
-        zIndex: 1
-      }}></div>
+      {/* Animated Nebula Effects - Responsive */}
+      <div 
+        className="absolute w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 rounded-full blur-3xl opacity-30 animate-pulse z-10"
+        style={{
+          top: '10%',
+          left: '10%',
+          background: 'radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, transparent 70%)',
+          animationDuration: '4s'
+        }}
+      ></div>
       
-      <div style={{
-        position: 'absolute',
-        top: '60%',
-        right: '15%',
-        width: '350px',
-        height: '350px',
-        background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
-        borderRadius: '50%',
-        filter: 'blur(80px)',
-        animation: 'pulse 4s ease-in-out infinite 2s',
-        zIndex: 1
-      }}></div>
+      <div 
+        className="absolute w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full blur-3xl opacity-30 animate-pulse z-10"
+        style={{
+          top: '60%',
+          right: '10%',
+          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%)',
+          animationDuration: '4s',
+          animationDelay: '2s'
+        }}
+      ></div>
 
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.3); }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.3; }
-          50% { transform: scale(1.2); opacity: 0.5; }
-        }
-        
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-          50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
-        }
-      `}</style>
-
-      {/* LOGIN FORM - RESPONSIVE DESIGN */}
-      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8 relative z-10">
-        <div className="w-full max-w-xs sm:max-w-md lg:max-w-lg xl:max-w-xl 2xl:max-w-2xl mx-auto">
-          <div 
-            className="backdrop-blur-xl rounded-3xl p-6 sm:p-8 lg:p-12 border-4 shadow-2xl"
-            style={{
-              background: 'rgba(15, 23, 42, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
-              animation: 'glow 3s ease-in-out infinite'
-            }}
-          >
+      {/* Main Content - Fully Responsive */}
+      <div className="flex items-center justify-center min-h-screen p-4 relative z-20">
+        <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
+          <div className="backdrop-blur-xl rounded-3xl p-6 sm:p-8 lg:p-12 border-4 border-white/30 shadow-2xl bg-slate-900/95">
             
             {!showForgotPassword ? (
-              /* LOGIN FORM */
+              // LOGIN FORM
               <>
                 {/* Logo and Title */}
                 <div className="text-center mb-6 sm:mb-8">
                   <div className="inline-block relative mb-4 sm:mb-6">
-                }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto',
-                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.4)'
-                  }}>
-                    <Target size={40} color="white" />
-                  </div>
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    borderRadius: '50%',
-                    animation: 'pulse 2s ease-in-out infinite',
-                    opacity: 0.3,
-                    zIndex: -1
-                  }}></div>
-                </div>
-                
-                                <h1 style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  color: '#ffffff',
-                  marginBottom: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  flexWrap: 'nowrap',
-                  whiteSpace: 'nowrap'
-                }}>
-                  <span style={{ fontSize: '24px' }}>✨</span>
-                  <span style={{
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    whiteSpace: 'nowrap'
-                  }}>Join Us and Achieve More</span>
-                  <span style={{ fontSize: '24px' }}>🚀</span>
-                </h1>
-                <p style={{
-                  color: '#9ca3af',
-                  fontSize: '16px'
-                }}>
-                  Sign in to continue your journey
-                </p>
-              </div>
-
-              {/* Error Display */}
-              {error && (
-                <div style={{
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '20px',
-                  display: 'flex',
-                  alignItems: 'flex-start'
-                }}>
-                  <AlertCircle size={20} color="#fca5a5" style={{ marginRight: '12px', marginTop: '2px' }} />
-                  <span style={{ color: '#fca5a5', fontSize: '14px' }}>{error}</span>
-                </div>
-              )}
-
-              {/* Login Form */}
-              <form onSubmit={handleSubmit}>
-                {/* Email Field */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{
-                    display: 'block',
-                    color: 'white',
-                    fontWeight: '600',
-                    marginBottom: '8px',
-                    fontSize: '14px'
-                  }}>
-                    Email Address
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={handleEmailChange}
-                      style={{
-                        width: '100%',
-                        background: 'rgba(30, 41, 59, 0.9)',
-                        color: 'white',
-                        border: '2px solid rgba(71, 85, 105, 0.8)',
-                        borderRadius: '12px',
-                        padding: '16px 16px 16px 48px',
-                        fontSize: '16px',
-                        outline: 'none',
-                        transition: 'all 0.3s ease',
-                        boxSizing: 'border-box'
-                      }}
-                      placeholder="you@example.com"
-                      disabled={loading}
-                      required
-                      onFocus={(e) => {
-                        e.target.style.borderColor = '#3b82f6';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = 'rgba(71, 85, 105, 0.8)';
-                        e.target.style.boxShadow = 'none';
-                      }}
-                    />
-                    <Mail size={20} color="#9ca3af" style={{
-                      position: 'absolute',
-                      left: '16px',
-                      top: '50%',
-                      transform: 'translateY(-50%)'
-                    }} />
-                    {email && !emailError && (
-                      <CheckCircle size={20} color="#10b981" style={{
-                        position: 'absolute',
-                        right: '16px',
-                        top: '50%',
-                        transform: 'translateY(-50%)'
-                      }} />
-                    )}
-                  </div>
-                  {emailError && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginTop: '8px',
-                      color: '#fca5a5',
-                      fontSize: '14px'
-                    }}>
-                      <AlertCircle size={16} style={{ marginRight: '6px' }} />
-                      {emailError}
-                    </div>
-                  )}
-                </div>
-
-                {/* Password Field */}
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{
-                    display: 'block',
-                    color: 'white',
-                    fontWeight: '600',
-                    marginBottom: '8px',
-                    fontSize: '14px'
-                  }}>
-                    Password
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={handlePasswordChange}
-                      style={{
-                        width: '100%',
-                        background: 'rgba(30, 41, 59, 0.9)',
-                        color: 'white',
-                        border: '2px solid rgba(71, 85, 105, 0.8)',
-                        borderRadius: '12px',
-                        padding: '16px 48px 16px 48px',
-                        fontSize: '16px',
-                        outline: 'none',
-                        transition: 'all 0.3s ease',
-                        boxSizing: 'border-box'
-                      }}
-                      placeholder="Your secret key"
-                      disabled={loading}
-                      required
-                      onFocus={(e) => {
-                        e.target.style.borderColor = '#3b82f6';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = 'rgba(71, 85, 105, 0.8)';
-                        e.target.style.boxShadow = 'none';
-                      }}
-                    />
-                    <Lock size={20} color="#9ca3af" style={{
-                      position: 'absolute',
-                      left: '16px',
-                      top: '50%',
-                      transform: 'translateY(-50%)'
-                    }} />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: 'absolute',
-                        right: '16px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        color: '#9ca3af',
-                        cursor: 'pointer',
-                        padding: '4px'
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 rounded-2xl blur-lg opacity-60 animate-pulse"></div>
+                    <div 
+                      className="relative p-3 sm:p-4 rounded-2xl shadow-lg"
+                      style={{ 
+                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)'
                       }}
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      <Target className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                    </div>
+                  </div>
+                  
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-2 bg-gradient-to-r from-white via-blue-200 to-cyan-200 bg-clip-text text-transparent">
+                    StudyPartner
+                  </h1>
+                  <p className="text-gray-400 text-sm sm:text-base">
+                    Sign in to continue your cosmic learning journey
+                  </p>
+                </div>
+
+                {/* Error Display */}
+                {error && (
+                  <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-4 mb-6 flex items-start">
+                    <AlertCircle size={20} className="text-red-300 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-red-300 text-sm">{error}</span>
+                  </div>
+                )}
+
+                {/* Login Form */}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Email Field */}
+                  <div>
+                    <label className="block text-white font-semibold mb-2 text-sm sm:text-base">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={handleEmailChange}
+                        className="w-full bg-slate-800/90 text-white border-2 border-slate-600 rounded-xl px-4 py-3 sm:py-4 pl-12 text-sm sm:text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                        placeholder="you@example.com"
+                        disabled={loading}
+                        required
+                      />
+                      <Mail size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      {email && !emailError && (
+                        <CheckCircle size={18} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-400" />
+                      )}
+                    </div>
+                    {emailError && (
+                      <div className="flex items-center mt-2 text-red-300 text-sm">
+                        <AlertCircle size={14} className="mr-2" />
+                        {emailError}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Password Field */}
+                  <div>
+                    <label className="block text-white font-semibold mb-2 text-sm sm:text-base">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={handlePasswordChange}
+                        className="w-full bg-slate-800/90 text-white border-2 border-slate-600 rounded-xl px-4 py-3 sm:py-4 pl-12 pr-12 text-sm sm:text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                        placeholder="••••••••"
+                        disabled={loading}
+                        required
+                      />
+                      <Lock size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    {passwordError && (
+                      <div className="flex items-center mt-2 text-red-300 text-sm">
+                        <AlertCircle size={14} className="mr-2" />
+                        {passwordError}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Forgot Password Link */}
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                    >
+                      Forgot your password?
                     </button>
                   </div>
-                  {passwordError && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginTop: '8px',
-                      color: '#fca5a5',
-                      fontSize: '14px'
-                    }}>
-                      <AlertCircle size={16} style={{ marginRight: '6px' }} />
-                      {passwordError}
-                    </div>
-                  )}
-                </div>
 
-                {/* Remember & Forgot Password */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '30px',
-                  fontSize: '14px'
-                }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: '#9ca3af',
-                    cursor: 'pointer'
-                  }}>
-                    <input type="checkbox" style={{ marginRight: '8px' }} />
-                    Remember me
-                  </label>
+                  {/* Submit Button */}
                   <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#3b82f6',
-                      cursor: 'pointer',
-                      fontWeight: '500'
-                    }}
+                    type="submit"
                     disabled={loading}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-6 rounded-xl text-sm sm:text-base transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg disabled:cursor-not-allowed"
                   >
-                    Forgot password?
+                    {loading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                        Signing in...
+                      </div>
+                    ) : (
+                      'Sign In'
+                    )}
                   </button>
-                </div>
-
-                {/* Sign In Button */}
-                <button
-                  type="submit"
-                  disabled={loading || !!emailError || !!passwordError}
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    fontSize: '18px',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: 'none',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.3s ease',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    opacity: loading || emailError || passwordError ? 0.6 : 1,
-                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
-                  }}
-                  onMouseEnter={(e) => !loading && ((e.target as HTMLElement).style.transform = 'translateY(-2px)')}
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.transform = 'translateY(0)')}
-                >
-                  {loading ? (
-                    <>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        borderTop: '2px solid white',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                      }}></div>
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      <Zap size={20} />
-                      Sign In
-                    </>
-                  )}
-                </button>
-
-                {/* Divider */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  margin: '30px 0',
-                  color: '#9ca3af'
-                }}>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(156, 163, 175, 0.3)' }}></div>
-                  <span style={{
-                    padding: '0 20px',
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    fontSize: '14px',
-                    fontWeight: '500'
-                  }}>
-                    New here?
-                  </span>
-                  <div style={{ flex: 1, height: '1px', background: 'rgba(156, 163, 175, 0.3)' }}></div>
-                </div>
+                </form>
 
                 {/* Sign Up Link */}
-                <Link 
-                  to="/signup" 
-                  style={{
-                    width: '100%',
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    fontSize: '18px',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    transition: 'all 0.3s ease',
-                    boxShadow: '0 10px 30px rgba(59, 130, 246, 0.3)'
-                  }}
-                  onMouseEnter={(e) => ((e.target as HTMLElement).style.transform = 'translateY(-2px)')}
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.transform = 'translateY(0)')}
-                >
-                  <Star size={20} color="#fbbf24" />
-                  Create an account
-                  <Crown size={20} color="#fbbf24" />
-                </Link>
-              </form>
-            </>
-          ) : (
-            /* FORGOT PASSWORD PANEL - SAME STYLING */
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-                <button
-                  onClick={closeForgotPassword}
-                  style={{
-                    padding: '8px',
-                    color: '#9ca3af',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    marginRight: '12px',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <ArrowLeft size={20} />
-                </button>
-                <h2 style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Lock size={24} color="#3b82f6" />
-                  Reset Password
-                </h2>
-              </div>
-
-              {resetSuccess ? (
-                <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 24px',
-                    boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)'
-                  }}>
-                    <CheckCircle size={40} color="white" />
-                  </div>
-                  <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', marginBottom: '16px' }}>
-                    Email Sent Successfully! 🎉
-                  </h3>
-                  <p style={{ color: '#9ca3af', marginBottom: '24px' }}>
-                    We've sent a password reset link to <strong style={{ color: '#3b82f6' }}>{resetEmail}</strong>
+                <div className="mt-8 text-center">
+                  <p className="text-gray-400 text-sm sm:text-base">
+                    Don't have an account?{' '}
+                    <Link 
+                      to="/signup" 
+                      className="text-blue-400 hover:text-blue-300 font-semibold transition-colors"
+                    >
+                      Sign up here
+                    </Link>
                   </p>
-                  <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '32px' }}>
-                    Check your inbox and follow the instructions to reset your password.
-                  </p>
+                </div>
+              </>
+            ) : (
+              // FORGOT PASSWORD FORM
+              <>
+                <div className="text-center mb-6 sm:mb-8">
                   <button
                     onClick={closeForgotPassword}
-                    style={{
-                      width: '100%',
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
-                      color: 'white',
-                      fontWeight: 'bold',
-                      fontSize: '16px',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)'
-                    }}
+                    className="absolute top-4 left-4 text-gray-400 hover:text-white transition-colors"
                   >
-                    Back to Login
+                    <ArrowLeft size={20} />
                   </button>
-                </div>
-              ) : (
-                <>
-                  <p style={{ color: '#9ca3af', marginBottom: '24px', textAlign: 'center' }}>
-                    No worries! Enter your email and we'll send you instructions to reset your password.
+                  <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Reset Password</h2>
+                  <p className="text-gray-400 text-sm sm:text-base">
+                    Enter your email to receive a reset link
                   </p>
+                </div>
 
-                  {resetError && (
-                    <div style={{
-                      background: 'rgba(239, 68, 68, 0.2)',
-                      border: '1px solid rgba(239, 68, 68, 0.4)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <AlertCircle size={16} color="#fca5a5" style={{ marginRight: '8px' }} />
-                      <span style={{ color: '#fca5a5', fontSize: '14px' }}>{resetError}</span>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleForgotPassword}>
-                    <div style={{ marginBottom: '24px' }}>
-                      <label style={{
-                        display: 'block',
-                        color: 'white',
-                        fontWeight: '600',
-                        marginBottom: '8px',
-                        fontSize: '14px'
-                      }}>
+                {resetSuccess ? (
+                  <div className="bg-green-500/20 border border-green-500/40 rounded-xl p-6 text-center">
+                    <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
+                    <p className="text-green-300 mb-4">Password reset email sent!</p>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Check your inbox and follow the instructions to reset your password.
+                    </p>
+                    <button
+                      onClick={closeForgotPassword}
+                      className="text-blue-400 hover:text-blue-300 font-semibold"
+                    >
+                      Back to login
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="space-y-6">
+                    {resetError && (
+                      <div className="bg-red-500/20 border border-red-500/40 rounded-xl p-4 flex items-start">
+                        <AlertCircle size={20} className="text-red-300 mr-3 mt-0.5" />
+                        <span className="text-red-300 text-sm">{resetError}</span>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="block text-white font-semibold mb-2 text-sm sm:text-base">
                         Email Address
                       </label>
-                      <div style={{ position: 'relative' }}>
+                      <div className="relative">
                         <input
                           type="email"
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
-                          style={{
-                            width: '100%',
-                            background: 'rgba(30, 41, 59, 0.9)',
-                            color: 'white',
-                            border: '2px solid rgba(71, 85, 105, 0.8)',
-                            borderRadius: '12px',
-                            padding: '16px 16px 16px 48px',
-                            fontSize: '16px',
-                            outline: 'none',
-                            boxSizing: 'border-box'
-                          }}
-                          placeholder="Enter your email"
+                          className="w-full bg-slate-800/90 text-white border-2 border-slate-600 rounded-xl px-4 py-3 sm:py-4 pl-12 text-sm sm:text-base transition-all duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          placeholder="you@example.com"
                           disabled={resetLoading}
                           required
                         />
-                        <Mail size={20} color="#9ca3af" style={{
-                          position: 'absolute',
-                          left: '16px',
-                          top: '50%',
-                          transform: 'translateY(-50%)'
-                        }} />
+                        <Mail size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <button
-                        type="submit"
-                        disabled={resetLoading}
-                        style={{
-                          flex: 1,
-                          background: 'linear-gradient(135deg, #10b981, #059669)',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '16px',
-                          padding: '16px',
-                          borderRadius: '12px',
-                          border: 'none',
-                          cursor: resetLoading ? 'not-allowed' : 'pointer',
-                          opacity: resetLoading ? 0.6 : 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px'
-                        }}
-                      >
-                        {resetLoading ? (
-                          <>
-                            <div style={{
-                              width: '16px',
-                              height: '16px',
-                              border: '2px solid rgba(255,255,255,0.3)',
-                              borderTop: '2px solid white',
-                              borderRadius: '50%',
-                              animation: 'spin 1s linear infinite'
-                            }}></div>
-                            Sending...
-                          </>
-                        ) : (
-                          'Send Reset Link'
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={closeForgotPassword}
-                        style={{
-                          flex: 1,
-                          background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '16px',
-                          padding: '16px',
-                          borderRadius: '12px',
-                          border: 'none',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Cancel
-                      </button>
-                    </div>
+                    <button
+                      type="submit"
+                      disabled={resetLoading}
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-3 sm:py-4 px-6 rounded-xl text-sm sm:text-base transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-lg disabled:cursor-not-allowed"
+                    >
+                      {resetLoading ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                          Sending...
+                        </div>
+                      ) : (
+                        'Send Reset Email'
+                      )}
+                    </button>
                   </form>
-                </>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        position: 'absolute',
-        bottom: '16px',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
-        zIndex: 20
-      }}>
-        <p style={{
-          color: '#6b7280',
-          fontSize: '14px'
-        }}>
-          Built with ❤️ for students who aspire to achieve more
-        </p>
-      </div>
-
-      {/* Add spin animation */}
+      {/* Add animations */}
       <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 400px) {
-          .responsive-title {
-            font-size: 20px !important;
-          }
-          .responsive-title span {
-            font-size: 20px !important;
-          }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.3); }
         }
       `}</style>
     </div>
