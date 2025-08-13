@@ -30,15 +30,36 @@ const getDefaultState = (): AppState => {
   return {
     tasks: [],
     achievements: [],
+    availableAchievements: [],
     streak: {
       current: 0,
       longest: 0,
-      lastCompletedDate: ''
+      lastCompletedDate: '',
+      freezeCount: 3
     },
     importantDates: [],
     questions: [],
     moodEntries: [],
-    dailyProgress: []
+    dailyProgress: [],
+    userStats: { 
+      totalTasksCompleted: 0,
+      longestStreak: 0,
+      totalXP: 0,
+      totalCoins: 0,
+      joinedDate: new Date().toISOString(),
+      favoriteActivity: '',
+      level: { level: 1, currentXP: 0, xpToNext: 100, title: 'Beginner', totalXP: 0 }
+    },
+    dailyChallenges: [],
+    leaderboard: [],
+    coins: 0,
+    settings: {
+      theme: 'default' as const,
+      notifications: true,
+      soundEffects: true,
+      username: '',
+      avatar: '🎯'
+    }
   };
 };
 

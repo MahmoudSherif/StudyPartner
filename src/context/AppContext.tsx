@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
-import { AppState, Task, Achievement, ImportantDate, Question, MoodEntry, DailyProgress, UserStats, DailyChallenge, UserLevel } from '../types';
+import { AppState, Task, Achievement, ImportantDate, Question, MoodEntry, DailyProgress, UserStats } from '../types';
 import { generateId } from '../utils/storage';
 import { 
   saveUserState, 
