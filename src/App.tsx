@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
-import Login from './components/Auth/Login.responsive';
-import Signup from './components/Auth/Signup.responsive';
+import Login from './components/Auth/Login';
+import Signup from './components/Auth/Signup';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineIndicator from './components/OfflineIndicator';
 import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
