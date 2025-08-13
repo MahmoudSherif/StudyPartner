@@ -57,14 +57,35 @@ export const loadUserState = async (): Promise<AppState> => {
       const data = docSnap.data();
       console.log('Raw Firebase data:', data);
       
-      const appState = {
+      const appState: AppState = {
         tasks: data.tasks || [],
         achievements: data.achievements || [],
-        streak: data.streak || { current: 0, longest: 0, lastCompletedDate: '' },
+        availableAchievements: data.availableAchievements || [],
+        streak: data.streak || { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 3 },
         importantDates: data.importantDates || [],
         questions: data.questions || [],
         moodEntries: data.moodEntries || [],
-        dailyProgress: data.dailyProgress || []
+        dailyProgress: data.dailyProgress || [],
+        userStats: data.userStats || { 
+          totalTasksCompleted: 0,
+          longestStreak: 0,
+          totalXP: 0,
+          totalCoins: 0,
+          joinedDate: new Date().toISOString(),
+          favoriteActivity: '',
+          level: { level: 1, currentXP: 0, xpToNext: 100, title: 'Beginner', totalXP: 0 },
+          
+        },
+        dailyChallenges: data.dailyChallenges || [],
+        leaderboard: data.leaderboard || [],
+        coins: data.coins || 0,
+        settings: data.settings || {
+          theme: 'default' as const,
+          notifications: true,
+          soundEffects: true,
+          username: '',
+          avatar: '🎯'
+        }
       };
       
       console.log('Processed app state:', appState);
@@ -75,11 +96,31 @@ export const loadUserState = async (): Promise<AppState> => {
       return {
         tasks: [],
         achievements: [],
-        streak: { current: 0, longest: 0, lastCompletedDate: '' },
+        availableAchievements: [],
+        streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 3 },
         importantDates: [],
         questions: [],
         moodEntries: [],
-        dailyProgress: []
+        dailyProgress: [],
+        userStats: { 
+          totalTasksCompleted: 0,
+          longestStreak: 0,
+          totalXP: 0,
+          totalCoins: 0,
+          joinedDate: new Date().toISOString(),
+          favoriteActivity: '',
+          level: { level: 1, currentXP: 0, xpToNext: 100, title: 'Beginner', totalXP: 0 }
+        },
+        dailyChallenges: [],
+        leaderboard: [],
+        coins: 0,
+        settings: {
+          theme: 'default' as const,
+          notifications: true,
+          soundEffects: true,
+          username: '',
+          avatar: '🎯'
+        }
       };
     }
   } catch (error) {
@@ -236,11 +277,32 @@ export const subscribeToUserData = (userId: string, callback: (data: AppState) =
       const appState: AppState = {
         tasks: data.tasks || [],
         achievements: data.achievements || [],
-        streak: data.streak || { current: 0, longest: 0, lastCompletedDate: '' },
+        availableAchievements: data.availableAchievements || [],
+        streak: data.streak || { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 3 },
         importantDates: data.importantDates || [],
         questions: data.questions || [],
         moodEntries: data.moodEntries || [],
-        dailyProgress: data.dailyProgress || []
+        dailyProgress: data.dailyProgress || [],
+        userStats: data.userStats || { 
+          totalTasksCompleted: 0,
+          longestStreak: 0,
+          totalXP: 0,
+          totalCoins: 0,
+          joinedDate: new Date().toISOString(),
+          favoriteActivity: '',
+          level: { level: 1, currentXP: 0, xpToNext: 100, title: 'Beginner', totalXP: 0 },
+          
+        },
+        dailyChallenges: data.dailyChallenges || [],
+        leaderboard: data.leaderboard || [],
+        coins: data.coins || 0,
+        settings: data.settings || {
+          theme: 'default' as const,
+          notifications: true,
+          soundEffects: true,
+          username: '',
+          avatar: '🎯'
+        }
       };
       callback(appState);
     } else {
@@ -248,11 +310,31 @@ export const subscribeToUserData = (userId: string, callback: (data: AppState) =
       const defaultState: AppState = {
         tasks: [],
         achievements: [],
-        streak: { current: 0, longest: 0, lastCompletedDate: '' },
+        availableAchievements: [],
+        streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 3 },
         importantDates: [],
         questions: [],
         moodEntries: [],
-        dailyProgress: []
+        dailyProgress: [],
+        userStats: { 
+          totalTasksCompleted: 0,
+          longestStreak: 0,
+          totalXP: 0,
+          totalCoins: 0,
+          joinedDate: new Date().toISOString(),
+          favoriteActivity: '',
+          level: { level: 1, currentXP: 0, xpToNext: 100, title: 'Beginner', totalXP: 0 }
+        },
+        dailyChallenges: [],
+        leaderboard: [],
+        coins: 0,
+        settings: {
+          theme: 'default' as const,
+          notifications: true,
+          soundEffects: true,
+          username: '',
+          avatar: '🎯'
+        }
       };
       callback(defaultState);
     }
