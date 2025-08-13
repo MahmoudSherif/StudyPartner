@@ -237,8 +237,7 @@ const Login: React.FC = () => {
                 {/* Logo and Title */}
                 <div className="text-center mb-6 sm:mb-8">
                   <div className="inline-block relative mb-4 sm:mb-6">
-                }}>
-                  <div style={{
+                    <div style={{
                     width: '80px',
                     height: '80px',
                     background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
