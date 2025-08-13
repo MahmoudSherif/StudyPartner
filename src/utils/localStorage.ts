@@ -27,7 +27,7 @@ export const loadUserStateLocal = (userId: string): AppState => {
   return {
     tasks: [],
     achievements: [],
-    streak: { current: 0, longest: 0, lastCompletedDate: '' },
+    streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 0 },
     importantDates: [],
     questions: [],
     moodEntries: [],

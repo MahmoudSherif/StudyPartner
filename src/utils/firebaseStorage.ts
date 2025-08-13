@@ -75,7 +75,7 @@ export const loadUserState = async (): Promise<AppState> => {
       return {
         tasks: [],
         achievements: [],
-        streak: { current: 0, longest: 0, lastCompletedDate: '' },
+        streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 0 },
         importantDates: [],
         questions: [],
         moodEntries: [],
@@ -248,7 +248,7 @@ export const subscribeToUserData = (userId: string, callback: (data: AppState) =
       const defaultState: AppState = {
         tasks: [],
         achievements: [],
-        streak: { current: 0, longest: 0, lastCompletedDate: '' },
+        streak: { current: 0, longest: 0, lastCompletedDate: '', freezeCount: 0 },
         importantDates: [],
         questions: [],
         moodEntries: [],
