@@ -232,10 +232,10 @@ const EnhancedLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{
-      background: 'linear-gradient(135deg, #0c0a1a 0%, #1a1347 20%, #2d1b69 40%, #1e293b 60%, #0f172a 80%, #000212 100%)'
-    }}>
-      
+    <>
+      <div className="min-h-screen min-h-dvh relative overflow-hidden grid place-items-center" style={{
+        background: 'linear-gradient(135deg, #0c0a1a 0%, #1a1347 20%, #2d1b69 40%, #1e293b 60%, #0f172a 80%, #000212 100%)'
+      }}>
       {/* Enhanced Cosmic Container */}
       <div id="cosmic-container" className="absolute inset-0"></div>
       
@@ -275,55 +275,54 @@ const EnhancedLogin: React.FC = () => {
         />
       </div>
 
-      {/* Main Content Container */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md mx-auto">
+      {/* Main Content Container - Using CSS Grid for perfect centering */}
+      <div className="relative z-10 w-full max-w-md mx-auto p-4 sm:p-6">
           
           {/* Enhanced Login Card */}
           <div className="relative group">
-            {/* Glowing border effect */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-300 animate-pulse"></div>
+            {/* Modern glowing border effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/50 via-blue-600/50 to-cyan-600/50 rounded-3xl blur-sm opacity-40 group-hover:opacity-60 transition-all duration-500 animate-pulse"></div>
             
-            <div className="relative backdrop-blur-2xl bg-slate-900/90 border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <div className="relative backdrop-blur-xl bg-gradient-to-b from-slate-900/95 to-slate-800/95 border border-white/20 rounded-3xl p-8 sm:p-10 shadow-2xl">
               
               {!showForgotPassword ? (
                 // LOGIN FORM
                 <>
                   {/* Enhanced Header */}
-                  <div className="text-center mb-8">
-                    <div className="relative inline-block mb-6">
-                      {/* Animated icon background */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 rounded-2xl blur-xl opacity-50 animate-pulse"></div>
-                      <div className="relative p-4 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-2xl shadow-2xl">
-                        <Target className="w-8 h-8 text-white" />
+                  <div className="text-center mb-10">
+                    <div className="relative inline-block mb-8">
+                      {/* Enhanced animated icon background */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-600/60 via-blue-600/60 to-cyan-500/60 rounded-3xl blur-xl opacity-60 animate-pulse"></div>
+                      <div className="relative p-6 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-3xl shadow-2xl">
+                        <Target className="w-10 h-10 text-white" />
                       </div>
                       {/* Floating sparkles around icon */}
-                      <Sparkles className="absolute -top-2 -right-2 w-4 h-4 text-yellow-300 animate-bounce" style={{ animationDelay: '0s' }} />
-                      <Star className="absolute -bottom-1 -left-1 w-3 h-3 text-purple-300 animate-bounce" style={{ animationDelay: '1s' }} />
+                      <Sparkles className="absolute -top-3 -right-3 w-5 h-5 text-yellow-300 animate-bounce" style={{ animationDelay: '0s' }} />
+                      <Star className="absolute -bottom-2 -left-2 w-4 h-4 text-purple-300 animate-bounce" style={{ animationDelay: '1s' }} />
                     </div>
                     
-                    <h1 className="text-3xl sm:text-4xl font-black mb-2 bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent leading-tight">
+                    <h1 className="text-4xl sm:text-5xl font-black mb-4 bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent leading-tight">
                       StudyPartner
                     </h1>
-                    <p className="text-gray-300 text-sm sm:text-base font-medium">
+                    <p className="text-gray-300 text-base sm:text-lg font-medium">
                       🚀 Begin your cosmic learning adventure
                     </p>
                   </div>
 
                   {/* Error Display */}
                   {error && (
-                    <div className="bg-red-500/20 border border-red-400/50 rounded-xl p-4 mb-6 flex items-start backdrop-blur-sm">
-                      <AlertCircle size={20} className="text-red-300 mr-3 mt-0.5 flex-shrink-0" />
+                    <div className="bg-red-500/10 border border-red-400/30 rounded-2xl p-5 mb-8 flex items-start backdrop-blur-sm">
+                      <AlertCircle size={22} className="text-red-300 mr-3 mt-0.5 flex-shrink-0" />
                       <span className="text-red-200 text-sm font-medium">{error}</span>
                     </div>
                   )}
 
                   {/* Enhanced Login Form */}
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-8">
                     
                     {/* Email Field */}
-                    <div className="space-y-2">
-                      <label className="block text-white font-semibold text-sm sm:text-base">
+                    <div className="space-y-3">
+                      <label className="block text-white font-semibold text-base sm:text-lg">
                         Email Address
                       </label>
                       <div className="relative group">
@@ -331,27 +330,27 @@ const EnhancedLogin: React.FC = () => {
                           type="email"
                           value={email}
                           onChange={handleEmailChange}
-                          className="w-full bg-slate-800/80 text-white border-2 border-slate-600/50 rounded-xl px-4 py-4 pl-12 text-sm sm:text-base transition-all duration-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none focus:bg-slate-800/90 group-hover:border-slate-500"
+                          className="w-full bg-slate-800/60 text-white border-2 border-slate-600/40 rounded-2xl px-5 py-5 pl-14 text-base sm:text-lg transition-all duration-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10 focus:outline-none focus:bg-slate-800/80 group-hover:border-slate-500/60 placeholder-gray-400"
                           placeholder="you@example.com"
                           disabled={loading}
                           required
                         />
-                        <Mail size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+                        <Mail size={20} className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" />
                         {email && !emailError && (
-                          <CheckCircle size={18} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-400" />
+                          <CheckCircle size={20} className="absolute right-5 top-1/2 transform -translate-y-1/2 text-green-400" />
                         )}
                       </div>
                       {emailError && (
-                        <div className="flex items-center text-red-300 text-sm font-medium">
-                          <AlertCircle size={14} className="mr-2" />
+                        <div className="flex items-center text-red-300 text-sm font-medium mt-2">
+                          <AlertCircle size={16} className="mr-2" />
                           {emailError}
                         </div>
                       )}
                     </div>
 
                     {/* Password Field */}
-                    <div className="space-y-2">
-                      <label className="block text-white font-semibold text-sm sm:text-base">
+                    <div className="space-y-3">
+                      <label className="block text-white font-semibold text-base sm:text-lg">
                         Password
                       </label>
                       <div className="relative group">
@@ -359,23 +358,23 @@ const EnhancedLogin: React.FC = () => {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={handlePasswordChange}
-                          className="w-full bg-slate-800/80 text-white border-2 border-slate-600/50 rounded-xl px-4 py-4 pl-12 pr-12 text-sm sm:text-base transition-all duration-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none focus:bg-slate-800/90 group-hover:border-slate-500"
+                          className="w-full bg-slate-800/60 text-white border-2 border-slate-600/40 rounded-2xl px-5 py-5 pl-14 pr-14 text-base sm:text-lg transition-all duration-300 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/10 focus:outline-none focus:bg-slate-800/80 group-hover:border-slate-500/60 placeholder-gray-400"
                           placeholder="••••••••"
                           disabled={loading}
                           required
                         />
-                        <Lock size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" />
+                        <Lock size={20} className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors" />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                          className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                       </div>
                       {passwordError && (
-                        <div className="flex items-center text-red-300 text-sm font-medium">
-                          <AlertCircle size={14} className="mr-2" />
+                        <div className="flex items-center text-red-300 text-sm font-medium mt-2">
+                          <AlertCircle size={16} className="mr-2" />
                           {passwordError}
                         </div>
                       )}
@@ -386,7 +385,7 @@ const EnhancedLogin: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setShowForgotPassword(true)}
-                        className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors hover:underline"
+                        className="text-purple-400 hover:text-purple-300 text-base font-medium transition-colors hover:underline"
                       >
                         Forgot your password? ✨
                       </button>
@@ -396,20 +395,20 @@ const EnhancedLogin: React.FC = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-4 px-6 rounded-xl text-base transition-all duration-300 transform hover:scale-[1.02] disabled:scale-100 shadow-xl disabled:cursor-not-allowed group"
+                      className="w-full relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-bold py-5 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl disabled:scale-100 shadow-xl disabled:cursor-not-allowed group"
                     >
-                      {/* Button glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-600/50 via-blue-600/50 to-cyan-600/50 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      {/* Enhanced button glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 via-blue-600/30 to-cyan-600/30 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       
                       <div className="relative flex items-center justify-center">
                         {loading ? (
                           <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+                            <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent mr-3"></div>
                             <span>Launching into space...</span>
                           </>
                         ) : (
                           <>
-                            <Rocket className="w-5 h-5 mr-3" />
+                            <Rocket className="w-6 h-6 mr-3" />
                             <span>Sign In to StudyPartner</span>
                           </>
                         )}
@@ -418,15 +417,15 @@ const EnhancedLogin: React.FC = () => {
                   </form>
 
                   {/* Enhanced Sign Up Link */}
-                  <div className="mt-8 text-center">
-                    <p className="text-gray-300 text-sm sm:text-base mb-4">
+                  <div className="mt-10 text-center">
+                    <p className="text-gray-300 text-base sm:text-lg mb-6">
                       New to the cosmic journey? 🌟
                     </p>
                     <Link 
                       to="/signup" 
-                      className="inline-flex items-center justify-center w-full bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-white font-semibold py-3 px-6 rounded-xl text-base transition-all duration-300 transform hover:scale-[1.02] border border-slate-500/50 hover:border-slate-400/50"
+                      className="inline-flex items-center justify-center w-full bg-gradient-to-r from-slate-700/80 to-slate-600/80 hover:from-slate-600/90 hover:to-slate-500/90 text-white font-semibold py-4 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-[1.02] border border-slate-500/30 hover:border-slate-400/50 backdrop-blur-sm"
                     >
-                      <Star className="w-5 h-5 mr-3 text-yellow-300" />
+                      <Star className="w-6 h-6 mr-3 text-yellow-300" />
                       Create Your Account
                     </Link>
                   </div>
@@ -524,10 +523,9 @@ const EnhancedLogin: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Enhanced Animations */}
-      <style>{`
+        {/* Enhanced Animations */}
+        <style>{`
         @keyframes twinkle {
           0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
           50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
@@ -550,23 +548,43 @@ const EnhancedLogin: React.FC = () => {
         
         /* Enhanced mobile optimizations */
         @media (max-width: 640px) {
-          .text-3xl { font-size: 1.75rem; }
           .text-4xl { font-size: 2rem; }
+          .text-5xl { font-size: 2.5rem; }
           input { font-size: 16px !important; } /* Prevents zoom on iOS */
         }
         
-        /* Touch target optimization */
+        /* Better touch targets for mobile and accessibility */
         button, input, [role="button"] {
-          min-height: 44px;
+          min-height: 48px;
+          touch-action: manipulation;
         }
         
-        /* Enhanced focus styles for accessibility */
+        /* Enhanced focus styles for better accessibility */
         input:focus, button:focus {
-          outline: 2px solid rgba(139, 92, 246, 0.5);
+          outline: 3px solid rgba(139, 92, 246, 0.4);
           outline-offset: 2px;
         }
+        
+        /* Improved form field styling */
+        input::placeholder {
+          color: rgba(156, 163, 175, 0.6);
+          font-weight: 500;
+        }
+        
+        input:focus::placeholder {
+          color: rgba(156, 163, 175, 0.3);
+        }
+        
+        /* Enhanced container centering using CSS Grid */
+        .grid.place-items-center {
+          display: grid;
+          place-items: center;
+          min-height: 100vh;
+          min-height: 100dvh;
+        }
       `}</style>
-    </div>
+      </div>
+    </>
   );
 };
 
