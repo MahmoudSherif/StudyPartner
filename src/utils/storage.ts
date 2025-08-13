@@ -33,7 +33,8 @@ const getDefaultState = (): AppState => {
     streak: {
       current: 0,
       longest: 0,
-      lastCompletedDate: ''
+      lastCompletedDate: '',
+      freezeCount: 0
     },
     importantDates: [],
     questions: [],
