@@ -124,7 +124,7 @@ const Navigation: React.FC = () => {
         
         {/* Desktop Navigation - Modern Bar Style */}
         <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-60">
             
             {/* Compact Logo Section */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -265,7 +265,7 @@ const Navigation: React.FC = () => {
         </div>
         
         {/* Mobile Navigation */}
-        <div className="mobile-navigation relative px-4 py-6">
+        <div className="mobile-navigation relative px-4 py-18">
           <div className="flex items-center justify-between">
             {/* Mobile Logo */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
