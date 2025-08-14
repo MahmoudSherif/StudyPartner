@@ -187,6 +187,78 @@ const inspirationalFigures: InspirationFigure[] = [
   },
   // Other Notable Figures
   {
+    id: 'newton',
+    name: 'Isaac Newton',
+    occupation: 'Physicist, Mathematician',
+    gender: 'male',
+    quote: 'If I have seen further it is by standing on the shoulders of Giants.',
+    achievement: 'Laws of Motion and Universal Gravitation',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/GodfreyKneller-IsaacNewton-1689.jpg/256px-GodfreyKneller-IsaacNewton-1689.jpg'
+  },
+  {
+    id: 'darwin',
+    name: 'Charles Darwin',
+    occupation: 'Naturalist, Biologist',
+    gender: 'male',
+    quote: 'It is not the strongest of the species that survives, but the one most adaptable to change.',
+    achievement: 'Theory of Evolution by Natural Selection',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Charles_Darwin_seated_crop.jpg/256px-Charles_Darwin_seated_crop.jpg'
+  },
+  {
+    id: 'galileo',
+    name: 'Galileo Galilei',
+    occupation: 'Astronomer, Physicist',
+    gender: 'male',
+    quote: 'And yet it moves.',
+    achievement: 'Father of Modern Science and Astronomy',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Justus_Sustermans_-_Portrait_of_Galileo_Galilei%2C_1636.jpg/256px-Justus_Sustermans_-_Portrait_of_Galileo_Galilei%2C_1636.jpg'
+  },
+  {
+    id: 'tesla',
+    name: 'Nikola Tesla',
+    occupation: 'Inventor, Electrical Engineer',
+    gender: 'male',
+    quote: 'The present is theirs; the future, for which I really worked, is mine.',
+    achievement: 'Pioneered modern electrical systems and wireless technology',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Tesla_circa_1890.jpeg/256px-Tesla_circa_1890.jpeg'
+  },
+  {
+    id: 'franklin',
+    name: 'Rosalind Franklin',
+    occupation: 'Chemist, X-ray Crystallographer',
+    gender: 'female',
+    quote: 'Science and everyday life cannot and should not be separated.',
+    achievement: 'Key contributions to understanding DNA structure',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Rosalind_Franklin_%281920-1958%29.jpg/256px-Rosalind_Franklin_%281920-1958%29.jpg'
+  },
+  {
+    id: 'hawking',
+    name: 'Stephen Hawking',
+    occupation: 'Theoretical Physicist, Cosmologist',
+    gender: 'male',
+    quote: 'Intelligence is the ability to adapt to change.',
+    achievement: 'Advanced understanding of black holes and cosmology',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Stephen_Hawking.StarChild.jpg/256px-Stephen_Hawking.StarChild.jpg'
+  },
+  {
+    id: 'fleming',
+    name: 'Alexander Fleming',
+    occupation: 'Biologist, Pharmacologist',
+    gender: 'male',
+    quote: 'One sometimes finds what one is not looking for.',
+    achievement: 'Discovered Penicillin, revolutionizing medicine',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Alexander_Fleming_3.jpg/256px-Alexander_Fleming_3.jpg'
+  },
+  {
+    id: 'faraday',
+    name: 'Michael Faraday',
+    occupation: 'Physicist, Chemist',
+    gender: 'male',
+    quote: 'Nothing is too wonderful to be true if it be consistent with the laws of nature.',
+    achievement: 'Father of Electrochemistry and Electromagnetism',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/M_Faraday_Th_Phillips_oil_1841-1842.jpg/256px-M_Faraday_Th_Phillips_oil_1841-1842.jpg'
+  },
+  {
     id: 'einstein',
     name: 'Albert Einstein',
     occupation: 'Theoretical Physicist',
@@ -201,7 +273,8 @@ const inspirationalFigures: InspirationFigure[] = [
     occupation: 'Physicist and Chemist',
     gender: 'female',
     quote: 'Nothing in life is to be feared, it is only to be understood.',
-    achievement: 'First woman to win a Nobel Prize'
+    achievement: 'First woman to win a Nobel Prize',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Marie_Curie_c._1920s.jpg/256px-Marie_Curie_c._1920s.jpg'
   }
 ];
 
