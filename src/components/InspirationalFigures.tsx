@@ -187,6 +187,78 @@ const inspirationalFigures: InspirationFigure[] = [
   },
   // Other Notable Figures
   {
+    id: 'newton',
+    name: 'Isaac Newton',
+    occupation: 'Physicist, Mathematician',
+    gender: 'male',
+    quote: 'If I have seen further it is by standing on the shoulders of Giants.',
+    achievement: 'Laws of Motion and Universal Gravitation',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/GodfreyKneller-IsaacNewton-1689.jpg/256px-GodfreyKneller-IsaacNewton-1689.jpg'
+  },
+  {
+    id: 'darwin',
+    name: 'Charles Darwin',
+    occupation: 'Naturalist, Biologist',
+    gender: 'male',
+    quote: 'It is not the strongest of the species that survives, but the one most adaptable to change.',
+    achievement: 'Theory of Evolution by Natural Selection',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Charles_Darwin_seated_crop.jpg/256px-Charles_Darwin_seated_crop.jpg'
+  },
+  {
+    id: 'galileo',
+    name: 'Galileo Galilei',
+    occupation: 'Astronomer, Physicist',
+    gender: 'male',
+    quote: 'And yet it moves.',
+    achievement: 'Father of Modern Science and Astronomy',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Justus_Sustermans_-_Portrait_of_Galileo_Galilei%2C_1636.jpg/256px-Justus_Sustermans_-_Portrait_of_Galileo_Galilei%2C_1636.jpg'
+  },
+  {
+    id: 'tesla',
+    name: 'Nikola Tesla',
+    occupation: 'Inventor, Electrical Engineer',
+    gender: 'male',
+    quote: 'The present is theirs; the future, for which I really worked, is mine.',
+    achievement: 'Pioneered modern electrical systems and wireless technology',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Tesla_circa_1890.jpeg/256px-Tesla_circa_1890.jpeg'
+  },
+  {
+    id: 'franklin',
+    name: 'Rosalind Franklin',
+    occupation: 'Chemist, X-ray Crystallographer',
+    gender: 'female',
+    quote: 'Science and everyday life cannot and should not be separated.',
+    achievement: 'Key contributions to understanding DNA structure',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Rosalind_Franklin_%281920-1958%29.jpg/256px-Rosalind_Franklin_%281920-1958%29.jpg'
+  },
+  {
+    id: 'hawking',
+    name: 'Stephen Hawking',
+    occupation: 'Theoretical Physicist, Cosmologist',
+    gender: 'male',
+    quote: 'Intelligence is the ability to adapt to change.',
+    achievement: 'Advanced understanding of black holes and cosmology',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Stephen_Hawking.StarChild.jpg/256px-Stephen_Hawking.StarChild.jpg'
+  },
+  {
+    id: 'fleming',
+    name: 'Alexander Fleming',
+    occupation: 'Biologist, Pharmacologist',
+    gender: 'male',
+    quote: 'One sometimes finds what one is not looking for.',
+    achievement: 'Discovered Penicillin, revolutionizing medicine',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Alexander_Fleming_3.jpg/256px-Alexander_Fleming_3.jpg'
+  },
+  {
+    id: 'faraday',
+    name: 'Michael Faraday',
+    occupation: 'Physicist, Chemist',
+    gender: 'male',
+    quote: 'Nothing is too wonderful to be true if it be consistent with the laws of nature.',
+    achievement: 'Father of Electrochemistry and Electromagnetism',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/M_Faraday_Th_Phillips_oil_1841-1842.jpg/256px-M_Faraday_Th_Phillips_oil_1841-1842.jpg'
+  },
+  {
     id: 'einstein',
     name: 'Albert Einstein',
     occupation: 'Theoretical Physicist',
@@ -201,7 +273,8 @@ const inspirationalFigures: InspirationFigure[] = [
     occupation: 'Physicist and Chemist',
     gender: 'female',
     quote: 'Nothing in life is to be feared, it is only to be understood.',
-    achievement: 'First woman to win a Nobel Prize'
+    achievement: 'First woman to win a Nobel Prize',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Marie_Curie_c._1920s.jpg/256px-Marie_Curie_c._1920s.jpg'
   }
 ];
 
@@ -276,10 +349,10 @@ const InspirationalFigures: React.FC = () => {
       }
     };
 
-    // Initial delay to let the page settle, then scroll every 8 seconds
+    // Initial delay to let the page settle, then scroll every 11 seconds
     const initialTimeout = setTimeout(() => {
       scroll(); // First scroll
-      scrollInterval = setInterval(scroll, 8000);
+      scrollInterval = setInterval(scroll, 11000);
     }, 2000);
 
     return () => {
@@ -355,7 +428,7 @@ const InspirationalFigures: React.FC = () => {
                   </div>
 
                   {/* Main Content */}
-                  <div className="flex-1 space-y-4 text-center lg:text-left">
+                  <div className="flex-1 space-y-4">
                     {/* Name and Occupation */}
                     <div>
                       {isIslamicScholar(figure.id) ? (
@@ -363,7 +436,7 @@ const InspirationalFigures: React.FC = () => {
                           <h3 className="font-bold text-xl lg:text-2xl text-white mb-2 font-arabic text-right">
                             {figure.nameArabic || figure.name}
                           </h3>
-                          <h4 className="font-semibold text-lg lg:text-xl text-slate-300 mb-1">
+                          <h4 className="font-semibold text-lg lg:text-xl text-slate-300 mb-1 text-center lg:text-left">
                             {figure.name}
                           </h4>
                           <p className="text-slate-400 text-base lg:text-lg font-arabic text-right">
@@ -372,8 +445,8 @@ const InspirationalFigures: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          <h3 className="font-bold text-xl lg:text-2xl text-white mb-2">{figure.name}</h3>
-                          <p className="text-slate-400 text-base lg:text-lg">{figure.occupation}</p>
+                          <h3 className="font-bold text-xl lg:text-2xl text-white mb-2 text-center lg:text-left">{figure.name}</h3>
+                          <p className="text-slate-400 text-base lg:text-lg text-center lg:text-left">{figure.occupation}</p>
                         </>
                       )}
                     </div>
@@ -386,12 +459,12 @@ const InspirationalFigures: React.FC = () => {
                           <p className="text-white text-base lg:text-lg italic leading-relaxed font-arabic text-right mb-2">
                             "{figure.quoteArabic || figure.quote}"
                           </p>
-                          <p className="text-slate-300 text-sm lg:text-base italic leading-relaxed pl-2">
+                          <p className="text-slate-300 text-sm lg:text-base italic leading-relaxed text-center lg:text-left pl-2">
                             "{figure.quote}"
                           </p>
                         </div>
                       ) : (
-                        <p className="text-white text-base lg:text-lg italic leading-relaxed pl-2">
+                        <p className="text-white text-base lg:text-lg italic leading-relaxed text-center lg:text-left pl-2">
                           "{figure.quote}"
                         </p>
                       )}
@@ -399,7 +472,7 @@ const InspirationalFigures: React.FC = () => {
 
                     {/* Achievement */}
                     <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-4 lg:p-5 rounded-xl border border-blue-500/30">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 justify-center lg:justify-start">
                         <Award className="w-5 h-5 text-blue-400" />
                         <h4 className="font-semibold text-white text-base lg:text-lg">
                           {isIslamicScholar(figure.id) ? 'الإنجاز الرئيسي' : 'Key Achievement'}
@@ -410,12 +483,12 @@ const InspirationalFigures: React.FC = () => {
                           <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-arabic text-right mb-2">
                             {figure.achievementArabic || figure.achievement}
                           </p>
-                          <p className="text-slate-400 text-xs lg:text-sm leading-relaxed">
+                          <p className="text-slate-400 text-xs lg:text-sm leading-relaxed text-center lg:text-left">
                             {figure.achievement}
                           </p>
                         </div>
                       ) : (
-                        <p className="text-slate-300 text-sm lg:text-base leading-relaxed">{figure.achievement}</p>
+                        <p className="text-slate-300 text-sm lg:text-base leading-relaxed text-center lg:text-left">{figure.achievement}</p>
                       )}
                     </div>
 
