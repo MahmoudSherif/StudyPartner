@@ -82,8 +82,7 @@ const Navigation: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // Temporarily disabled for development
-  // if (!currentUser) return null;
+  if (!currentUser) return null;
 
   return (
     <>
@@ -118,75 +117,44 @@ const Navigation: React.FC = () => {
           }}
         ></div>
         
-        {/* Desktop Navigation */}
-        <div className="hidden lg:block relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-24 sm:py-32 lg:py-40">
-          <div className="flex items-center justify-between h-32 sm:h-40 lg:h-48">
+        {/* Desktop Navigation - Modern Bar Style */}
+        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between h-16">
             
-            {/* Premium Logo Section */}
+            {/* Compact Logo Section */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
                 <div 
-                  className="relative p-3 rounded-2xl shadow-lg"
+                  className="relative p-2 rounded-xl shadow-lg"
                   style={{ 
                     background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 25px rgba(147, 51, 234, 0.4)'
+                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
                   }}
                 >
-                  <Target className="w-6 h-6 text-white drop-shadow-sm" />
+                  <Target className="w-5 h-5 text-white drop-shadow-sm" />
                 </div>
               </div>
-              <div className="flex items-center gap-4 sm:gap-6">
-                <span className="font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-wide">Home</span>
-                <div className="hidden sm:block">
-                  <h1 
-                    className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-none"
-                    style={{
-                      background: 'linear-gradient(45deg, #ffffff 0%, #e879f9 25%, #9333ea 50%, #3b82f6 75%, #10b981 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      textShadow: '0 0 25px rgba(147, 51, 234, 0.6)'
-                    }}
-                  >
-                    StudyPartner
-                  </h1>
-                  <div className="flex items-center gap-3 mt-1">
-                    <div 
-                      className="w-2 h-2 rounded-full animate-pulse"
-                      style={{ 
-                        background: 'radial-gradient(circle, #e879f9 0%, #9333ea 50%, #3b82f6 100%)',
-                        boxShadow: '0 0 12px rgba(232, 121, 249, 0.8)'
-                      }}
-                    ></div>
-                    <span 
-                      className="text-base sm:text-lg lg:text-xl font-medium tracking-wider"
-                      style={{ color: '#c084fc' }}
-                    >
-                      COSMIC LEARNING 🌌
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <span className="font-black text-xl text-white tracking-wide">StudyPartner</span>
             </Link>
 
-            {/* Unified Navigation Menu */}
-            <div className="flex items-center gap-3 sm:gap-6">
-              {/* Main Navigation Items */}
+            {/* Modern Navigation Bar */}
+            <div className="flex items-center gap-2">
+              {/* Main Navigation Items - Horizontal Bar */}
               <div 
-                className="flex flex-wrap items-center gap-6 sm:gap-8 lg:gap-12 xl:gap-16 backdrop-blur-xl rounded-full p-10 sm:p-14 lg:p-18 xl:p-24 border-6"
+                className="flex items-center gap-1 backdrop-blur-xl rounded-full px-3 py-2 border-2"
                 style={{ 
-                  backgroundColor: 'rgba(10, 1, 24, 0.8)', 
-                  borderColor: 'rgba(255, 255, 255, 0.8)',
-                  boxShadow: '0 8px 40px rgba(255, 255, 255, 0.3)'
+                  backgroundColor: 'rgba(10, 1, 24, 0.9)', 
+                  borderColor: 'rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
                 }}
               >
                 {[
-                  { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500', galaxyColor: 'from-pink-500 to-purple-600' },
-                  { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600', galaxyColor: 'from-emerald-400 to-cyan-500' },
-                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600', galaxyColor: 'from-violet-500 to-fuchsia-500' },
-                  { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500', galaxyColor: 'from-amber-400 to-orange-500' },
-                  { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600', galaxyColor: 'from-indigo-500 to-purple-700' }
+                  { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
+                  { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
+                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
+                  { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
+                  { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' }
                 ].map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
@@ -194,40 +162,30 @@ const Navigation: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`relative group flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 px-6 sm:px-12 lg:px-18 xl:px-24 py-8 sm:py-12 lg:py-16 xl:py-20 rounded-3xl transition-all duration-300 overflow-hidden border-6 ${
+                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ${
                         active 
-                          ? 'shadow-2xl scale-105 text-white border-white' 
-                          : 'text-slate-200 hover:text-white hover:scale-105 border-white hover:border-blue-300'
+                          ? 'text-white shadow-lg border-2 border-white/30' 
+                          : 'text-slate-300 hover:text-white border-2 border-transparent hover:border-blue-300/50'
                       }`}
                       style={{
-                        backgroundColor: active ? 'rgba(59, 130, 246, 0.4)' : 'rgba(10, 1, 24, 0.8)',
-                        boxShadow: active ? '0 0 50px rgba(59, 130, 246, 0.7)' : '0 6px 16px rgba(0, 0, 0, 0.6)',
-                        borderColor: active ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                        minWidth: '160px'
+                        backgroundColor: active ? 'rgba(59, 130, 246, 0.6)' : 'transparent',
+                        boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
                       }}
                       onMouseEnter={(e) => {
                         if (!active) {
                           e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                          e.currentTarget.style.boxShadow = '0 0 45px rgba(59, 130, 246, 0.6)';
-                          e.currentTarget.style.borderColor = '#93c5fd';
+                          e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!active) {
-                          e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.8)';
-                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.6)';
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.boxShadow = 'none';
                         }
                       }}
                     >
-                      {active && (
-                        <>
-                          <div className={`absolute inset-0 bg-gradient-to-r ${item.galaxyColor} opacity-20 rounded-3xl`}></div>
-                          <div className={`absolute inset-0 bg-gradient-to-r ${item.galaxyColor} opacity-10 rounded-3xl blur-md`}></div>
-                        </>
-                      )}
-                      <Icon className={`w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 xl:w-24 xl:h-24 relative z-10 flex-shrink-0 ${active ? 'drop-shadow-2xl' : ''}`} />
-                      <span className="relative z-10 font-black text-xl sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl tracking-wide text-center sm:text-left whitespace-nowrap">
+                      <Icon className="w-5 h-5 relative z-10 flex-shrink-0" />
+                      <span className="relative z-10 font-semibold text-sm whitespace-nowrap">
                         {item.label}
                       </span>
                     </Link>
@@ -235,90 +193,65 @@ const Navigation: React.FC = () => {
                 })}
               </div>
 
-              {/* Separate User Actions */}
-              <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+              {/* User Actions Bar */}
+              <div className="flex items-center gap-2 ml-4">
                 {/* Profile Button */}
                 <Link
                   to="/profile"
-                  className={`group relative flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 px-6 sm:px-12 lg:px-18 xl:px-24 py-8 sm:py-12 lg:py-16 xl:py-20 rounded-3xl transition-all duration-300 overflow-hidden border-6 ${
+                  className={`group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
                     isActive('/profile')
-                      ? 'shadow-2xl text-white scale-105 border-white'
-                      : 'text-slate-200 hover:text-white hover:scale-105 border-white hover:border-blue-300'
+                      ? 'text-white shadow-lg border-white/30'
+                      : 'text-slate-300 hover:text-white border-transparent hover:border-blue-300/50'
                   }`}
                   style={{
-                    backgroundColor: isActive('/profile') ? 'rgba(59, 130, 246, 0.4)' : 'rgba(10, 1, 24, 0.8)',
-                    boxShadow: isActive('/profile') ? '0 0 50px rgba(59, 130, 246, 0.7)' : '0 6px 16px rgba(0, 0, 0, 0.6)',
-                    borderColor: isActive('/profile') ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                    minWidth: '160px'
+                    backgroundColor: isActive('/profile') ? 'rgba(59, 130, 246, 0.6)' : 'rgba(10, 1, 24, 0.7)',
+                    boxShadow: isActive('/profile') ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive('/profile')) {
                       e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                      e.currentTarget.style.boxShadow = '0 0 45px rgba(59, 130, 246, 0.6)';
-                      e.currentTarget.style.borderColor = '#93c5fd';
+                      e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.8)';
-                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.6)';
-                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                      e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }
                   }}
                 >
-                  {isActive('/profile') && (
-                    <>
-                      <div 
-                        className="absolute inset-0 rounded-3xl"
-                        style={{ backgroundColor: 'rgba(59, 130, 246, 0.2)' }}
-                      ></div>
-                      <div 
-                        className="absolute inset-0 rounded-3xl blur-md"
-                        style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
-                      ></div>
-                    </>
-                  )}
                   <div className="relative">
                     <div 
-                      className="absolute inset-0 rounded-full blur-lg opacity-50 group-hover:opacity-70 transition-opacity duration-300"
-                      style={{ backgroundColor: '#3b82f6' }}
-                    ></div>
-                    <div 
-                      className="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 xl:w-28 xl:h-28 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black shadow-2xl"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
                       style={{ 
                         background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)',
-                        boxShadow: '0 0 30px rgba(59, 130, 246, 0.8)'
+                        boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)'
                       }}
                     >
-                      {state.settings.avatar}
+                      {state?.settings?.avatar || '👤'}
                     </div>
                   </div>
-                  <span className="relative z-10 font-black text-xl sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl tracking-wide text-center sm:text-left whitespace-nowrap">Profile</span>
+                  <span className="relative z-10 font-semibold text-sm whitespace-nowrap">Profile</span>
                 </Link>
 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="group relative flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 px-6 sm:px-12 lg:px-18 xl:px-24 py-8 sm:py-12 lg:py-16 xl:py-20 rounded-3xl transition-all duration-300 overflow-hidden text-slate-200 hover:text-red-300 hover:scale-105 border-6 border-white hover:border-red-400"
+                  className="group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-slate-300 hover:text-red-300 border-2 border-transparent hover:border-red-400/50"
                   style={{ 
-                    backgroundColor: 'rgba(10, 1, 24, 0.8)',
-                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.6)',
-                    borderColor: 'rgba(255, 255, 255, 0.8)',
-                    minWidth: '160px'
+                    backgroundColor: 'rgba(10, 1, 24, 0.7)'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.3)';
-                    e.currentTarget.style.boxShadow = '0 0 45px rgba(220, 38, 38, 0.6)';
-                    e.currentTarget.style.borderColor = '#f87171';
+                    e.currentTarget.style.boxShadow = '0 0 15px rgba(220, 38, 38, 0.4)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.8)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.6)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                    e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <LogOut className="w-14 h-14 sm:w-18 sm:h-18 lg:w-20 lg:h-20 xl:w-24 xl:h-24 relative z-10 flex-shrink-0" />
-                  <span className="relative z-10 font-black text-xl sm:text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl tracking-wide text-center sm:text-left whitespace-nowrap">Logout</span>
+                  <LogOut className="w-5 h-5 relative z-10 flex-shrink-0" />
+                  <span className="relative z-10 font-semibold text-sm whitespace-nowrap">Logout</span>
                 </button>
               </div>
             </div>
@@ -326,7 +259,7 @@ const Navigation: React.FC = () => {
         </div>
         
         {/* Mobile Navigation */}
-        <div className="lg:hidden relative px-4 py-6">
+        <div className="mobile-navigation relative px-4 py-6">
           <div className="flex items-center justify-between">
             {/* Mobile Logo */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -366,21 +299,26 @@ const Navigation: React.FC = () => {
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 overflow-hidden">
-            {/* Backdrop */}
+          <div className="mobile-navigation fixed inset-0 z-50 overflow-hidden">
+            {/* Solid Backdrop - Fixed transparency issue */}
             <div 
-              className="absolute inset-0 backdrop-blur-xl"
+              className="absolute inset-0"
               style={{ 
-                backgroundColor: 'rgba(10, 1, 24, 0.95)'
+                backgroundColor: 'rgba(10, 1, 24, 1)' // Fully opaque now
               }}
               onClick={closeMobileMenu}
             ></div>
             
-            {/* Menu Content */}
-            <div className="relative h-full overflow-y-auto">
+            {/* Menu Content - Fixed alignment and made fully opaque */}
+            <div 
+              className="relative h-full overflow-y-auto"
+              style={{ 
+                backgroundColor: '#0a0118' // Solid background for menu content
+              }}
+            >
               <div className="flex flex-col min-h-full">
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b-2" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+                {/* Header - Improved alignment */}
+                <div className="flex items-center justify-between p-6 border-b border-white/20">
                   <div className="flex items-center gap-3">
                     <div 
                       className="p-2 rounded-xl"
@@ -400,9 +338,9 @@ const Navigation: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Menu Items */}
+                {/* Menu Items - Fixed backgrounds to be fully opaque */}
                 <div className="flex-1 p-6">
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {[
                       { path: '/dashboard', icon: Target, label: 'Dashboard', color: 'from-blue-500 to-purple-600' },
                       { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
@@ -419,22 +357,22 @@ const Navigation: React.FC = () => {
                           key={item.path}
                           to={item.path}
                           onClick={closeMobileMenu}
-                          className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 ${
+                          className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 border ${
                             active 
-                              ? 'text-white shadow-2xl border-2 border-white' 
-                              : 'text-slate-200 hover:text-white border-2 border-transparent hover:border-blue-300'
+                              ? 'text-white shadow-lg border-white/30' 
+                              : 'text-slate-200 hover:text-white border-transparent hover:border-blue-300/50'
                           }`}
                           style={{
-                            backgroundColor: active ? 'rgba(59, 130, 246, 0.4)' : 'rgba(10, 1, 24, 0.6)',
-                            boxShadow: active ? '0 0 30px rgba(59, 130, 246, 0.5)' : '0 4px 12px rgba(0, 0, 0, 0.3)'
+                            backgroundColor: active ? 'rgba(59, 130, 246, 0.8)' : 'rgba(30, 41, 59, 0.8)', // Fully opaque backgrounds
+                            boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
                           }}
                         >
                           <div className={`p-3 rounded-xl bg-gradient-to-r ${item.color} shadow-lg`}>
-                            <Icon className="w-6 h-6 text-white" />
+                            <Icon className="w-5 h-5 text-white" />
                           </div>
-                          <span className="font-bold text-lg">{item.label}</span>
+                          <span className="font-bold text-lg flex-1">{item.label}</span>
                           {active && (
-                            <div className="ml-auto w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                           )}
                         </Link>
                       );
@@ -442,21 +380,21 @@ const Navigation: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Footer Actions */}
-                <div className="p-6 border-t-2" style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
+                {/* Footer Actions - Improved alignment */}
+                <div className="p-6 border-t border-white/20">
                   <button
                     onClick={() => {
                       handleLogout();
                       closeMobileMenu();
                     }}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 text-slate-200 hover:text-red-300 border-2 border-transparent hover:border-red-400"
+                    className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 text-slate-200 hover:text-red-300 border border-transparent hover:border-red-400/50"
                     style={{
-                      backgroundColor: 'rgba(10, 1, 24, 0.6)',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+                      backgroundColor: 'rgba(220, 38, 38, 0.8)', // Fully opaque background
+                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
                     }}
                   >
                     <div className="p-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 shadow-lg">
-                      <LogOut className="w-6 h-6 text-white" />
+                      <LogOut className="w-5 h-5 text-white" />
                     </div>
                     <span className="font-bold text-lg">Logout</span>
                   </button>
@@ -468,8 +406,8 @@ const Navigation: React.FC = () => {
 
       </nav>
 
-      {/* Add top padding to prevent content overlap */}
-      <div className="h-20 lg:h-64 lg:sm:h-80 lg:lg:h-96 lg:xl:h-[28rem]"></div>
+      {/* Add top padding to prevent content overlap - smaller padding for modern bar */}
+      <div className="mobile-nav-spacer"></div>
     </>
   );
 };
