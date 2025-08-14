@@ -86,11 +86,25 @@ export const themes: Record<string, ThemeConfig> = {
       gradient: 'linear-gradient(to right, #8b5cf6, #6366f1)',
       headerGradient: 'linear-gradient(to right, #1e1b4b, #312e81, #3730a3)'
     }
+  },
+  space: {
+    id: 'space',
+    name: 'Space',
+    colors: {
+      primary: '#6366f1',
+      secondary: '#8b5cf6', 
+      accent: '#c084fc',
+      background: 'linear-gradient(to bottom right, #0a0118, #1a0b2e, #2d1b69)',
+      surface: '#0a0118',
+      text: '#f8fafc',
+      gradient: 'linear-gradient(to right, #6366f1, #8b5cf6, #c084fc)',
+      headerGradient: 'linear-gradient(to right, #1a0b2e, #2d1b69, #4c1d95)'
+    }
   }
 };
 
 export const getTheme = (themeId: string): ThemeConfig => {
-  return themes[themeId] || themes.default;
+  return themes[themeId] || themes.space; // Changed default to space
 };
 
 export const applyTheme = (themeId: string) => {

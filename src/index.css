@@ -88,6 +88,11 @@ textarea,
   --theme-secondary: #6366f1;
   --theme-accent: #a855f7;
 }
+[data-theme="space"] {
+  --theme-primary: #6366f1;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #c084fc;
+}
 
 /* Dark-surface cards and controls for clear contrast */
 .card {
@@ -1018,6 +1023,11 @@ a:hover {
 [data-theme="galaxy"] .theme-text-secondary { color: #4f46e5; }
 [data-theme="galaxy"] .theme-bg-primary { background: #faf5ff; }
 [data-theme="galaxy"] .theme-bg-secondary { background: #ede9fe; }
+
+[data-theme="space"] .theme-text-primary { color: #4f46e5; }
+[data-theme="space"] .theme-text-secondary { color: #7c3aed; }
+[data-theme="space"] .theme-bg-primary { background: #f8fafc; }
+[data-theme="space"] .theme-bg-secondary { background: #f1f5f9; }
 
 /* Ensure readability on gradients */
 .on-gradient-text {
