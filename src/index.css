@@ -1106,7 +1106,7 @@ nav a:hover, nav button:hover {
   }
   
   .mobile-nav-spacer {
-    height: 96px;
+    height: 112px; /* Increased from 96px to accommodate h-20 (80px) + padding */
   }
 }
 

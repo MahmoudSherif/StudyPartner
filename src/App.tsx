@@ -124,7 +124,7 @@ const Navigation: React.FC = () => {
         
         {/* Desktop Navigation - Modern Bar Style */}
         <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             
             {/* Compact Logo Section */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -191,7 +191,7 @@ const Navigation: React.FC = () => {
                       }}
                     >
                       <Icon className="w-5 h-5 relative z-10 flex-shrink-0" />
-                      <span className="relative z-10 font-semibold text-sm whitespace-nowrap">
+                      <span className="relative z-10 font-semibold text-lg whitespace-nowrap">
                         {item.label}
                       </span>
                     </Link>
@@ -237,7 +237,7 @@ const Navigation: React.FC = () => {
                       {state?.settings?.avatar || '👤'}
                     </div>
                   </div>
-                  <span className="relative z-10 font-semibold text-sm whitespace-nowrap">Profile</span>
+                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Profile</span>
                 </Link>
 
                 {/* Logout Button */}
@@ -257,7 +257,7 @@ const Navigation: React.FC = () => {
                   }}
                 >
                   <LogOut className="w-5 h-5 relative z-10 flex-shrink-0" />
-                  <span className="relative z-10 font-semibold text-sm whitespace-nowrap">Logout</span>
+                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Logout</span>
                 </button>
               </div>
             </div>
