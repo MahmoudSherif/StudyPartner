@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { User, BookOpen, Quote, Award } from 'lucide-react';
 
 interface InspirationFigure {
@@ -89,35 +89,72 @@ const BookIcon: React.FC<{ className?: string }> = ({ className = "w-16 h-16" })
 
 const InspirationalFigures: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState(
+    window.innerWidth >= 640 ? '600px' : '384px'
+  );
 
-  // Auto-scroll effect - scrolls every 7 seconds
+  // Update container height on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setContainerHeight(window.innerWidth >= 640 ? '600px' : '384px');
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Auto-scroll effect - scrolls every 5 seconds with dynamic card height calculation
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
-    let scrollInterval: number;
+    let scrollInterval: NodeJS.Timeout;
+    let currentCardIndex = 0;
     
     const scroll = () => {
-      const cardHeight = 300; // Approximate height of each card including margins
-      const currentScroll = scrollContainer.scrollTop;
-      const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+      // Get all cards within the scroll container
+      const cards = scrollContainer.querySelectorAll('.card');
+      const containerHeight = scrollContainer.clientHeight;
+      const scrollHeight = scrollContainer.scrollHeight;
       
-      if (currentScroll >= maxScroll) {
+      // Check if there's actually content to scroll
+      if (scrollHeight <= containerHeight || cards.length === 0) {
+        return;
+      }
+      
+      const currentScroll = scrollContainer.scrollTop;
+      const maxScroll = scrollHeight - containerHeight;
+      
+      if (currentScroll >= maxScroll - 10) { // Small tolerance for precision
         // Reset to top smoothly
+        currentCardIndex = 0;
         scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        // Scroll to next card
+        // Calculate next scroll position based on actual card positions
+        if (currentCardIndex < cards.length - 1) {
+          currentCardIndex++;
+        } else {
+          currentCardIndex = 0;
+        }
+        
+        const targetCard = cards[currentCardIndex] as HTMLElement;
+        const targetPosition = targetCard.offsetTop - scrollContainer.offsetTop;
+        
         scrollContainer.scrollTo({ 
-          top: currentScroll + cardHeight, 
+          top: Math.min(targetPosition, maxScroll), 
           behavior: 'smooth' 
         });
       }
     };
 
-    // Scroll every 7 seconds (7000ms)
-    scrollInterval = setInterval(scroll, 7000) as any;
+    // Initial delay to let the page settle, then scroll every 5 seconds
+    const initialTimeout = setTimeout(() => {
+      scroll(); // First scroll
+      scrollInterval = setInterval(scroll, 5000);
+    }, 2000);
 
     return () => {
+      clearTimeout(initialTimeout);
       clearInterval(scrollInterval);
     };
   }, []);
@@ -140,7 +177,12 @@ const InspirationalFigures: React.FC = () => {
         
         <div
           ref={scrollContainerRef}
-          className="p-3 sm:p-4 overflow-y-auto h-96 sm:h-[600px]"
+          className="p-3 sm:p-4 overflow-y-auto"
+          style={{
+            height: containerHeight,
+            maxHeight: containerHeight,
+            overflowY: 'auto'
+          }}
         >
           <div className="space-y-6">
             {inspirationalFigures.map((figure) => (
