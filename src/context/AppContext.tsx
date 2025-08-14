@@ -632,6 +632,7 @@ interface AppContextType {
   state: AppState;
   isLoading: boolean;
   dispatch: React.Dispatch<Action>;
+  setState: (newState: AppState) => void;
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
@@ -987,6 +988,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dispatch({ type: 'ADD_DAILY_PROGRESS', payload: progress });
   };
 
+  const setState = (newState: AppState) => {
+    dispatch({ type: 'SET_ALL_DATA', payload: newState });
+  };
+
   const saveToFirebase = async () => {
     if (currentUser && currentUser.uid) {
       try {
@@ -1137,6 +1142,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     state,
     isLoading,
     dispatch,
+    setState,
     addTask,
     toggleTask,
     deleteTask,

@@ -220,7 +220,12 @@ const MoodTracker: React.FC = () => {
                     )}
                     
                     {entry.notes && (
-                      <p className="text-sm text-slate-400">{entry.notes}</p>
+                      <div className="modern-sticky-note">
+                        <div className="sticky-note-content">
+                          <p className="sticky-note-text">{entry.notes}</p>
+                        </div>
+                        <div className="sticky-note-tape"></div>
+                      </div>
                     )}
                   </div>
                 </div>
