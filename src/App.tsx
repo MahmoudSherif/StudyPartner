@@ -18,7 +18,8 @@ import {
   LogOut,
   Zap,
   Menu,
-  X
+  X,
+  Lightbulb
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Welcome from './components/Welcome';
@@ -29,6 +30,8 @@ import Achievements from './components/Achievements';
 import NatureGallery from './components/NatureGallery';
 import QuotesBar from './components/QuotesBar';
 import DailyChallenges from './components/DailyChallenges';
+import InspirationalFigures from './components/InspirationalFigures';
+import RestoreMode from './components/RestoreMode';
 import UserProfile from './components/UserProfile';
 
 // Component to check and reset streak on app load
@@ -82,7 +85,9 @@ const Navigation: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
-  if (!currentUser) return null;
+  // In development mode with auth bypass, show navigation anyway
+  const devBypass = import.meta.env.DEV && localStorage.getItem('dev-bypass-auth') === 'true';
+  if (!currentUser && !devBypass) return null;
 
   return (
     <>
@@ -153,6 +158,7 @@ const Navigation: React.FC = () => {
                   { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
                   { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
                   { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
+                  { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
                   { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
                   { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' }
                 ].map((item) => {
@@ -346,6 +352,7 @@ const Navigation: React.FC = () => {
                       { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
                       { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
                       { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
+                      { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
                       { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
                       { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' },
                       { path: '/profile', icon: Target, label: 'Profile', color: 'from-blue-500 to-cyan-500' }
@@ -446,6 +453,21 @@ const ThemedMainContent: React.FC = () => {
       className="min-h-dvh safe-area-inset text-gray-100"
       style={{ background: themeBackground }}
     >
+      {/* Animated Space Background for Galaxy Theme */}
+      {state.settings.theme === 'galaxy' && (
+        <div className="space-background">
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="pulsing-star"></div>
+          <div className="pulsing-star"></div>
+          <div className="pulsing-star"></div>
+          <div className="pulsing-star"></div>
+        </div>
+      )}
+      
       <Navigation />
       
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
@@ -457,6 +479,8 @@ const ThemedMainContent: React.FC = () => {
           <Route path="/knowledge" element={<KnowledgeBase />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/challenges" element={<DailyChallenges />} />
+          <Route path="/inspiration" element={<InspirationalFigures />} />
+          <Route path="/restore" element={<RestoreMode />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/nature" element={<NatureGallery />} />
         </Routes>
