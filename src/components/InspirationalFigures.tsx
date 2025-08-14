@@ -276,10 +276,10 @@ const InspirationalFigures: React.FC = () => {
       }
     };
 
-    // Initial delay to let the page settle, then scroll every 8 seconds
+    // Initial delay to let the page settle, then scroll every 11 seconds
     const initialTimeout = setTimeout(() => {
       scroll(); // First scroll
-      scrollInterval = setInterval(scroll, 8000);
+      scrollInterval = setInterval(scroll, 11000);
     }, 2000);
 
     return () => {
@@ -355,7 +355,7 @@ const InspirationalFigures: React.FC = () => {
                   </div>
 
                   {/* Main Content */}
-                  <div className="flex-1 space-y-4 text-center lg:text-left">
+                  <div className="flex-1 space-y-4">
                     {/* Name and Occupation */}
                     <div>
                       {isIslamicScholar(figure.id) ? (
@@ -363,7 +363,7 @@ const InspirationalFigures: React.FC = () => {
                           <h3 className="font-bold text-xl lg:text-2xl text-white mb-2 font-arabic text-right">
                             {figure.nameArabic || figure.name}
                           </h3>
-                          <h4 className="font-semibold text-lg lg:text-xl text-slate-300 mb-1">
+                          <h4 className="font-semibold text-lg lg:text-xl text-slate-300 mb-1 text-center lg:text-left">
                             {figure.name}
                           </h4>
                           <p className="text-slate-400 text-base lg:text-lg font-arabic text-right">
@@ -372,8 +372,8 @@ const InspirationalFigures: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          <h3 className="font-bold text-xl lg:text-2xl text-white mb-2">{figure.name}</h3>
-                          <p className="text-slate-400 text-base lg:text-lg">{figure.occupation}</p>
+                          <h3 className="font-bold text-xl lg:text-2xl text-white mb-2 text-center lg:text-left">{figure.name}</h3>
+                          <p className="text-slate-400 text-base lg:text-lg text-center lg:text-left">{figure.occupation}</p>
                         </>
                       )}
                     </div>
@@ -386,12 +386,12 @@ const InspirationalFigures: React.FC = () => {
                           <p className="text-white text-base lg:text-lg italic leading-relaxed font-arabic text-right mb-2">
                             "{figure.quoteArabic || figure.quote}"
                           </p>
-                          <p className="text-slate-300 text-sm lg:text-base italic leading-relaxed pl-2">
+                          <p className="text-slate-300 text-sm lg:text-base italic leading-relaxed text-center lg:text-left pl-2">
                             "{figure.quote}"
                           </p>
                         </div>
                       ) : (
-                        <p className="text-white text-base lg:text-lg italic leading-relaxed pl-2">
+                        <p className="text-white text-base lg:text-lg italic leading-relaxed text-center lg:text-left pl-2">
                           "{figure.quote}"
                         </p>
                       )}
@@ -399,7 +399,7 @@ const InspirationalFigures: React.FC = () => {
 
                     {/* Achievement */}
                     <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-4 lg:p-5 rounded-xl border border-blue-500/30">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 justify-center lg:justify-start">
                         <Award className="w-5 h-5 text-blue-400" />
                         <h4 className="font-semibold text-white text-base lg:text-lg">
                           {isIslamicScholar(figure.id) ? 'الإنجاز الرئيسي' : 'Key Achievement'}
@@ -410,12 +410,12 @@ const InspirationalFigures: React.FC = () => {
                           <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-arabic text-right mb-2">
                             {figure.achievementArabic || figure.achievement}
                           </p>
-                          <p className="text-slate-400 text-xs lg:text-sm leading-relaxed">
+                          <p className="text-slate-400 text-xs lg:text-sm leading-relaxed text-center lg:text-left">
                             {figure.achievement}
                           </p>
                         </div>
                       ) : (
-                        <p className="text-slate-300 text-sm lg:text-base leading-relaxed">{figure.achievement}</p>
+                        <p className="text-slate-300 text-sm lg:text-base leading-relaxed text-center lg:text-left">{figure.achievement}</p>
                       )}
                     </div>
 
