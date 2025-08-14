@@ -4,10 +4,14 @@ import { User, BookOpen, Quote, Award } from 'lucide-react';
 interface InspirationFigure {
   id: string;
   name: string;
+  nameArabic?: string;
   occupation: string;
+  occupationArabic?: string;
   gender: 'male' | 'female';
   quote: string;
+  quoteArabic?: string;
   achievement: string;
+  achievementArabic?: string;
   imageUrl?: string;
 }
 
@@ -16,50 +20,170 @@ const inspirationalFigures: InspirationFigure[] = [
   {
     id: 'ibn-sina',
     name: 'Ibn Sina (Avicenna)',
+    nameArabic: 'ابن سينا',
     occupation: 'Physician, Philosopher, Scientist',
+    occupationArabic: 'طبيب، فيلسوف، عالم',
     gender: 'male',
     quote: 'The knowledge of anything, since all things have causes, is not acquired or complete unless it is known by its causes.',
-    achievement: 'Father of modern medicine, wrote influential medical texts'
+    quoteArabic: 'معرفة أي شيء، لما كان لكل شيء أسباب، لا تكتمل إلا بمعرفة أسبابه',
+    achievement: 'Father of modern medicine, wrote influential medical texts',
+    achievementArabic: 'أبو الطب الحديث، ألف كتبًا طبية مؤثرة',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Avicenna_Canon_1597.jpg/256px-Avicenna_Canon_1597.jpg'
   },
   {
     id: 'al-khwarizmi',
     name: 'Al-Khwarizmi',
+    nameArabic: 'الخوارزمي',
     occupation: 'Mathematician, Astronomer',
+    occupationArabic: 'عالم رياضيات، فلكي',
     gender: 'male',
     quote: 'Restoration is the return of things to their natural state.',
-    achievement: 'Father of Algebra, developed algorithms and decimal system'
+    quoteArabic: 'الجبر هو إعادة الأشياء إلى حالتها الطبيعية',
+    achievement: 'Father of Algebra, developed algorithms and decimal system',
+    achievementArabic: 'أبو الجبر، طور الخوارزميات والنظام العشري',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Khwarizmi_Amirkabir_University_of_Technology.png/256px-Khwarizmi_Amirkabir_University_of_Technology.png'
   },
   {
     id: 'ibn-rushd',
     name: 'Ibn Rushd (Averroes)',
+    nameArabic: 'ابن رشد',
     occupation: 'Philosopher, Physician, Polymath',
+    occupationArabic: 'فيلسوف، طبيب، موسوعي',
     gender: 'male',
     quote: 'Ignorance leads to fear, fear leads to hatred, and hatred leads to violence.',
-    achievement: 'Influential Islamic philosopher, bridge between Islamic and Christian thought'
+    quoteArabic: 'الجهل يؤدي إلى الخوف، والخوف يؤدي إلى البغض، والبغض يؤدي إلى العنف',
+    achievement: 'Influential Islamic philosopher, bridge between Islamic and Christian thought',
+    achievementArabic: 'فيلسوف إسلامي مؤثر، جسر بين الفكر الإسلامي والمسيحي',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Averroes_closeup.jpg/256px-Averroes_closeup.jpg'
   },
   {
     id: 'al-razi',
     name: 'Al-Razi',
+    nameArabic: 'الرازي',
     occupation: 'Physician, Alchemist, Philosopher',
+    occupationArabic: 'طبيب، كيميائي، فيلسوف',
     gender: 'male',
     quote: 'Truth in medicine is an unattainable goal, and the art as described in books is far beneath the knowledge of an experienced physician.',
-    achievement: 'Distinguished smallpox from measles, pioneer in medical ethics'
+    quoteArabic: 'الحق في الطب هدف لا يُدرك، والفن كما وُصف في الكتب أقل بكثير من معرفة الطبيب المجرب',
+    achievement: 'Distinguished smallpox from measles, pioneer in medical ethics',
+    achievementArabic: 'ميز بين الجدري والحصبة، رائد في أخلاقيات الطب',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Al-Razi.jpg/256px-Al-Razi.jpg'
   },
   {
     id: 'ibn-khaldun',
     name: 'Ibn Khaldun',
+    nameArabic: 'ابن خلدون',
     occupation: 'Historian, Sociologist, Economist',
+    occupationArabic: 'مؤرخ، عالم اجتماع، اقتصادي',
     gender: 'male',
     quote: 'Geography is destiny.',
-    achievement: 'Father of sociology and historiography, developed theories of social cohesion'
+    quoteArabic: 'الجغرافيا هي القدر',
+    achievement: 'Father of sociology and historiography, developed theories of social cohesion',
+    achievementArabic: 'أبو علم الاجتماع والتاريخ، طور نظريات التماسك الاجتماعي',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Ibn_Khaldun.jpg/256px-Ibn_Khaldun.jpg'
   },
   {
     id: 'fatima-al-fihri',
     name: 'Fatima al-Fihri',
+    nameArabic: 'فاطمة الفهرية',
     occupation: 'Scholar, Founder',
+    occupationArabic: 'عالمة، مؤسسة',
     gender: 'female',
     quote: 'Seek knowledge from the cradle to the grave.',
-    achievement: 'Founded the University of al-Qarawiyyin, world\'s oldest operating university'
+    quoteArabic: 'اطلبوا العلم من المهد إلى اللحد',
+    achievement: 'Founded the University of al-Qarawiyyin, world\'s oldest operating university',
+    achievementArabic: 'أسست جامعة القرويين، أقدم جامعة عاملة في العالم'
+  },
+  {
+    id: 'al-zahrawi',
+    name: 'Al-Zahrawi (Albucasis)',
+    nameArabic: 'الزهراوي',
+    occupation: 'Surgeon, Physician, Inventor',
+    occupationArabic: 'جراح، طبيب، مخترع',
+    gender: 'male',
+    quote: 'Surgery is the art of healing with the hand.',
+    quoteArabic: 'الجراحة هي فن الشفاء باليد',
+    achievement: 'Father of modern surgery, invented over 200 surgical instruments',
+    achievementArabic: 'أبو الجراحة الحديثة، اخترع أكثر من 200 أداة جراحية',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Al-Zahrawi.jpg/256px-Al-Zahrawi.jpg'
+  },
+  {
+    id: 'ibn-al-nafis',
+    name: 'Ibn al-Nafis',
+    nameArabic: 'ابن النفيس',
+    occupation: 'Physician, Anatomist, Physiologist',
+    occupationArabic: 'طبيب، عالم تشريح، عالم وظائف أعضاء',
+    gender: 'male',
+    quote: 'The heart has two ventricles, and between them is a septum.',
+    quoteArabic: 'للقلب بطينان، وبينهما حاجز',
+    achievement: 'First to describe pulmonary circulation, pioneer in cardiovascular medicine',
+    achievementArabic: 'أول من وصف الدورة الدموية الصغرى، رائد في طب القلب والأوعية',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Ibn_al-Nafis.jpg/256px-Ibn_al-Nafis.jpg'
+  },
+  {
+    id: 'ibn-al-haytham',
+    name: 'Ibn al-Haytham (Alhazen)',
+    nameArabic: 'ابن الهيثم',
+    occupation: 'Physicist, Mathematician, Astronomer',
+    occupationArabic: 'فيزيائي، رياضي، فلكي',
+    gender: 'male',
+    quote: 'The seeker after truth is not one who studies the writings of the ancients, but one who suspects their faith in them.',
+    quoteArabic: 'طالب الحق ليس هو الذي يدرس كتابات القدماء، بل من يشك في إيمانهم بها',
+    achievement: 'Father of optics and scientific method, first to explain vision correctly',
+    achievementArabic: 'أبو البصريات والمنهج العلمي، أول من فسر الرؤية بشكل صحيح',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Hazan.png/256px-Hazan.png'
+  },
+  {
+    id: 'al-biruni',
+    name: 'Al-Biruni',
+    nameArabic: 'البيروني',
+    occupation: 'Polymath, Physician, Physicist',
+    occupationArabic: 'موسوعي، طبيب، فيزيائي',
+    gender: 'male',
+    quote: 'The investigation of truth is in one way hard, in another easy.',
+    quoteArabic: 'التحقيق في الحقيقة من جهة صعب، ومن جهة أخرى سهل',
+    achievement: 'Pioneer in experimental methods, calculated Earth\'s circumference',
+    achievementArabic: 'رائد في المناهج التجريبية، حسب محيط الأرض',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Al-Biruni.jpg/256px-Al-Biruni.jpg'
+  },
+  {
+    id: 'al-kindi',
+    name: 'Al-Kindi',
+    nameArabic: 'الكندي',
+    occupation: 'Philosopher, Polymath, Physician',
+    occupationArabic: 'فيلسوف، موسوعي، طبيب',
+    gender: 'male',
+    quote: 'We should not be ashamed to acknowledge truth from whatever source it comes to us.',
+    quoteArabic: 'لا ينبغي أن نخجل من الاعتراف بالحق من أي مصدر أتانا',
+    achievement: 'First peripatetic philosopher in Islam, contributed to medicine and mathematics',
+    achievementArabic: 'أول فيلسوف مشائي في الإسلام، ساهم في الطب والرياضيات',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Al-Kindi.jpg/256px-Al-Kindi.jpg'
+  },
+  {
+    id: 'al-jazari',
+    name: 'Al-Jazari',
+    nameArabic: 'الجزري',
+    occupation: 'Inventor, Engineer, Mathematician',
+    occupationArabic: 'مخترع، مهندس، رياضي',
+    gender: 'male',
+    quote: 'Let us construct a device that will benefit humanity.',
+    quoteArabic: 'فلنصنع جهازًا ينفع الإنسانية',
+    achievement: 'Father of robotics and mechanical engineering, invented programmable machines',
+    achievementArabic: 'أبو الروبوتات والهندسة الميكانيكية، اخترع الآلات القابلة للبرمجة',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Al-Jazari_robots.jpg/256px-Al-Jazari_robots.jpg'
+  },
+  {
+    id: 'ibn-battuta',
+    name: 'Ibn Battuta',
+    nameArabic: 'ابن بطوطة',
+    occupation: 'Explorer, Geographer, Scholar',
+    occupationArabic: 'رحالة، جغرافي، عالم',
+    gender: 'male',
+    quote: 'Travel leaves you speechless, then turns you into a storyteller.',
+    quoteArabic: 'السفر يجعلك عاجزًا عن الكلام، ثم يحولك إلى راوي',
+    achievement: 'Greatest medieval traveler, documented cultures across Islamic world',
+    achievementArabic: 'أعظم الرحالة في العصور الوسطى، وثق الثقافات عبر العالم الإسلامي',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Ibn_Battuta.jpg/256px-Ibn_Battuta.jpg'
   },
   // Other Notable Figures
   {
@@ -92,6 +216,11 @@ const InspirationalFigures: React.FC = () => {
   const [containerHeight, setContainerHeight] = useState(
     window.innerWidth >= 640 ? '600px' : '384px'
   );
+
+  // Helper function to check if figure is Islamic scholar
+  const isIslamicScholar = (figureId: string) => {
+    return ['ibn-sina', 'al-khwarizmi', 'ibn-rushd', 'al-razi', 'ibn-khaldun', 'fatima-al-fihri', 'al-zahrawi', 'ibn-al-nafis', 'ibn-al-haytham', 'al-biruni', 'al-kindi', 'al-jazari', 'ibn-battuta'].includes(figureId);
+  };
 
   // Update container height on window resize
   useEffect(() => {
@@ -147,10 +276,10 @@ const InspirationalFigures: React.FC = () => {
       }
     };
 
-    // Initial delay to let the page settle, then scroll every 5 seconds
+    // Initial delay to let the page settle, then scroll every 8 seconds
     const initialTimeout = setTimeout(() => {
       scroll(); // First scroll
-      scrollInterval = setInterval(scroll, 5000);
+      scrollInterval = setInterval(scroll, 8000);
     }, 2000);
 
     return () => {
@@ -229,31 +358,74 @@ const InspirationalFigures: React.FC = () => {
                   <div className="flex-1 space-y-4 text-center lg:text-left">
                     {/* Name and Occupation */}
                     <div>
-                      <h3 className="font-bold text-xl lg:text-2xl text-white mb-2">{figure.name}</h3>
-                      <p className="text-slate-400 text-base lg:text-lg">{figure.occupation}</p>
+                      {isIslamicScholar(figure.id) ? (
+                        <>
+                          <h3 className="font-bold text-xl lg:text-2xl text-white mb-2 font-arabic text-right">
+                            {figure.nameArabic || figure.name}
+                          </h3>
+                          <h4 className="font-semibold text-lg lg:text-xl text-slate-300 mb-1">
+                            {figure.name}
+                          </h4>
+                          <p className="text-slate-400 text-base lg:text-lg font-arabic text-right">
+                            {figure.occupationArabic || figure.occupation}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="font-bold text-xl lg:text-2xl text-white mb-2">{figure.name}</h3>
+                          <p className="text-slate-400 text-base lg:text-lg">{figure.occupation}</p>
+                        </>
+                      )}
                     </div>
 
                     {/* Quote */}
                     <div className="relative bg-purple-900/30 p-4 lg:p-5 rounded-xl border border-purple-500/30">
                       <Quote className="w-6 h-6 text-purple-400 absolute -top-3 left-4 bg-slate-900 p-1 rounded" />
-                      <p className="text-white text-base lg:text-lg italic leading-relaxed pl-2">
-                        "{figure.quote}"
-                      </p>
+                      {isIslamicScholar(figure.id) ? (
+                        <div>
+                          <p className="text-white text-base lg:text-lg italic leading-relaxed font-arabic text-right mb-2">
+                            "{figure.quoteArabic || figure.quote}"
+                          </p>
+                          <p className="text-slate-300 text-sm lg:text-base italic leading-relaxed pl-2">
+                            "{figure.quote}"
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-white text-base lg:text-lg italic leading-relaxed pl-2">
+                          "{figure.quote}"
+                        </p>
+                      )}
                     </div>
 
                     {/* Achievement */}
                     <div className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 p-4 lg:p-5 rounded-xl border border-blue-500/30">
                       <div className="flex items-center gap-2 mb-2">
                         <Award className="w-5 h-5 text-blue-400" />
-                        <h4 className="font-semibold text-white text-base lg:text-lg">Key Achievement</h4>
+                        <h4 className="font-semibold text-white text-base lg:text-lg">
+                          {isIslamicScholar(figure.id) ? 'الإنجاز الرئيسي' : 'Key Achievement'}
+                        </h4>
                       </div>
-                      <p className="text-slate-300 text-sm lg:text-base leading-relaxed">{figure.achievement}</p>
+                      {isIslamicScholar(figure.id) ? (
+                        <div>
+                          <p className="text-slate-300 text-sm lg:text-base leading-relaxed font-arabic text-right mb-2">
+                            {figure.achievementArabic || figure.achievement}
+                          </p>
+                          <p className="text-slate-400 text-xs lg:text-sm leading-relaxed">
+                            {figure.achievement}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-slate-300 text-sm lg:text-base leading-relaxed">{figure.achievement}</p>
+                      )}
                     </div>
 
                     {/* Special indicator for Islamic scholars */}
-                    {['ibn-sina', 'al-khwarizmi', 'ibn-rushd', 'al-razi', 'ibn-khaldun', 'fatima-al-fihri'].includes(figure.id) && (
+                    {isIslamicScholar(figure.id) && (
                       <div className="bg-gradient-to-br from-amber-900/30 to-orange-900/30 p-3 rounded-lg border border-amber-500/30">
-                        <p className="text-amber-200 text-sm lg:text-base text-center lg:text-left">
+                        <p className="text-amber-200 text-sm lg:text-base text-center lg:text-right font-arabic">
+                          🌟 عالم إسلامي - رائد المعرفة
+                        </p>
+                        <p className="text-amber-300 text-xs lg:text-sm text-center lg:text-left mt-1">
                           🌟 Islamic Scholar - Pioneer of Knowledge
                         </p>
                       </div>
