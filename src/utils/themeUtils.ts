@@ -104,7 +104,7 @@ export const themes: Record<string, ThemeConfig> = {
 };
 
 export const getTheme = (themeId: string): ThemeConfig => {
-  return themes[themeId] || themes.default;
+  return themes[themeId] || themes.space;
 };
 
 export const applyTheme = (themeId: string) => {

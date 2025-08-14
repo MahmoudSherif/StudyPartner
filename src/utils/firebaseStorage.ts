@@ -80,7 +80,7 @@ export const loadUserState = async (): Promise<AppState> => {
         leaderboard: data.leaderboard || [],
         coins: data.coins || 0,
         settings: data.settings || {
-          theme: 'default' as const,
+          theme: 'space' as const,
           notifications: true,
           soundEffects: true,
           username: '',
@@ -115,7 +115,7 @@ export const loadUserState = async (): Promise<AppState> => {
         leaderboard: [],
         coins: 0,
         settings: {
-          theme: 'default' as const,
+          theme: 'space' as const,
           notifications: true,
           soundEffects: true,
           username: '',
@@ -297,7 +297,7 @@ export const subscribeToUserData = (userId: string, callback: (data: AppState) =
         leaderboard: data.leaderboard || [],
         coins: data.coins || 0,
         settings: data.settings || {
-          theme: 'default' as const,
+          theme: 'space' as const,
           notifications: true,
           soundEffects: true,
           username: '',
@@ -329,7 +329,7 @@ export const subscribeToUserData = (userId: string, callback: (data: AppState) =
         leaderboard: [],
         coins: 0,
         settings: {
-          theme: 'default' as const,
+          theme: 'space' as const,
           notifications: true,
           soundEffects: true,
           username: '',

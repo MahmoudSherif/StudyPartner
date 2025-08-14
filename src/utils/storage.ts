@@ -54,7 +54,7 @@ const getDefaultState = (): AppState => {
     leaderboard: [],
     coins: 0,
     settings: {
-      theme: 'default' as const,
+      theme: 'space' as const,
       notifications: true,
       soundEffects: true,
       username: '',
