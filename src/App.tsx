@@ -123,8 +123,8 @@ const Navigation: React.FC = () => {
         ></div>
         
         {/* Desktop Navigation - Modern Bar Style */}
-        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between h-60">
+        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between h-20">
             
             {/* Compact Logo Section */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -168,14 +168,13 @@ const Navigation: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ${
+                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
                         active 
-                          ? 'text-white shadow-lg border-2 border-white/30' 
-                          : 'text-slate-300 hover:text-white border-2 border-transparent hover:border-blue-300/50'
+                          ? 'text-white shadow-lg border-white/50 bg-gradient-to-r from-blue-600/80 to-purple-600/80' 
+                          : 'text-slate-300 hover:text-white border-white/20 hover:border-blue-300/60 hover:bg-white/5'
                       }`}
                       style={{
-                        backgroundColor: active ? 'rgba(59, 130, 246, 0.6)' : 'transparent',
-                        boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
+                        boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)' : 'none'
                       }}
                       onMouseEnter={(e) => {
                         if (!active) {
@@ -264,8 +263,9 @@ const Navigation: React.FC = () => {
           </div>
         </div>
         
-        {/* Mobile Navigation */}
-        <div className="mobile-navigation relative px-4 py-18">
+        {/* Mobile Navigation - Fixed positioned to not consume space */}
+        <div className="mobile-navigation fixed top-0 left-0 right-0 z-40 px-4 py-3 backdrop-blur-xl border-b-2 border-white/20" 
+             style={{ backgroundColor: 'rgba(10, 1, 24, 0.95)' }}>
           <div className="flex items-center justify-between">
             {/* Mobile Logo */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -305,7 +305,7 @@ const Navigation: React.FC = () => {
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="mobile-navigation fixed inset-0 z-50 overflow-hidden">
+          <div className="fixed inset-0 z-50 overflow-hidden">
             {/* Solid Backdrop - Fixed transparency issue */}
             <div 
               className="absolute inset-0"

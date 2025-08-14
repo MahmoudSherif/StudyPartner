@@ -1093,7 +1093,7 @@ nav a:hover, nav button:hover {
 }
 
 .mobile-nav-spacer {
-  height: 240px;
+  height: 70px; /* Minimal spacing for mobile fixed navigation */
 }
 
 @media (min-width: 768px) {
@@ -1106,7 +1106,7 @@ nav a:hover, nav button:hover {
   }
   
   .mobile-nav-spacer {
-    height: 336px; /* Increased from 112px to accommodate 200% height increase */
+    height: 120px; /* Further reduced spacing between bar and content */
   }
 }
 
