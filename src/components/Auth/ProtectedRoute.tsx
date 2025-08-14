@@ -9,6 +9,15 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { currentUser, loading } = useAuth();
 
+  // In development mode, bypass authentication for testing
+  if (import.meta.env.DEV) {
+    // Allow bypass by checking localStorage flag
+    const devBypass = localStorage.getItem('dev-bypass-auth');
+    if (devBypass === 'true') {
+      return <>{children}</>;
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
