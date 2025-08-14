@@ -86,6 +86,20 @@ export const themes: Record<string, ThemeConfig> = {
       gradient: 'linear-gradient(to right, #8b5cf6, #6366f1)',
       headerGradient: 'linear-gradient(to right, #1e1b4b, #312e81, #3730a3)'
     }
+  },
+  space: {
+    id: 'space',
+    name: 'Space',
+    colors: {
+      primary: '#6366f1',
+      secondary: '#8b5cf6',
+      accent: '#c084fc',
+      background: 'radial-gradient(ellipse at center, #0f1729 0%, #020617 40%, #000000 100%)',
+      surface: '#0a0f1c',
+      text: '#f8fafc',
+      gradient: 'linear-gradient(to right, #6366f1, #8b5cf6)',
+      headerGradient: 'linear-gradient(to right, #1e1b4b, #312e81, #4c1d95)'
+    }
   }
 };
 

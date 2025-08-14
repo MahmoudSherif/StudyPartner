@@ -453,8 +453,8 @@ const ThemedMainContent: React.FC = () => {
       className="min-h-dvh safe-area-inset text-gray-100"
       style={{ background: themeBackground }}
     >
-      {/* Animated Space Background for Galaxy Theme */}
-      {state.settings.theme === 'galaxy' && (
+      {/* Animated Space Background for Galaxy and Space Themes */}
+      {(state.settings.theme === 'galaxy' || state.settings.theme === 'space') && (
         <div className="space-background">
           <div className="shooting-star"></div>
           <div className="shooting-star"></div>
