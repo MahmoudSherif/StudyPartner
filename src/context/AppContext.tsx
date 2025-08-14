@@ -75,7 +75,7 @@ const initialState: AppState = {
   leaderboard: [],
   coins: 100, // Start with some coins
   settings: {
-    theme: 'default',
+    theme: 'space',
     notifications: true,
     soundEffects: true,
     username: 'Profile',

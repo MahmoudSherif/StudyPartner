@@ -18,7 +18,11 @@ import {
   LogOut,
   Zap,
   Menu,
-  X
+  X,
+  Users,
+  StickyNote,
+  RotateCcw,
+  ChevronDown
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Welcome from './components/Welcome';
@@ -30,6 +34,9 @@ import NatureGallery from './components/NatureGallery';
 import QuotesBar from './components/QuotesBar';
 import DailyChallenges from './components/DailyChallenges';
 import UserProfile from './components/UserProfile';
+import InspirationalFigures from './components/InspirationalFigures';
+import StickyNotesBoard from './components/StickyNotesBoard';
+import RestoreMode from './components/RestoreMode';
 
 // Component to check and reset streak on app load
 const StreakChecker: React.FC = () => {
@@ -117,9 +124,9 @@ const Navigation: React.FC = () => {
           }}
         ></div>
         
-        {/* Desktop Navigation - Modern Bar Style */}
-        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between h-16">
+        {/* Desktop Navigation - Enhanced Modern Bar Style with Increased Size */}
+        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-6 lg:py-8">
+          <div className="flex items-center justify-between h-16 lg:h-20 xl:h-24">
             
             {/* Compact Logo Section */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -138,23 +145,21 @@ const Navigation: React.FC = () => {
               <span className="font-black text-xl text-white tracking-wide">StudyPartner</span>
             </Link>
 
-            {/* Modern Navigation Bar */}
-            <div className="flex items-center gap-2">
-              {/* Main Navigation Items - Horizontal Bar */}
+            {/* Modern Navigation Bar - Enhanced Size for PC */}
+            <div className="flex items-center gap-2 lg:gap-4">
+              {/* Main Navigation Items - Horizontal Bar with Grouped Menus for PC */}
               <div 
-                className="flex items-center gap-1 backdrop-blur-xl rounded-full px-3 py-2 border-2"
+                className="flex items-center gap-1 lg:gap-2 backdrop-blur-xl rounded-full px-3 lg:px-5 xl:px-6 py-2 lg:py-3 border-2"
                 style={{ 
                   backgroundColor: 'rgba(10, 1, 24, 0.9)', 
                   borderColor: 'rgba(255, 255, 255, 0.2)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
                 }}
               >
+                {/* Individual Navigation Items */}
                 {[
-                  { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
                   { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                  { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                  { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' }
+                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' }
                 ].map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.path);
@@ -162,7 +167,7 @@ const Navigation: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 ${
+                      className={`relative group flex items-center gap-2 lg:gap-3 px-4 lg:px-6 xl:px-8 py-3 lg:py-4 rounded-full transition-all duration-300 ${
                         active 
                           ? 'text-white shadow-lg border-2 border-white/30' 
                           : 'text-slate-300 hover:text-white border-2 border-transparent hover:border-blue-300/50'
@@ -184,13 +189,79 @@ const Navigation: React.FC = () => {
                         }
                       }}
                     >
-                      <Icon className="w-5 h-5 relative z-10 flex-shrink-0" />
-                      <span className="relative z-10 font-semibold text-sm whitespace-nowrap">
+                      <Icon className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 relative z-10 flex-shrink-0" />
+                      <span className="relative z-10 font-semibold text-sm lg:text-base xl:text-lg whitespace-nowrap">
                         {item.label}
                       </span>
                     </Link>
                   );
                 })}
+
+                {/* Learning Menu Group */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 lg:gap-3 px-4 lg:px-6 xl:px-8 py-3 lg:py-4 rounded-full transition-all duration-300 text-slate-300 hover:text-white border-2 border-transparent hover:border-blue-300/50">
+                    <BookOpen className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 relative z-10 flex-shrink-0" />
+                    <span className="relative z-10 font-semibold text-sm lg:text-base xl:text-lg whitespace-nowrap">Learning</span>
+                    <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5" />
+                  </button>
+                  
+                  <div className="absolute top-full left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <div className="bg-slate-800 rounded-lg shadow-xl border border-white/20 p-2">
+                      <Link to="/knowledge" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors text-white">
+                        <BookOpen className="w-4 h-4" />
+                        Knowledge Base
+                      </Link>
+                      <Link to="/inspirational-figures" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors text-white">
+                        <Users className="w-4 h-4" />
+                        Inspirational Figures
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Menu Group */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 lg:gap-3 px-4 lg:px-6 xl:px-8 py-3 lg:py-4 rounded-full transition-all duration-300 text-slate-300 hover:text-white border-2 border-transparent hover:border-blue-300/50">
+                    <Trophy className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 relative z-10 flex-shrink-0" />
+                    <span className="relative z-10 font-semibold text-sm lg:text-base xl:text-lg whitespace-nowrap">Progress</span>
+                    <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5" />
+                  </button>
+                  
+                  <div className="absolute top-full left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <div className="bg-slate-800 rounded-lg shadow-xl border border-white/20 p-2">
+                      <Link to="/achievements" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors text-white">
+                        <Trophy className="w-4 h-4" />
+                        Achievements
+                      </Link>
+                      <Link to="/challenges" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors text-white">
+                        <Zap className="w-4 h-4" />
+                        Goals
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tools Menu Group */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 lg:gap-3 px-4 lg:px-6 xl:px-8 py-3 lg:py-4 rounded-full transition-all duration-300 text-slate-300 hover:text-white border-2 border-transparent hover:border-blue-300/50">
+                    <StickyNote className="w-5 h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 relative z-10 flex-shrink-0" />
+                    <span className="relative z-10 font-semibold text-sm lg:text-base xl:text-lg whitespace-nowrap">Tools</span>
+                    <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5" />
+                  </button>
+                  
+                  <div className="absolute top-full left-0 mt-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                    <div className="bg-slate-800 rounded-lg shadow-xl border border-white/20 p-2">
+                      <Link to="/sticky-notes" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors text-white">
+                        <StickyNote className="w-4 h-4" />
+                        Sticky Notes
+                      </Link>
+                      <Link to="/restore-mode" className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors text-white">
+                        <RotateCcw className="w-4 h-4" />
+                        Restore Mode
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* User Actions Bar */}
@@ -338,16 +409,19 @@ const Navigation: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Menu Items - Fixed backgrounds to be fully opaque */}
+                {/* Menu Items - Updated with new pages */}
                 <div className="flex-1 p-6">
                   <div className="space-y-3">
                     {[
                       { path: '/dashboard', icon: Target, label: 'Dashboard', color: 'from-blue-500 to-purple-600' },
-                      { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
+                      { path: '/knowledge', icon: BookOpen, label: 'Knowledge Base', color: 'from-orange-500 to-red-500' },
+                      { path: '/inspirational-figures', icon: Users, label: 'Inspirational Figures', color: 'from-indigo-500 to-blue-500' },
                       { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
                       { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
                       { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
                       { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' },
+                      { path: '/sticky-notes', icon: StickyNote, label: 'Sticky Notes', color: 'from-amber-500 to-orange-500' },
+                      { path: '/restore-mode', icon: RotateCcw, label: 'Restore Mode', color: 'from-red-500 to-pink-500' },
                       { path: '/profile', icon: Target, label: 'Profile', color: 'from-blue-500 to-cyan-500' }
                     ].map((item) => {
                       const Icon = item.icon;
@@ -455,8 +529,11 @@ const ThemedMainContent: React.FC = () => {
           <Route path="/tasks" element={<TaskManager />} />
           <Route path="/calendar" element={<CalendarView />} />
           <Route path="/knowledge" element={<KnowledgeBase />} />
+          <Route path="/inspirational-figures" element={<InspirationalFigures />} />
           <Route path="/achievements" element={<Achievements />} />
           <Route path="/challenges" element={<DailyChallenges />} />
+          <Route path="/sticky-notes" element={<StickyNotesBoard />} />
+          <Route path="/restore-mode" element={<RestoreMode />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/nature" element={<NatureGallery />} />
         </Routes>

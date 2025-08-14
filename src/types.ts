@@ -122,7 +122,7 @@ export interface AppState {
   leaderboard: LeaderboardEntry[];
   coins: number;
   settings: {
-    theme: 'default' | 'forest' | 'ocean' | 'sunset' | 'galaxy';
+    theme: 'default' | 'forest' | 'ocean' | 'sunset' | 'galaxy' | 'space';
     notifications: boolean;
     soundEffects: boolean;
     username: string;
