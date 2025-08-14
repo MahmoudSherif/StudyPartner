@@ -82,7 +82,9 @@ const Navigation: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
-  if (!currentUser) return null;
+  // In development mode with auth bypass, show navigation anyway
+  const devBypass = import.meta.env.DEV && localStorage.getItem('dev-bypass-auth') === 'true';
+  if (!currentUser && !devBypass) return null;
 
   return (
     <>
@@ -446,6 +448,21 @@ const ThemedMainContent: React.FC = () => {
       className="min-h-dvh safe-area-inset text-gray-100"
       style={{ background: themeBackground }}
     >
+      {/* Animated Space Background for Galaxy Theme */}
+      {state.settings.theme === 'galaxy' && (
+        <div className="space-background">
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="shooting-star"></div>
+          <div className="pulsing-star"></div>
+          <div className="pulsing-star"></div>
+          <div className="pulsing-star"></div>
+          <div className="pulsing-star"></div>
+        </div>
+      )}
+      
       <Navigation />
       
       <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
