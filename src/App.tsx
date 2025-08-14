@@ -419,11 +419,32 @@ const Navigation: React.FC = () => {
   );
 };
 
+// Component to apply theme to body - needs to be inside AppProvider
+const BodyThemeApplier: React.FC = () => {
+  const { state } = useApp();
+
+  // Apply theme-specific styles to body
+  useEffect(() => {
+    if (state?.settings?.theme) {
+      // For space and galaxy themes, let the animated background handle it
+      if (state.settings.theme === 'space' || state.settings.theme === 'galaxy') {
+        // Set a minimal dark background and let the space-background handle the visual
+        document.body.style.background = '#000000';
+      } else {
+        const themeBackground = getThemeBackground(state.settings.theme);
+        document.body.style.background = themeBackground;
+      }
+    }
+  }, [state?.settings?.theme]);
+
+  return null;
+};
+
 const AppContent: React.FC = () => {
   return (
     <AuthProvider>
       <AppProvider>
-        <div className="min-h-dvh safe-area-inset bg-slate-900 text-gray-100">
+        <div className="min-h-dvh safe-area-inset text-gray-100">
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -431,6 +452,7 @@ const AppContent: React.FC = () => {
               <ProtectedRoute>
                 <StreakChecker />
                 <ThemeApplier />
+                <BodyThemeApplier />
                 <QuotesBar />
                 <ThemedMainContent />
               </ProtectedRoute>
@@ -446,7 +468,10 @@ const AppContent: React.FC = () => {
 
 const ThemedMainContent: React.FC = () => {
   const { state } = useApp();
-  const themeBackground = getThemeBackground(state.settings.theme);
+  
+  // For space and galaxy themes, don't apply solid background - let animated background handle it
+  const shouldUseAnimatedBackground = state.settings.theme === 'galaxy' || state.settings.theme === 'space';
+  const themeBackground = shouldUseAnimatedBackground ? 'transparent' : getThemeBackground(state.settings.theme);
 
   return (
     <div 
@@ -454,7 +479,7 @@ const ThemedMainContent: React.FC = () => {
       style={{ background: themeBackground }}
     >
       {/* Animated Space Background for Galaxy and Space Themes */}
-      {(state.settings.theme === 'galaxy' || state.settings.theme === 'space') && (
+      {shouldUseAnimatedBackground && (
         <div className="space-background">
           <div className="shooting-star"></div>
           <div className="shooting-star"></div>

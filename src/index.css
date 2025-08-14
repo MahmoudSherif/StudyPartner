@@ -2071,6 +2071,11 @@ html, body {
   background: radial-gradient(ellipse at center, #0f1729 0%, #020617 40%, #000000 100%);
 }
 
+/* For galaxy theme, also apply animated starfield */
+[data-theme="galaxy"] .space-background {
+  background: linear-gradient(to bottom right, #0b1020, #1e1b4b, #312e81);
+}
+
 [data-theme="space"] .space-background::before {
   background-image: 
     radial-gradient(1px 1px at 25px 35px, #ffffff, transparent),
