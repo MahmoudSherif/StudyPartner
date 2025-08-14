@@ -89,6 +89,12 @@ textarea,
   --theme-accent: #a855f7;
 }
 
+[data-theme="space"] {
+  --theme-primary: #6366f1;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #c084fc;
+}
+
 /* Dark-surface cards and controls for clear contrast */
 .card {
   background: rgba(255, 255, 255, 0.08);
@@ -2046,8 +2052,9 @@ html, body {
   }
 }
 
-/* Apply space background only when galaxy theme is active */
-[data-theme="galaxy"] .space-background {
+/* Apply space background only when galaxy or space theme is active */
+[data-theme="galaxy"] .space-background,
+[data-theme="space"] .space-background {
   display: block;
 }
 
@@ -2057,6 +2064,50 @@ html, body {
 [data-theme="ocean"] .space-background,
 [data-theme="sunset"] .space-background {
   display: none;
+}
+
+/* Enhanced space theme with deeper space and different star patterns */
+[data-theme="space"] .space-background {
+  background: radial-gradient(ellipse at center, #0f1729 0%, #020617 40%, #000000 100%);
+}
+
+[data-theme="space"] .space-background::before {
+  background-image: 
+    radial-gradient(1px 1px at 25px 35px, #ffffff, transparent),
+    radial-gradient(2px 2px at 45px 75px, #c084fc, transparent),
+    radial-gradient(1px 1px at 95px 45px, #6366f1, transparent),
+    radial-gradient(2px 2px at 135px 85px, #ffffff, transparent),
+    radial-gradient(1px 1px at 165px 35px, #8b5cf6, transparent),
+    radial-gradient(2px 2px at 205px 65px, #c084fc, transparent),
+    radial-gradient(1px 1px at 245px 95px, #ffffff, transparent),
+    radial-gradient(2px 2px at 285px 25px, #6366f1, transparent),
+    radial-gradient(1px 1px at 325px 75px, #ffffff, transparent),
+    radial-gradient(2px 2px at 365px 45px, #8b5cf6, transparent);
+  background-size: 450px 220px;
+  animation: space-stars-drift 25s linear infinite;
+}
+
+[data-theme="space"] .space-background::after {
+  background-image: 
+    radial-gradient(1px 1px at 85px 15px, #ffffff, transparent),
+    radial-gradient(2px 2px at 125px 55px, #c084fc, transparent),
+    radial-gradient(1px 1px at 185px 85px, #6366f1, transparent),
+    radial-gradient(2px 2px at 225px 25px, #ffffff, transparent),
+    radial-gradient(1px 1px at 265px 65px, #8b5cf6, transparent),
+    radial-gradient(2px 2px at 305px 35px, #c084fc, transparent),
+    radial-gradient(1px 1px at 345px 75px, #ffffff, transparent);
+  background-size: 380px 170px;
+  animation: space-stars-float 35s linear infinite reverse;
+}
+
+@keyframes space-stars-drift {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-220px) translateX(-60px); }
+}
+
+@keyframes space-stars-float {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-170px) translateX(40px); }
 }
 
 /* ===== MODERN STICKY NOTES DESIGN ===== */

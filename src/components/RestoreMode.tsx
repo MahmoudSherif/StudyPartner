@@ -23,7 +23,8 @@ interface StateSnapshot {
 const RestoreMode: React.FC = () => {
   const { state, setState } = useApp();
   const [snapshots, setSnapshots] = useState<StateSnapshot[]>([]);
-  const [selectedSnapshot, setSelectedSnapshot] = useState<string | null>(null);
+  const [selectedSnapshot] = useState<string | null>(null);
+  // const setSelectedSnapshot is not used but left for potential future use
   const [showConfirmRestore, setShowConfirmRestore] = useState<string | null>(null);
 
   // Load snapshots from localStorage on component mount
