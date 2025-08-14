@@ -1077,6 +1077,33 @@ nav a:hover, nav button:hover {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Custom responsive navigation styles to fix Tailwind issues */
+.desktop-navigation {
+  display: none;
+}
+
+.mobile-navigation {
+  display: block;
+}
+
+.mobile-nav-spacer {
+  height: 80px;
+}
+
+@media (min-width: 768px) {
+  .desktop-navigation {
+    display: block;
+  }
+  
+  .mobile-navigation {
+    display: none;
+  }
+  
+  .mobile-nav-spacer {
+    height: 96px;
+  }
+}
+
 /* Bottom navigation contrast */
 .bottom-nav-item {
   color: #4b5563;
