@@ -82,7 +82,8 @@ const Navigation: React.FC = () => {
     setIsMobileMenuOpen(false);
   };
 
-  if (!currentUser) return null;
+  // Temporarily disabled for development
+  // if (!currentUser) return null;
 
   return (
     <>
