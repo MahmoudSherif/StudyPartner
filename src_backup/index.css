@@ -1,0 +1,2291 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Amiri:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Prevent horizontal scrolling on mobile */
+  overflow-x: hidden;
+  /* Better mobile viewport handling */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Use themed background and text for consistent contrast */
+  background: var(--theme-background, #0f172a);
+  color: var(--theme-text, #e5e7eb);
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  position: relative;
+  overflow-x: hidden;
+  /* Enhanced touch interactions */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection for specific elements */
+.selectable-text,
+input,
+textarea,
+[contenteditable] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* CSS Variables for theme support */
+:root {
+  --theme-primary: #3b82f6;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #06b6d4;
+  --theme-surface: #0b1220; /* dark surface default */
+  --theme-text: #e5e7eb; /* light text on dark */
+  --theme-header-gradient: linear-gradient(to right, #1e3a8a, #4c1d95, #312e81);
+  --theme-background: linear-gradient(to bottom right, #0b1220, #0f172a, #111827);
+
+  /* Layered dark surfaces for clear window boundaries */
+  --surface-0: rgba(2, 6, 23, 1);    /* base slate-950 */
+  --surface-1: rgba(11, 18, 32, 0.65); /* subtle elevation */
+  --surface-2: rgba(15, 23, 42, 0.72); /* default card */
+  --surface-3: rgba(30, 41, 59, 0.8);  /* higher elevation */
+  --surface-border: rgba(148, 163, 184, 0.28);
+  --surface-border-strong: rgba(148, 163, 184, 0.42);
+}
+
+/* Theme overrides set via JS remain supported with data-theme */
+[data-theme="forest"] {
+  --theme-primary: #10b981;
+  --theme-secondary: #059669;
+  --theme-accent: #34d399;
+}
+[data-theme="ocean"] {
+  --theme-primary: #0ea5e9;
+  --theme-secondary: #06b6d4;
+  --theme-accent: #38bdf8;
+}
+[data-theme="sunset"] {
+  --theme-primary: #f97316;
+  --theme-secondary: #ec4899;
+  --theme-accent: #fb7185;
+}
+[data-theme="galaxy"] {
+  --theme-primary: #8b5cf6;
+  --theme-secondary: #6366f1;
+  --theme-accent: #a855f7;
+}
+
+[data-theme="space"] {
+  --theme-primary: #6366f1;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #c084fc;
+}
+
+/* Dark-surface cards and controls for clear contrast */
+.card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  color: var(--theme-text);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Ensure headings and text inside cards match calendar contrast */
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+  color: #f8fafc !important; /* white headings on glass */
+  font-weight: 600;
+}
+
+.card p, .card span, .card div {
+  color: #cbd5e1; /* slate-300 body text like calendar */
+}
+
+/* Hairline divider for grouping content inside cards */
+.divider { height: 1px; background: linear-gradient(to right, transparent, rgba(148,163,184,0.25), transparent); border: 0; }
+
+/* Inputs and textareas on dark surfaces */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75); /* slate-950 */
+  color: #e5e7eb;
+  backdrop-filter: blur(10px);
+}
+
+.input::placeholder { color: rgba(148, 163, 184, 0.75); }
+.input:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75);
+  color: #e5e7eb;
+  backdrop-filter: blur(10px);
+}
+
+.textarea::placeholder { color: rgba(148, 163, 184, 0.75); }
+.textarea:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+/* Secondary buttons on dark bg */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+}
+
+/* Safe area support for mobile devices with notches */
+
+/* Custom animations for welcome page */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* Glassmorphism effects for welcome page */
+.glass-card {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Safe area support for mobile devices with notches */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Touch-friendly interactions */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide scrollbars for mobile horizontal scrollers */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Ensure quotes bar height is accounted for */
+#root {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Force quotes bar to be fixed at the very bottom with highest priority */
+.quotes-bar-fixed {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  z-index: 9999999 !important; /* Highest z-index to overlap everything */
+  pointer-events: auto !important;
+  isolation: isolate !important;
+  background-color: #0f172a !important; /* Solid dark background as fallback */
+  overflow-x: hidden !important;
+}
+
+/* Add padding to main content to account for the quotes bar and bottom navigation */
+#root {
+  padding-bottom: 180px !important; /* Space for bottom nav + quotes bar */
+}
+
+/* Mobile specific adjustments for quotes */
+@media (max-width: 640px) {
+  .quotes-bar-fixed {
+    bottom: 0 !important; /* Keep at very bottom on mobile too */
+    padding: 6px !important; /* Reduce padding on mobile */
+  }
+  
+  /* Make quotes text smaller and more mobile-friendly */
+  .quotes-bar-fixed .text-lg {
+    font-size: 1rem !important; /* Smaller Arabic text */
+  }
+  
+  .quotes-bar-fixed .text-xs {
+    font-size: 0.7rem !important; /* Smaller English text */
+  }
+  
+  #root {
+    padding-bottom: 200px !important; /* Enough space for bottom nav + quotes bar on mobile */
+  }
+}
+
+/* Removed old star background for clean theme support */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75); /* slate-950 */
+  color: #e5e7eb;
+  backdrop-filter: blur(10px);
+}
+
+.input::placeholder {
+  color: rgba(148, 163, 184, 0.75);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(2, 6, 23, 0.75);
+  color: #e5e7eb; /* Dark text for light background */
+  backdrop-filter: blur(10px);
+}
+
+.textarea::placeholder {
+  color: rgba(148, 163, 184, 0.75);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--theme-primary);
+  background: rgba(2, 6, 23, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #047857; /* Dark green for better contrast */
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.badge-warning {
+  background: rgba(251, 191, 36, 0.15);
+  color: #b45309; /* Dark amber for better contrast */
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c; /* Dark red for better contrast */
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-info {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e40af; /* Dark blue for better contrast */
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.streak {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+  color: white; /* White text on gradient background */
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.achievement {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  margin: 16px 0;
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.text-sm {
+  font-size: 14px;
+}
+
+.text-lg {
+  font-size: 18px;
+}
+
+.font-bold {
+  font-weight: 600;
+}
+
+.text-muted {
+  color: rgba(107, 114, 128, 0.9); /* Gray text for light backgrounds */
+}
+
+/* Additional text color utilities */
+.text-primary {
+  color: var(--theme-primary);
+}
+
+.text-secondary {
+  color: var(--theme-secondary);
+}
+
+.text-accent {
+  color: var(--theme-accent);
+}
+
+.text-dark {
+  color: #111827;
+}
+
+.text-light {
+  color: #6b7280;
+}
+
+/* Ensure good contrast for links */
+a {
+  color: var(--theme-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--theme-secondary);
+  text-decoration: underline;
+}
+
+/* Modal and overlay text colors */
+.modal {
+  background: rgba(255, 255, 255, 0.98);
+  color: #1f2937;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+/* Navigation styling removed - now handled by themes */
+
+/* Quotes Bar */
+/* Styles are now handled by Tailwind classes in the component */
+
+/* Arabic Font Support */
+.font-arabic {
+  font-family: 'Amiri', 'Noto Sans Arabic', 'Arial', sans-serif;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .card {
+    padding: 16px;
+  }
+  
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+  
+
+  
+  .quote {
+    font-size: 12px;
+    gap: 15px;
+  }
+}
+
+/* Hide scrollbar for horizontal scrolling */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;     /* Firefox */
+  scroll-behavior: smooth;   /* Smooth scrolling */
+  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+}
+
+/* Top navigation responsive styles */
+.top-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 999997;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.top-nav-scrollable {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scroll-snap-type: x mandatory;
+}
+
+.top-nav-item {
+  scroll-snap-align: start;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  .top-nav-item {
+    min-height: 44px; /* Apple's recommended touch target size */
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Navigation animations */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+/* Hover scale effect */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+/* Glass morphism effect for navigation */
+.nav-glass {
+  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+/* Gradient text animation */
+.gradient-text {
+  background: linear-gradient(45deg, #ffffff, #e2e8f0, #ffffff);
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* CELEBRATION ANIMATED GRADIENT */
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 400% 400%;
+    background-position: 0% 50%;
+  }
+  50% {
+    background-size: 400% 400%;
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 6s ease infinite;
+} 
+
+/* Login Modern Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-10px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-30px) translateX(5px) rotate(1deg);
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-15px) translateX(-8px) rotate(-1deg);
+  }
+  40% {
+    transform: translateY(-25px) translateX(12px) rotate(2deg);
+  }
+  60% {
+    transform: translateY(-5px) translateX(-15px) rotate(-2deg);
+  }
+  80% {
+    transform: translateY(-20px) translateX(8px) rotate(1deg);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-12px) translateX(15px) scale(1.05) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-8px) translateX(-12px) scale(0.95) rotate(-1deg);
+  }
+}
+
+.animate-float {
+  animation: float 15s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 18s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.animate-float-slow {
+  animation: float-slow 22s ease-in-out infinite;
+  animation-delay: -8s;
+} 
+
+/* Custom Border Width for Strong Boundaries */
+.border-3 {
+  border-width: 3px;
+}
+
+/* Additional border utilities for the larger login form */
+.border-t-3 {
+  border-top-width: 3px;
+}
+
+.border-b-2 {
+  border-bottom-width: 2px;
+}
+
+/* Gamified login enhancements */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Mobile-first responsive improvements for login page */
+@media (max-width: 640px) {
+  #login-container {
+    padding: 1rem !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important; /* Use dynamic viewport height for mobile */
+  }
+  
+  /* Ensure login form doesn't overflow on small screens */
+  .login-form {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  
+  /* Adjust floating animations for mobile performance */
+  .animate-float, .animate-float-delayed, .animate-float-slow {
+    animation-duration: 20s; /* Slower on mobile to save battery */
+  }
+}
+
+/* Improve touch targets for mobile */
+@media (max-width: 768px) {
+  button, input, select, textarea {
+    min-height: 44px; /* Apple recommended touch target size */
+  }
+  
+  /* Ensure proper text sizing */
+  input, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Ensure all pages are mobile responsive */
+@media (max-width: 640px) {
+  /* Make cards more mobile-friendly */
+  .card {
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+    border-radius: 0.75rem !important;
+  }
+  
+  /* Adjust grid layouts for mobile */
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  
+  /* Ensure text scales properly */
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Ensure buttons are touch-friendly */
+  .btn {
+    padding: 0.75rem 1rem !important;
+    min-height: 44px !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Responsive spacing */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  /* Ensure containers don't overflow */
+  .container {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Fix modal/celebration overlays for mobile */
+  .fixed.inset-0 {
+    padding: 1rem !important;
+  }
+}
+
+/* Improve scrollable areas on mobile */
+@media (max-width: 768px) {
+  /* Add momentum scrolling for iOS */
+  .overflow-y-auto, .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Improve button spacing on mobile */
+  .space-x-4 > * + * {
+    margin-left: 0.5rem !important;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+}
+
+/* Decorative Frame Border */
+.border-gradient {
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #3b82f6);
+  border-radius: 1.5rem;
+  opacity: 0.3;
+}
+
+/* Custom QuotesBar Italic Styles */
+.quotes-arabic-text {
+  font-style: italic !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+.quotes-english-text {
+  font-style: italic !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+/* Alternative Color Schemes - Uncomment to try different looks */
+
+/* OPTION 1: Deep Teal/Cyan Ocean - COMMENTED OUT
+.quotes-bar-green-bg {
+  background-color: #164e63 !important; 
+}
+.quotes-bar-green-gradient {
+  background: linear-gradient(to right, #0891b2, #164e63) !important;
+  border: 1px solid rgba(34, 211, 238, 0.4) !important;
+}
+.quotes-bar-green-inner {
+  background-color: #0891b2 !important;
+  border: 1px solid rgba(6, 182, 212, 0.3) !important;
+}
+*/
+
+/* OPTION 2: Deep Purple Cosmic - COMMENTED OUT
+.quotes-bar-green-bg {
+  background-color: #581c87 !important;
+}
+.quotes-bar-green-gradient {
+  background: linear-gradient(to right, #7c3aed, #581c87) !important;
+  border: 1px solid rgba(168, 85, 247, 0.4) !important;
+}
+.quotes-bar-green-inner {
+  background-color: #7c3aed !important;
+  border: 1px solid rgba(147, 51, 234, 0.3) !important;
+}
+*/
+
+/* OPTION 3: Charcoal with Gold Accents - COMMENTED OUT
+.quotes-bar-green-bg {
+  background-color: #18181b !important;
+}
+.quotes-bar-green-gradient {
+  background: linear-gradient(to right, #27272a, #18181b) !important;
+  border: 1px solid rgba(251, 191, 36, 0.3) !important;
+}
+.quotes-bar-green-inner {
+  background-color: #27272a !important;
+  border: 1px solid rgba(245, 158, 11, 0.2) !important;
+}
+*/ 
+
+/* Theme-aware text colors */
+[data-theme="default"] .theme-text-primary { color: #2563eb; }
+[data-theme="default"] .theme-text-secondary { color: #7c3aed; }
+[data-theme="default"] .theme-bg-primary { background: #eff6ff; }
+[data-theme="default"] .theme-bg-secondary { background: #f5f3ff; }
+
+[data-theme="forest"] .theme-text-primary { color: #047857; }
+[data-theme="forest"] .theme-text-secondary { color: #059669; }
+[data-theme="forest"] .theme-bg-primary { background: #ecfdf5; }
+[data-theme="forest"] .theme-bg-secondary { background: #d1fae5; }
+
+[data-theme="ocean"] .theme-text-primary { color: #0369a1; }
+[data-theme="ocean"] .theme-text-secondary { color: #0891b2; }
+[data-theme="ocean"] .theme-bg-primary { background: #f0f9ff; }
+[data-theme="ocean"] .theme-bg-secondary { background: #e0f2fe; }
+
+[data-theme="sunset"] .theme-text-primary { color: #c2410c; }
+[data-theme="sunset"] .theme-text-secondary { color: #be123c; }
+[data-theme="sunset"] .theme-bg-primary { background: #fff7ed; }
+[data-theme="sunset"] .theme-bg-secondary { background: #fce7f3; }
+
+[data-theme="galaxy"] .theme-text-primary { color: #6d28d9; }
+[data-theme="galaxy"] .theme-text-secondary { color: #4f46e5; }
+[data-theme="galaxy"] .theme-bg-primary { background: #faf5ff; }
+[data-theme="galaxy"] .theme-bg-secondary { background: #ede9fe; }
+
+/* Ensure readability on gradients */
+.on-gradient-text {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* High contrast mode for better accessibility */
+@media (prefers-contrast: high) {
+  .card {
+    border: 2px solid #111827;
+  }
+  
+  .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+    color: #000000;
+  }
+  
+  .card p {
+    color: #111827;
+  }
+  
+  .text-muted {
+    color: #374151;
+  }
+}
+
+/* Ensure form elements are always readable */
+select, option {
+  color: #1f2937;
+  background: white;
+}
+
+/* Ensure tooltips and dropdowns have proper contrast */
+.tooltip, .dropdown-menu {
+  background: rgba(31, 41, 55, 0.95);
+  color: white;
+  border: 1px solid rgba(55, 65, 81, 1);
+}
+
+/* Ensure modals have proper text contrast */
+.modal-content {
+  background: white;
+  color: #1f2937;
+}
+
+.modal-content h1, .modal-content h2, .modal-content h3 {
+  color: #111827;
+}
+
+/* Navigation text should always be visible */
+nav a, nav span, nav button {
+  color: white !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+nav a:hover, nav button:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Custom responsive navigation styles to fix Tailwind issues */
+.desktop-navigation {
+  display: none;
+}
+
+.mobile-navigation {
+  display: block;
+}
+
+.mobile-nav-spacer {
+  height: 70px; /* Minimal spacing for mobile fixed navigation */
+}
+
+@media (min-width: 768px) {
+  .desktop-navigation {
+    display: block;
+  }
+  
+  .mobile-navigation {
+    display: none;
+  }
+  
+  .mobile-nav-spacer {
+    height: 120px; /* Further reduced spacing between bar and content */
+  }
+}
+
+/* Bottom navigation contrast */
+.bottom-nav-item {
+  color: #4b5563;
+}
+
+.bottom-nav-item.active {
+  color: var(--theme-primary);
+}
+
+.bottom-nav-item:hover {
+  color: var(--theme-secondary);
+}
+
+/* Ensure badges are always readable */
+.badge {
+  font-weight: 600;
+}
+
+/* Error and success messages */
+.error-text {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.success-text {
+  color: #059669;
+  font-weight: 500;
+}
+
+.warning-text {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.info-text {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Disabled states */
+.disabled, :disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Code blocks and pre formatted text */
+code, pre {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+/* Tables */
+table {
+  color: #1f2937;
+}
+
+th {
+  color: #111827;
+  font-weight: 600;
+}
+
+td {
+  color: #374151;
+}
+
+/* List items */
+li {
+  color: inherit;
+}
+
+/* Ensure all headings in cards are dark */
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+/* Ensure all paragraphs in cards are readable */
+.card p, .card span, .card div {
+  color: #374151;
+}
+
+/* Strong and bold text should be darker */
+.card strong, .card b {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Links in cards should use theme color */
+.card a {
+  color: var(--theme-primary);
+  font-weight: 500;
+}
+
+.card a:hover {
+  color: var(--theme-secondary);
+  text-decoration: underline;
+} 
+
+/* Login Page Animations */
+@keyframes blob {
+  0%, 100% { 
+    transform: translate(0, 0) scale(1); 
+  }
+  33% { 
+    transform: translate(30px, -50px) scale(1.1); 
+  }
+  66% { 
+    transform: translate(-20px, 20px) scale(0.9); 
+  }
+}
+
+@keyframes scale-in {
+  from { 
+    transform: scale(0); 
+    opacity: 0;
+  }
+  to { 
+    transform: scale(1); 
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { 
+    transform: translateX(0); 
+  }
+  25% { 
+    transform: translateX(-5px); 
+  }
+  75% { 
+    transform: translateX(5px); 
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-blob { 
+  animation: blob 7s infinite; 
+}
+
+.animation-delay-2000 { 
+  animation-delay: 2s; 
+}
+
+.animation-delay-4000 { 
+  animation-delay: 4s; 
+}
+
+.animate-scale-in { 
+  animation: scale-in 0.3s ease-out; 
+}
+
+.animate-shake { 
+  animation: shake 0.5s ease-in-out; 
+}
+
+.animate-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+/* Floating animations for login icons */
+.animate-float {
+  animation: float 15s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 18s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+.animate-float-slow {
+  animation: float-slow 22s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+/* Pulse animation */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+/* Spin animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile-specific fixes for proper viewport handling */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    max-width: 100vw !important;
+  }
+  
+  /* Ensure navigation tabs fit properly on mobile */
+  .bottom-navigation {
+    padding: 0.25rem !important;
+  }
+  
+  .bottom-navigation a {
+    min-width: 0 !important;
+    flex: 1 !important;
+    padding: 0.5rem 0.125rem !important;
+    max-width: none !important;
+  }
+  
+  /* Header navigation improvements */
+  .max-w-7xl {
+    padding: 0 0.5rem !important;
+  }
+  
+  /* Prevent text overflow in navigation */
+  .bottom-nav-label {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Form elements mobile optimization */
+  .input, .textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 0.75rem !important;
+  }
+  
+  /* Responsive typography for mobile */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+  
+  /* Ensure modals fit mobile screens */
+  .modal, .fixed.inset-0 {
+    padding: 1rem !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Better mobile touch targets */
+  button, .btn, input[type="checkbox"], input[type="radio"] {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Mobile-specific spacing */
+  .p-8 { padding: 1rem !important; }
+  .p-6 { padding: 0.75rem !important; }
+  .p-4 { padding: 0.5rem !important; }
+  .py-8 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+  
+  /* Ensure all components fit mobile viewport */
+  * {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Mobile-specific grid adjustments */
+  .grid {
+    gap: 0.75rem !important;
+  }
+  
+  .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  .sm\\:grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+  .lg\\:grid-cols-3 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+}
+
+/* Mobile-first approach - Extra small screens */
+@media (max-width: 380px) {
+  .container {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  .card {
+    padding: 0.5rem !important;
+    margin: 0.25rem 0 !important;
+  }
+  
+  .btn {
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+  }
+  
+  .text-sm { font-size: 0.8125rem !important; }
+  .text-base { font-size: 0.875rem !important; }
+  .text-lg { font-size: 1rem !important; }
+  
+  /* Extra small navigation adjustments */
+  .bottom-navigation a {
+    padding: 0.375rem 0.125rem !important;
+  }
+  
+  .bottom-navigation .text-\[10px\] {
+    font-size: 8px !important;
+  }
+  
+  /* Header stats wrapping on extra small screens */
+  nav .flex-wrap {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+  
+  /* Allow items to shrink so header fits without overflow */
+  nav .flex-shrink-0 {
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+  }
+  
+  /* Ensure center tabs can shrink */
+  nav .top-nav-tabs {
+    min-width: 0 !important;
+    max-width: 120px !important;
+  }
+  
+  /* Hide tab label on ultra-small screens to save space */
+  nav .top-nav-tab span {
+    display: none !important;
+  }
+  
+  /* Tighter paddings for compact layout */
+  nav .top-nav-tab,
+  nav .user-menu-item {
+    padding-left: 0.375rem !important;
+    padding-right: 0.375rem !important;
+  }
+  
+  /* Quotes bar extra small screen */
+  .quotes-bar-fixed {
+    font-size: 0.8125rem !important;
+  }
+}
+
+/* Prevent horizontal scrolling issues */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* ===== ENHANCED CALENDAR STYLES ===== */
+/* Calendar-specific mobile optimizations */
+.calendar-grid {
+  touch-action: manipulation;
+}
+
+.calendar-day {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+}
+
+.calendar-day:active {
+  transform: scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.calendar-day-today {
+  animation: pulse-today 2s infinite;
+}
+
+@keyframes pulse-today {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  70% { 
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.calendar-event {
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.calendar-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Event type specific gradients */
+.event-exam {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.event-assignment {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.event-deadline {
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.event-general {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Calendar responsiveness enhancements */
+@media (max-width: 640px) {
+  .calendar-day {
+    min-height: 70px !important;
+    padding: 0.5rem !important;
+  }
+  
+  .calendar-event {
+    font-size: 0.625rem !important;
+    padding: 2px 4px !important;
+    border-radius: 3px !important;
+  }
+  
+  .calendar-day-number {
+    font-size: 0.75rem !important;
+  }
+  
+  .calendar-header-month {
+    font-size: 1.125rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    min-height: 60px !important;
+    padding: 0.25rem !important;
+  }
+  
+  .calendar-event {
+    font-size: 0.5rem !important;
+    padding: 1px 3px !important;
+  }
+  
+  .calendar-day-number {
+    font-size: 0.625rem !important;
+  }
+}
+
+/* List view enhancements */
+.event-list-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid transparent;
+}
+
+.event-list-item:hover {
+  transform: translateX(4px);
+  border-left-color: #3b82f6;
+}
+
+.event-list-item.urgent {
+  border-left-color: #dc2626;
+  animation: urgentPulse 3s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { 
+    border-left-color: #dc2626;
+  }
+  50% { 
+    border-left-color: #ef4444;
+  }
+}
+
+/* Modal enhancements */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  animation: slideUpFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Progress bar animations */
+.progress-bar {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Enhanced touch interactions */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+/* Calendar accessibility improvements */
+.calendar-day[aria-selected="true"] {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.calendar-day:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Dark mode calendar adjustments */
+.dark .calendar-day {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .calendar-event {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* RTL support for Arabic text */
+[dir="rtl"] .calendar-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .calendar-event {
+  text-align: right;
+}
+
+/* Welcome page animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+/* Welcome page feature cards hover effects */
+.feature-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+/* Gradient background animation for hero */
+.hero-gradient {
+  background: linear-gradient(-45deg, #667eea, #764ba2, #6b73ff, #9068be);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+/* Top navigation enhancements */
+.top-nav-tabs {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.top-nav-tab {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.top-nav-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.top-nav-tab:hover::before {
+  left: 100%;
+}
+
+.top-nav-tab.active {
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Logo section enhancement */
+.brand-logo {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.2), 
+    rgba(255, 255, 255, 0.05));
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* User menu enhancements */
+.user-menu-item {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.user-menu-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Smart Calendar window style overrides (final) */
+.card {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+.card:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 { 
+  color: #f8fafc !important; 
+}
+.card p, .card span, .card div { 
+  color: #cbd5e1 !important; 
+}
+
+/* Utility: ensure elements with `hidden` truly hide even without Tailwind */
+.hidden { display: none !important; }
+
+/* Enforce single label per platform for bottom nav */
+@media (min-width: 641px) {
+  .bottom-nav-label .mobile-short { display: none !important; }
+  .bottom-nav-label .mobile-full { display: inline !important; }
+}
+@media (max-width: 640px) {
+  .bottom-nav-label .mobile-full { display: none !important; }
+  .bottom-nav-label .mobile-short { display: inline !important; }
+}
+
+/* Keep Exit button black in header despite global nav white text */
+.exit-btn, .exit-btn * {
+  color: #000 !important;
+}
+
+/* Header label visibility: visible on >=640px, hidden on very small screens */
+.header-label { display: none; }
+@media (min-width: 640px) { .header-label { display: inline !important; } }
+@media (max-width: 380px) { .header-label { display: none !important; } }
+
+/* Header labels on mobile: show words but compact */
+@media (max-width: 640px) {
+  .header-label {
+    display: inline !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    max-width: 64px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  /* Slightly tighter spacing for header items on mobile */
+  nav .user-menu-item {
+    gap: 0.25rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-label {
+    max-width: 48px;
+    font-size: 11px !important;
+  }
+}
+
+/* ===== ENHANCED SPACE THEME WITH ANIMATED STARS ===== */
+
+/* Space theme background with animated stars */
+[data-theme="galaxy"] {
+  --theme-primary: #8b5cf6;
+  --theme-secondary: #6366f1;
+  --theme-accent: #a855f7;
+}
+
+/* Animated starfield for space theme */
+.space-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom right, #0b1020, #1e1b4b, #312e81);
+  overflow: hidden;
+}
+
+.space-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #ffffff, transparent),
+    radial-gradient(2px 2px at 40px 70px, #e879f9, transparent),
+    radial-gradient(1px 1px at 90px 40px, #3b82f6, transparent),
+    radial-gradient(1px 1px at 130px 80px, #10b981, transparent),
+    radial-gradient(2px 2px at 160px 30px, #f59e0b, transparent),
+    radial-gradient(1px 1px at 200px 60px, #ec4899, transparent),
+    radial-gradient(2px 2px at 240px 90px, #ffffff, transparent),
+    radial-gradient(1px 1px at 280px 20px, #8b5cf6, transparent),
+    radial-gradient(1px 1px at 320px 70px, #06b6d4, transparent),
+    radial-gradient(2px 2px at 360px 40px, #ffffff, transparent);
+  background-repeat: repeat;
+  background-size: 400px 200px;
+  animation: stars-move 20s linear infinite;
+}
+
+.space-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(1px 1px at 80px 10px, #ffffff, transparent),
+    radial-gradient(1px 1px at 120px 50px, #a855f7, transparent),
+    radial-gradient(2px 2px at 180px 80px, #3b82f6, transparent),
+    radial-gradient(1px 1px at 220px 20px, #ffffff, transparent),
+    radial-gradient(1px 1px at 260px 60px, #10b981, transparent),
+    radial-gradient(2px 2px at 300px 30px, #ec4899, transparent),
+    radial-gradient(1px 1px at 340px 70px, #ffffff, transparent);
+  background-repeat: repeat;
+  background-size: 350px 150px;
+  animation: stars-move-slow 30s linear infinite reverse;
+}
+
+@keyframes stars-move {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-200px) translateX(-50px); }
+}
+
+@keyframes stars-move-slow {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-150px) translateX(30px); }
+}
+
+/* Shooting stars */
+.shooting-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #ffffff, 0 0 12px #ffffff;
+  animation: shoot 3s linear infinite;
+  opacity: 0;
+}
+
+.shooting-star:nth-child(1) {
+  top: 10%;
+  right: 10%;
+  animation-delay: 0s;
+}
+
+.shooting-star:nth-child(2) {
+  top: 30%;
+  right: 20%;
+  animation-delay: 2s;
+}
+
+.shooting-star:nth-child(3) {
+  top: 60%;
+  right: 30%;
+  animation-delay: 4s;
+}
+
+.shooting-star:nth-child(4) {
+  top: 20%;
+  right: 60%;
+  animation-delay: 6s;
+}
+
+.shooting-star:nth-child(5) {
+  top: 80%;
+  right: 15%;
+  animation-delay: 8s;
+}
+
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: translateX(0) translateY(0);
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+    transform: translateX(-300px) translateY(100px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-300px) translateY(100px);
+  }
+}
+
+/* Enhanced pulsing stars */
+.pulsing-star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #ffffff, transparent);
+  border-radius: 50%;
+  animation: star-pulse 2s ease-in-out infinite;
+}
+
+.pulsing-star:nth-child(1) {
+  top: 15%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.pulsing-star:nth-child(2) {
+  top: 40%;
+  left: 70%;
+  animation-delay: 0.5s;
+}
+
+.pulsing-star:nth-child(3) {
+  top: 70%;
+  left: 30%;
+  animation-delay: 1s;
+}
+
+.pulsing-star:nth-child(4) {
+  top: 25%;
+  left: 80%;
+  animation-delay: 1.5s;
+}
+
+@keyframes star-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+/* Apply space background only when galaxy or space theme is active */
+[data-theme="galaxy"] .space-background,
+[data-theme="space"] .space-background {
+  display: block;
+}
+
+/* Hide space background for other themes */
+[data-theme="default"] .space-background,
+[data-theme="forest"] .space-background,
+[data-theme="ocean"] .space-background,
+[data-theme="sunset"] .space-background {
+  display: none;
+}
+
+/* Enhanced space theme with deeper space and different star patterns */
+[data-theme="space"] .space-background {
+  background: radial-gradient(ellipse at center, #0f1729 0%, #020617 40%, #000000 100%);
+}
+
+/* For galaxy theme, also apply animated starfield */
+[data-theme="galaxy"] .space-background {
+  background: linear-gradient(to bottom right, #0b1020, #1e1b4b, #312e81);
+}
+
+[data-theme="space"] .space-background::before {
+  background-image: 
+    radial-gradient(1px 1px at 25px 35px, #ffffff, transparent),
+    radial-gradient(2px 2px at 45px 75px, #c084fc, transparent),
+    radial-gradient(1px 1px at 95px 45px, #6366f1, transparent),
+    radial-gradient(2px 2px at 135px 85px, #ffffff, transparent),
+    radial-gradient(1px 1px at 165px 35px, #8b5cf6, transparent),
+    radial-gradient(2px 2px at 205px 65px, #c084fc, transparent),
+    radial-gradient(1px 1px at 245px 95px, #ffffff, transparent),
+    radial-gradient(2px 2px at 285px 25px, #6366f1, transparent),
+    radial-gradient(1px 1px at 325px 75px, #ffffff, transparent),
+    radial-gradient(2px 2px at 365px 45px, #8b5cf6, transparent);
+  background-size: 450px 220px;
+  animation: space-stars-drift 25s linear infinite;
+}
+
+[data-theme="space"] .space-background::after {
+  background-image: 
+    radial-gradient(1px 1px at 85px 15px, #ffffff, transparent),
+    radial-gradient(2px 2px at 125px 55px, #c084fc, transparent),
+    radial-gradient(1px 1px at 185px 85px, #6366f1, transparent),
+    radial-gradient(2px 2px at 225px 25px, #ffffff, transparent),
+    radial-gradient(1px 1px at 265px 65px, #8b5cf6, transparent),
+    radial-gradient(2px 2px at 305px 35px, #c084fc, transparent),
+    radial-gradient(1px 1px at 345px 75px, #ffffff, transparent);
+  background-size: 380px 170px;
+  animation: space-stars-float 35s linear infinite reverse;
+}
+
+@keyframes space-stars-drift {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-220px) translateX(-60px); }
+}
+
+@keyframes space-stars-float {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-170px) translateX(40px); }
+}
+
+/* ===== MODERN STICKY NOTES DESIGN ===== */
+
+/* Modern sticky note styling inspired by professional websites */
+.modern-sticky-note {
+  position: relative;
+  background: linear-gradient(135deg, #fef3c7, #fde047);
+  border-radius: 0 0 8px 8px;
+  padding: 16px 20px 20px;
+  margin: 12px 0;
+  min-height: 80px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  transform: rotate(-1deg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 300px;
+}
+
+.modern-sticky-note:nth-child(even) {
+  transform: rotate(1deg);
+  background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.modern-sticky-note:nth-child(3n) {
+  transform: rotate(-0.5deg);
+  background: linear-gradient(135deg, #fce7f3, #f9a8d4);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.modern-sticky-note:hover {
+  transform: rotate(0deg) scale(1.02);
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+/* Tape effect at the top */
+.sticky-note-tape {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sticky-note-tape:before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 10%, 
+    rgba(255, 255, 255, 0.1) 90%, 
+    transparent 100%
+  );
+  border-radius: 2px;
+}
+
+.sticky-note-content {
+  position: relative;
+  z-index: 2;
+}
+
+.sticky-note-text {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  margin: 0;
+  font-family: 'Caveat', cursive, 'Inter', sans-serif;
+  word-wrap: break-word;
+}
+
+/* Add shadow behind the note for depth */
+.modern-sticky-note:after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 8px 8px;
+  z-index: -1;
+  transform: rotate(2deg);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .modern-sticky-note {
+    max-width: 100%;
+    margin: 8px 0;
+    padding: 12px 16px 16px;
+    min-height: 60px;
+    transform: rotate(0deg);
+  }
+  
+  .modern-sticky-note:nth-child(even),
+  .modern-sticky-note:nth-child(3n) {
+    transform: rotate(0deg);
+  }
+  
+  .modern-sticky-note:hover {
+    transform: scale(1.02);
+  }
+  
+  .sticky-note-tape {
+    width: 40px;
+    height: 16px;
+    top: -1px;
+  }
+  
+  .sticky-note-text {
+    font-size: 13px;
+  }
+}
+
+/* Animation for new notes */
+@keyframes stick-note-appear {
+  0% {
+    opacity: 0;
+    transform: rotate(-5deg) translateY(-20px) scale(0.9);
+  }
+  50% {
+    transform: rotate(-2deg) translateY(-5px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-1deg) translateY(0) scale(1);
+  }
+}
+
+.modern-sticky-note.new-note {
+  animation: stick-note-appear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Different colored sticky notes for variety */
+.sticky-note-yellow {
+  background: linear-gradient(135deg, #fef3c7, #fde047);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.sticky-note-purple {
+  background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.sticky-note-pink {
+  background: linear-gradient(135deg, #fce7f3, #f9a8d4);
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.sticky-note-blue {
+  background: linear-gradient(135deg, #dbeafe, #93c5fd);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.sticky-note-green {
+  background: linear-gradient(135deg, #d1fae5, #6ee7b7);
+  border-color: rgba(16, 185, 129, 0.3);
+}

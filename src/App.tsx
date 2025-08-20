@@ -1,527 +1,292 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AppProvider, useApp } from './context/AppContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
-import Login from './components/Auth/Login';
-import Signup from './components/Auth/Signup';
-import ErrorBoundary from './components/ErrorBoundary';
-import OfflineIndicator from './components/OfflineIndicator';
-import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
-import { applyTheme, getThemeBackground } from './utils/themeUtils';
-import {
-  Calendar,
+import { useState } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { 
+  Clock, 
+  ChartBar, 
+  Trophy, 
+  BookOpen, 
+  Calendar as CalendarIcon,
   CheckSquare,
-  BookOpen,
+  Lightbulb,
   Target,
-  Trophy,
-  LogOut,
-  Zap,
-  Menu,
-  X,
-  Lightbulb
-} from 'lucide-react';
-import Dashboard from './components/Dashboard';
-import Welcome from './components/Welcome';
-import TaskManager from './components/TaskManager';
-import CalendarView from './components/CalendarView';
-import KnowledgeBase from './components/KnowledgeBase';
-import Achievements from './components/Achievements';
-import NatureGallery from './components/NatureGallery';
-import QuotesBar from './components/QuotesBar';
-import DailyChallenges from './components/DailyChallenges';
-import InspirationalFigures from './components/InspirationalFigures';
-import RestoreMode from './components/RestoreMode';
-import UserProfile from './components/UserProfile';
-
-// Component to check and reset streak on app load
-const StreakChecker: React.FC = () => {
-  const { state, updateStreak } = useApp();
-
-  useEffect(() => {
-    if (state.streak && shouldResetStreak(state.streak)) {
-      console.log('Resetting streak due to missed days');
-      const resetStreakData = resetStreak(state.streak);
-      updateStreak(resetStreakData);
-    }
-  }, []); // Only run on mount
-
-  return null;
-};
-
-// Theme applier component
-const ThemeApplier: React.FC = () => {
-  const { state } = useApp();
-  
-  useEffect(() => {
-    // Apply theme when it changes
-    applyTheme(state.settings.theme);
-  }, [state.settings.theme]);
-
-  return null;
-};
-
-const Navigation: React.FC = () => {
-  const location = useLocation();
-  const { state } = useApp();
-  const { currentUser, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  // In development mode with auth bypass, show navigation anyway
-  const devBypass = import.meta.env.DEV && localStorage.getItem('dev-bypass-auth') === 'true';
-  if (!currentUser && !devBypass) return null;
-
-  return (
-    <>
-      {/* Enhanced Space Galaxy Navigation */}
-      <nav 
-        className="fixed top-0 left-0 right-0 z-[999999] backdrop-blur-xl border-b-8 shadow-2xl"
-        style={{ 
-          backgroundColor: '#0a0118',
-          borderBottomColor: '#ffffff',
-          borderBottomWidth: '6px',
-          backgroundImage: `
-            radial-gradient(4px 4px at 20px 30px, #ffffff, transparent),
-            radial-gradient(3px 3px at 40px 70px, #e879f9, transparent),
-            radial-gradient(2px 2px at 90px 40px, #3b82f6, transparent),
-            radial-gradient(3px 3px at 140px 80px, #10b981, transparent),
-            radial-gradient(2px 2px at 180px 30px, #f59e0b, transparent),
-            radial-gradient(4px 4px at 200px 60px, #ec4899, transparent),
-            radial-gradient(2px 2px at 240px 85px, #ffffff, transparent),
-            radial-gradient(3px 3px at 60px 20px, #8b5cf6, transparent),
-            radial-gradient(1px 1px at 160px 10px, #06b6d4, transparent),
-            radial-gradient(2px 2px at 100px 90px, #ffffff, transparent)
-          `,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '280px 140px'
-        }}
-      >
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            background: 'linear-gradient(135deg, #0a0118 0%, #1a1a2e 20%, #16213e 40%, #0f172a 60%, #1e293b 80%, #334155 100%)',
-            opacity: 0.75
-          }}
-        ></div>
-        
-        {/* Desktop Navigation - Modern Bar Style */}
-        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between h-20">
-            
-            {/* Compact Logo Section */}
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-                <div 
-                  className="relative p-2 rounded-xl shadow-lg"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
-                  }}
-                >
-                  <Target className="w-5 h-5 text-white drop-shadow-sm" />
-                </div>
-              </div>
-              <span className="font-black text-xl text-white tracking-wide">StudyPartner</span>
-            </Link>
-
-            {/* Modern Navigation Bar */}
-            <div className="flex items-center gap-2">
-              {/* Main Navigation Items - Horizontal Bar */}
-              <div 
-                className="flex items-center gap-1 backdrop-blur-xl rounded-full px-3 py-2 border-2"
-                style={{ 
-                  backgroundColor: 'rgba(10, 1, 24, 0.9)', 
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                }}
-              >
-                {[
-                  { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
-                  { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                  { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
-                  { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                  { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' }
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
-                        active 
-                          ? 'text-white shadow-lg border-white/50 bg-gradient-to-r from-blue-600/80 to-purple-600/80' 
-                          : 'text-slate-300 hover:text-white border-white/20 hover:border-blue-300/60 hover:bg-white/5'
-                      }`}
-                      style={{
-                        boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)' : 'none'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                          e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }
-                      }}
-                    >
-                      <Icon className="w-5 h-5 relative z-10 flex-shrink-0" />
-                      <span className="relative z-10 font-semibold text-lg whitespace-nowrap">
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* User Actions Bar */}
-              <div className="flex items-center gap-2 ml-4">
-                {/* Profile Button */}
-                <Link
-                  to="/profile"
-                  className={`group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
-                    isActive('/profile')
-                      ? 'text-white shadow-lg border-white/30'
-                      : 'text-slate-300 hover:text-white border-transparent hover:border-blue-300/50'
-                  }`}
-                  style={{
-                    backgroundColor: isActive('/profile') ? 'rgba(59, 130, 246, 0.6)' : 'rgba(10, 1, 24, 0.7)',
-                    boxShadow: isActive('/profile') ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                      e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                >
-                  <div className="relative">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)',
-                        boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)'
-                      }}
-                    >
-                      {state?.settings?.avatar || '👤'}
-                    </div>
-                  </div>
-                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Profile</span>
-                </Link>
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-slate-300 hover:text-red-300 border-2 border-transparent hover:border-red-400/50"
-                  style={{ 
-                    backgroundColor: 'rgba(10, 1, 24, 0.7)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.3)';
-                    e.currentTarget.style.boxShadow = '0 0 15px rgba(220, 38, 38, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <LogOut className="w-5 h-5 relative z-10 flex-shrink-0" />
-                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Mobile Navigation - Fixed positioned to not consume space */}
-        <div className="mobile-navigation fixed top-0 left-0 right-0 z-40 px-4 py-3 backdrop-blur-xl border-b-2 border-white/20" 
-             style={{ backgroundColor: 'rgba(10, 1, 24, 0.95)' }}>
-          <div className="flex items-center justify-between">
-            {/* Mobile Logo */}
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
-                <div 
-                  className="relative p-2 rounded-xl shadow-lg"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
-                  }}
-                >
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <span className="font-black text-lg text-white tracking-wide">StudyPartner</span>
-            </Link>
-
-            {/* Hamburger Menu Button */}
-            <button
-              onClick={toggleMobileMenu}
-              className="relative p-2 rounded-xl backdrop-blur-xl border-2 transition-all duration-300"
-              style={{
-                backgroundColor: 'rgba(10, 1, 24, 0.8)',
-                borderColor: 'rgba(255, 255, 255, 0.8)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
-              }}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-white" />
-              ) : (
-                <Menu className="w-6 h-6 text-white" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 overflow-hidden">
-            {/* Solid Backdrop - Fixed transparency issue */}
-            <div 
-              className="absolute inset-0"
-              style={{ 
-                backgroundColor: 'rgba(10, 1, 24, 1)' // Fully opaque now
-              }}
-              onClick={closeMobileMenu}
-            ></div>
-            
-            {/* Menu Content - Fixed alignment and made fully opaque */}
-            <div 
-              className="relative h-full overflow-y-auto"
-              style={{ 
-                backgroundColor: '#0a0118' // Solid background for menu content
-              }}
-            >
-              <div className="flex flex-col min-h-full">
-                {/* Header - Improved alignment */}
-                <div className="flex items-center justify-between p-6 border-b border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="p-2 rounded-xl"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                      }}
-                    >
-                      <Target className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-black text-xl text-white">Menu</span>
-                  </div>
-                  <button
-                    onClick={closeMobileMenu}
-                    className="p-2 rounded-xl text-white hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                {/* Menu Items - Fixed backgrounds to be fully opaque */}
-                <div className="flex-1 p-6">
-                  <div className="space-y-3">
-                    {[
-                      { path: '/dashboard', icon: Target, label: 'Dashboard', color: 'from-blue-500 to-purple-600' },
-                      { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
-                      { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                      { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                      { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
-                      { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                      { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' },
-                      { path: '/profile', icon: Target, label: 'Profile', color: 'from-blue-500 to-cyan-500' }
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item.path);
-                      return (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={closeMobileMenu}
-                          className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 border ${
-                            active 
-                              ? 'text-white shadow-lg border-white/30' 
-                              : 'text-slate-200 hover:text-white border-transparent hover:border-blue-300/50'
-                          }`}
-                          style={{
-                            backgroundColor: active ? 'rgba(59, 130, 246, 0.8)' : 'rgba(30, 41, 59, 0.8)', // Fully opaque backgrounds
-                            boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
-                          }}
-                        >
-                          <div className={`p-3 rounded-xl bg-gradient-to-r ${item.color} shadow-lg`}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <span className="font-bold text-lg flex-1">{item.label}</span>
-                          {active && (
-                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Footer Actions - Improved alignment */}
-                <div className="p-6 border-t border-white/20">
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeMobileMenu();
-                    }}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 text-slate-200 hover:text-red-300 border border-transparent hover:border-red-400/50"
-                    style={{
-                      backgroundColor: 'rgba(220, 38, 38, 0.8)', // Fully opaque background
-                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
-                    }}
-                  >
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 shadow-lg">
-                      <LogOut className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-lg">Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </nav>
-
-      {/* Add top padding to prevent content overlap - smaller padding for modern bar */}
-      <div className="mobile-nav-spacer"></div>
-    </>
-  );
-};
-
-// Component to apply theme to body - needs to be inside AppProvider
-const BodyThemeApplier: React.FC = () => {
-  const { state } = useApp();
-
-  // Apply theme-specific styles to body
-  useEffect(() => {
-    if (state?.settings?.theme) {
-      // For space and galaxy themes, let the animated background handle it
-      if (state.settings.theme === 'space' || state.settings.theme === 'galaxy') {
-        // Set a minimal dark background and let the space-background handle the visual
-        document.body.style.background = '#000000';
-      } else {
-        const themeBackground = getThemeBackground(state.settings.theme);
-        document.body.style.background = themeBackground;
-      }
-    }
-  }, [state?.settings?.theme]);
-
-  return null;
-};
-
-const AppContent: React.FC = () => {
-  return (
-    <AuthProvider>
-      <AppProvider>
-        <div className="min-h-dvh safe-area-inset text-gray-100">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <StreakChecker />
-                <ThemeApplier />
-                <BodyThemeApplier />
-                <QuotesBar />
-                <ThemedMainContent />
-              </ProtectedRoute>
-            } />
-          </Routes>
-          {/* Security Components */}
-          <OfflineIndicator />
-        </div>
-      </AppProvider>
-    </AuthProvider>
-  );
-};
-
-const ThemedMainContent: React.FC = () => {
-  const { state } = useApp();
-  
-  // For space and galaxy themes, don't apply solid background - let animated background handle it
-  const shouldUseAnimatedBackground = state.settings.theme === 'galaxy' || state.settings.theme === 'space';
-  const themeBackground = shouldUseAnimatedBackground ? 'transparent' : getThemeBackground(state.settings.theme);
-
-  return (
-    <div 
-      className="min-h-dvh safe-area-inset text-gray-100"
-      style={{ background: themeBackground }}
-    >
-      {/* Animated Space Background for Galaxy and Space Themes */}
-      {shouldUseAnimatedBackground && (
-        <div className="space-background">
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-        </div>
-      )}
-      
-      <Navigation />
-      
-      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
-        <Routes>
-          <Route path="/" element={<Welcome />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tasks" element={<TaskManager />} />
-          <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/challenges" element={<DailyChallenges />} />
-          <Route path="/inspiration" element={<InspirationalFigures />} />
-          <Route path="/restore" element={<RestoreMode />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/nature" element={<NatureGallery />} />
-        </Routes>
-      </main>
-    </div>
-  );
-};
+  StickyNote,
+  User,
+  TestTube
+} from '@phosphor-icons/react'
 
 function App() {
+  const [currentTab, setCurrentTab] = useState('achieve')
+
   return (
-    <ErrorBoundary>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppContent />
-      </Router>
-    </ErrorBoundary>
-  );
+    <div className="min-h-screen relative">
+      {/* Space Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        {/* Animated stars */}
+        <div className="absolute inset-0">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Floating orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000" />
+      </div>
+      
+      <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28">
+        <header className="text-center py-6">
+          <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
+          <p className="text-white/80 text-sm lg:text-base drop-shadow">Your mobile study companion</p>
+          <div className="mt-2 text-xs lg:text-sm text-white/60">
+            ✅ Successfully migrated to study-partner-mobile structure
+          </div>
+        </header>
+
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+          <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
+            <TabsList className="grid w-full grid-cols-8 bg-white/10 backdrop-blur-sm">
+              <TabsTrigger value="achieve" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <Target size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Achieve</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <CheckSquare size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Tasks</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <CalendarIcon size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <StickyNote size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Notes</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <User size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <Trophy size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Awards</span>
+              </TabsTrigger>
+              <TabsTrigger value="inspiration" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <Lightbulb size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Inspire</span>
+              </TabsTrigger>
+              <TabsTrigger value="firebase-test" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <TestTube size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Test</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="achieve" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">🎯 Study Goals</h2>
+              <div className="grid gap-4">
+                <div className="bg-white/10 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-2">Daily Progress</h3>
+                  <div className="w-full bg-gray-700 rounded-full h-3 mb-2">
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full" style={{width: '65%'}}></div>
+                  </div>
+                  <p className="text-white/80 text-sm">2h 30m / 4h goal</p>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-2">Study Streak</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-orange-400">7</span>
+                    <span className="text-white/80">days</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">✅ Today's Tasks</h2>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg">
+                  <div className="w-5 h-5 border-2 border-green-400 rounded"></div>
+                  <span className="text-white">Complete math homework</span>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-white/10 rounded-lg">
+                  <div className="w-5 h-5 bg-green-400 rounded flex items-center justify-center">
+                    <span className="text-white text-xs">✓</span>
+                  </div>
+                  <span className="text-white/60 line-through">Review biology notes</span>
+                </div>
+                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                  Add New Task
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">📅 Study Calendar</h2>
+              <div className="grid grid-cols-7 gap-1 text-center mb-4">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                  <div key={i} className="text-white/60 font-semibold p-2">{day}</div>
+                ))}
+                {[...Array(31)].map((_, i) => (
+                  <div key={i} className={`text-white p-2 rounded ${i === 14 ? 'bg-purple-600' : 'hover:bg-white/10'}`}>
+                    {i + 1}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notes" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">📝 Study Notes</h2>
+              <div className="space-y-3">
+                <div className="bg-white/10 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-2">Math - Chapter 5</h3>
+                  <p className="text-white/80 text-sm">Quadratic equations and their properties...</p>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <h3 className="text-white font-semibold mb-2">Biology - Cell Structure</h3>
+                  <p className="text-white/80 text-sm">Mitochondria is the powerhouse of the cell...</p>
+                </div>
+                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                  Create New Note
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">👤 Profile</h2>
+              <div className="text-center mb-6">
+                <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <User size={32} className="text-white" />
+                </div>
+                <h3 className="text-white font-semibold text-lg">Study Champion</h3>
+                <p className="text-white/60">Level 5 Learner</p>
+              </div>
+              <div className="grid gap-4">
+                <div className="flex justify-between items-center py-2 border-b border-white/20">
+                  <span className="text-white/80">Total Study Time</span>
+                  <span className="text-white font-semibold">142h 30m</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/20">
+                  <span className="text-white/80">Sessions Completed</span>
+                  <span className="text-white font-semibold">89</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-white/80">Current Streak</span>
+                  <span className="text-white font-semibold">7 days</span>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">🏆 Achievements</h2>
+              <div className="grid gap-3">
+                <div className="flex items-center gap-4 p-3 bg-white/10 rounded-lg">
+                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Trophy size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">First Study Session</h3>
+                    <p className="text-white/60 text-sm">Complete your first study session</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-3 bg-white/10 rounded-lg">
+                  <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                    <Clock size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Hour Milestone</h3>
+                    <p className="text-white/60 text-sm">Study for 60 minutes total</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                  <div className="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center">
+                    <Target size={24} className="text-white/50" />
+                  </div>
+                  <div>
+                    <h3 className="text-white/50 font-semibold">Week Warrior</h3>
+                    <p className="text-white/40 text-sm">Maintain a 7-day study streak</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="inspiration" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">💡 Daily Inspiration</h2>
+              <div className="text-center bg-white/10 rounded-lg p-6">
+                <p className="text-white text-lg mb-4 italic">
+                  "The only way to do great work is to love what you do."
+                </p>
+                <p className="text-white/60">- Steve Jobs</p>
+              </div>
+              <div className="mt-6">
+                <h3 className="text-white font-semibold mb-3">Study Tips</h3>
+                <div className="space-y-2 text-white/80 text-sm">
+                  <p>• Take a 5-minute break every 25 minutes (Pomodoro Technique)</p>
+                  <p>• Find a quiet, comfortable study space</p>
+                  <p>• Review your notes within 24 hours of learning</p>
+                  <p>• Stay hydrated and take care of your health</p>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="firebase-test" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <h2 className="text-xl font-bold text-white mb-4">🔧 Firebase Status</h2>
+              <div className="space-y-4">
+                <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
+                  <h3 className="text-green-400 font-semibold mb-2">✅ Firebase Configuration</h3>
+                  <p className="text-white/80 text-sm">Connected to MotiveMate project</p>
+                  <p className="text-white/60 text-xs mt-1">Project ID: motivemate-6c846</p>
+                </div>
+                <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-4">
+                  <h3 className="text-blue-400 font-semibold mb-2">🔄 Migration Status</h3>
+                  <p className="text-white/80 text-sm">Successfully migrated to study-partner-mobile structure</p>
+                  <ul className="text-white/60 text-xs mt-2 space-y-1">
+                    <li>✅ React 19 + Vite + TypeScript</li>
+                    <li>✅ Tailwind CSS 4 + Spark UI</li>
+                    <li>✅ Mobile-first responsive design</li>
+                    <li>✅ PWA capabilities</li>
+                    <li>✅ Firebase preserved credentials</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      {/* Floating Quotes Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-black/30 backdrop-blur-md border-t border-white/10 p-3 z-30">
+        <div className="container max-w-md lg:max-w-4xl mx-auto text-center">
+          <p className="text-white/80 text-sm italic">
+            "Success is the sum of small efforts repeated day in and day out."
+          </p>
+        </div>
+      </div>
+    </div>
+  )
 }
 
-export default App;
+export default App

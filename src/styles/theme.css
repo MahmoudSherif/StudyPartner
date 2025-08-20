@@ -1,0 +1,36 @@
+/* Theme colors for dark mode space theme */
+:root {
+  /* Spark theme integration */
+  --color-neutral-1: hsl(220, 20%, 98%);
+  --color-neutral-2: hsl(220, 15%, 96%);
+  --color-neutral-3: hsl(220, 12%, 94%);
+  --color-neutral-4: hsl(220, 9%, 92%);
+  --color-neutral-5: hsl(220, 7%, 88%);
+  --color-neutral-6: hsl(220, 5%, 82%);
+  --color-neutral-7: hsl(220, 4%, 72%);
+  --color-neutral-8: hsl(220, 4%, 58%);
+  --color-neutral-9: hsl(220, 5%, 45%);
+  --color-neutral-10: hsl(220, 6%, 38%);
+  --color-neutral-11: hsl(220, 8%, 25%);
+  --color-neutral-12: hsl(220, 15%, 15%);
+  
+  --color-accent-1: hsl(240, 50%, 98%);
+  --color-accent-2: hsl(240, 45%, 96%);
+  --color-accent-3: hsl(240, 40%, 94%);
+  --color-accent-4: hsl(240, 35%, 90%);
+  --color-accent-5: hsl(240, 30%, 85%);
+  --color-accent-6: hsl(240, 25%, 75%);
+  --color-accent-7: hsl(240, 20%, 65%);
+  --color-accent-8: hsl(240, 25%, 55%);
+  --color-accent-9: hsl(240, 60%, 50%);
+  --color-accent-10: hsl(240, 65%, 45%);
+  --color-accent-11: hsl(240, 70%, 35%);
+  --color-accent-12: hsl(240, 75%, 15%);
+  
+  --color-fg: hsl(220, 15%, 95%);
+  --color-fg-secondary: hsl(220, 10%, 75%);
+  --color-bg: hsl(220, 15%, 8%);
+  --color-bg-inset: hsl(220, 15%, 12%);
+  --color-bg-overlay: hsl(220, 15%, 6%);
+  --color-focus-ring: hsl(240, 60%, 50%);
+}
