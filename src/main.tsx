@@ -1,12 +1,16 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
+import { ErrorBoundary } from "react-error-boundary";
+import "@github/spark/spark"
+
 import App from './App.tsx'
-import './index.css'
+import { ErrorFallback } from './ErrorFallback.tsx'
 
-console.log('🔄 FORCE RELOAD - TIMESTAMP: 23:00');
+import "./main.css"
+import "./styles/theme.css"
+import "./index.css"
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+createRoot(document.getElementById('root')!).render(
+  <ErrorBoundary FallbackComponent={ErrorFallback}>
     <App />
-  </React.StrictMode>,
-) 
+   </ErrorBoundary>
+)
