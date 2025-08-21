@@ -1,527 +1,262 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AppProvider, useApp } from './context/AppContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
-import Login from './components/Auth/Login';
-import Signup from './components/Auth/Signup';
-import ErrorBoundary from './components/ErrorBoundary';
-import OfflineIndicator from './components/OfflineIndicator';
-import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
-import { applyTheme, getThemeBackground } from './utils/themeUtils';
-import {
-  Calendar,
-  CheckSquare,
-  BookOpen,
-  Target,
-  Trophy,
-  LogOut,
-  Zap,
-  Menu,
-  X,
-  Lightbulb
-} from 'lucide-react';
-import Dashboard from './components/Dashboard';
-import Welcome from './components/Welcome';
-import TaskManager from './components/TaskManager';
-import CalendarView from './components/CalendarView';
-import KnowledgeBase from './components/KnowledgeBase';
-import Achievements from './components/Achievements';
-import NatureGallery from './components/NatureGallery';
-import QuotesBar from './components/QuotesBar';
-import DailyChallenges from './components/DailyChallenges';
-import InspirationalFigures from './components/InspirationalFigures';
-import RestoreMode from './components/RestoreMode';
-import UserProfile from './components/UserProfile';
-
-// Component to check and reset streak on app load
-const StreakChecker: React.FC = () => {
-  const { state, updateStreak } = useApp();
-
-  useEffect(() => {
-    if (state.streak && shouldResetStreak(state.streak)) {
-      console.log('Resetting streak due to missed days');
-      const resetStreakData = resetStreak(state.streak);
-      updateStreak(resetStreakData);
-    }
-  }, []); // Only run on mount
-
-  return null;
-};
-
-// Theme applier component
-const ThemeApplier: React.FC = () => {
-  const { state } = useApp();
-  
-  useEffect(() => {
-    // Apply theme when it changes
-    applyTheme(state.settings.theme);
-  }, [state.settings.theme]);
-
-  return null;
-};
-
-const Navigation: React.FC = () => {
-  const location = useLocation();
-  const { state } = useApp();
-  const { currentUser, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  // In development mode with auth bypass, show navigation anyway
-  const devBypass = import.meta.env.DEV && localStorage.getItem('dev-bypass-auth') === 'true';
-  if (!currentUser && !devBypass) return null;
-
-  return (
-    <>
-      {/* Enhanced Space Galaxy Navigation */}
-      <nav 
-        className="fixed top-0 left-0 right-0 z-[999999] backdrop-blur-xl border-b-8 shadow-2xl"
-        style={{ 
-          backgroundColor: '#0a0118',
-          borderBottomColor: '#ffffff',
-          borderBottomWidth: '6px',
-          backgroundImage: `
-            radial-gradient(4px 4px at 20px 30px, #ffffff, transparent),
-            radial-gradient(3px 3px at 40px 70px, #e879f9, transparent),
-            radial-gradient(2px 2px at 90px 40px, #3b82f6, transparent),
-            radial-gradient(3px 3px at 140px 80px, #10b981, transparent),
-            radial-gradient(2px 2px at 180px 30px, #f59e0b, transparent),
-            radial-gradient(4px 4px at 200px 60px, #ec4899, transparent),
-            radial-gradient(2px 2px at 240px 85px, #ffffff, transparent),
-            radial-gradient(3px 3px at 60px 20px, #8b5cf6, transparent),
-            radial-gradient(1px 1px at 160px 10px, #06b6d4, transparent),
-            radial-gradient(2px 2px at 100px 90px, #ffffff, transparent)
-          `,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '280px 140px'
-        }}
-      >
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            background: 'linear-gradient(135deg, #0a0118 0%, #1a1a2e 20%, #16213e 40%, #0f172a 60%, #1e293b 80%, #334155 100%)',
-            opacity: 0.75
-          }}
-        ></div>
-        
-        {/* Desktop Navigation - Modern Bar Style */}
-        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between h-20">
-            
-            {/* Compact Logo Section */}
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-                <div 
-                  className="relative p-2 rounded-xl shadow-lg"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
-                  }}
-                >
-                  <Target className="w-5 h-5 text-white drop-shadow-sm" />
-                </div>
-              </div>
-              <span className="font-black text-xl text-white tracking-wide">StudyPartner</span>
-            </Link>
-
-            {/* Modern Navigation Bar */}
-            <div className="flex items-center gap-2">
-              {/* Main Navigation Items - Horizontal Bar */}
-              <div 
-                className="flex items-center gap-1 backdrop-blur-xl rounded-full px-3 py-2 border-2"
-                style={{ 
-                  backgroundColor: 'rgba(10, 1, 24, 0.9)', 
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                }}
-              >
-                {[
-                  { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
-                  { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                  { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
-                  { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                  { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' }
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
-                        active 
-                          ? 'text-white shadow-lg border-white/50 bg-gradient-to-r from-blue-600/80 to-purple-600/80' 
-                          : 'text-slate-300 hover:text-white border-white/20 hover:border-blue-300/60 hover:bg-white/5'
-                      }`}
-                      style={{
-                        boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)' : 'none'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                          e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }
-                      }}
-                    >
-                      <Icon className="w-5 h-5 relative z-10 flex-shrink-0" />
-                      <span className="relative z-10 font-semibold text-lg whitespace-nowrap">
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* User Actions Bar */}
-              <div className="flex items-center gap-2 ml-4">
-                {/* Profile Button */}
-                <Link
-                  to="/profile"
-                  className={`group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
-                    isActive('/profile')
-                      ? 'text-white shadow-lg border-white/30'
-                      : 'text-slate-300 hover:text-white border-transparent hover:border-blue-300/50'
-                  }`}
-                  style={{
-                    backgroundColor: isActive('/profile') ? 'rgba(59, 130, 246, 0.6)' : 'rgba(10, 1, 24, 0.7)',
-                    boxShadow: isActive('/profile') ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                      e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                >
-                  <div className="relative">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)',
-                        boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)'
-                      }}
-                    >
-                      {state?.settings?.avatar || '👤'}
-                    </div>
-                  </div>
-                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Profile</span>
-                </Link>
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-slate-300 hover:text-red-300 border-2 border-transparent hover:border-red-400/50"
-                  style={{ 
-                    backgroundColor: 'rgba(10, 1, 24, 0.7)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.3)';
-                    e.currentTarget.style.boxShadow = '0 0 15px rgba(220, 38, 38, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <LogOut className="w-5 h-5 relative z-10 flex-shrink-0" />
-                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Mobile Navigation - Fixed positioned to not consume space */}
-        <div className="mobile-navigation fixed top-0 left-0 right-0 z-40 px-4 py-3 backdrop-blur-xl border-b-2 border-white/20" 
-             style={{ backgroundColor: 'rgba(10, 1, 24, 0.95)' }}>
-          <div className="flex items-center justify-between">
-            {/* Mobile Logo */}
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
-                <div 
-                  className="relative p-2 rounded-xl shadow-lg"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
-                  }}
-                >
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <span className="font-black text-lg text-white tracking-wide">StudyPartner</span>
-            </Link>
-
-            {/* Hamburger Menu Button */}
-            <button
-              onClick={toggleMobileMenu}
-              className="relative p-2 rounded-xl backdrop-blur-xl border-2 transition-all duration-300"
-              style={{
-                backgroundColor: 'rgba(10, 1, 24, 0.8)',
-                borderColor: 'rgba(255, 255, 255, 0.8)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
-              }}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-white" />
-              ) : (
-                <Menu className="w-6 h-6 text-white" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 overflow-hidden">
-            {/* Solid Backdrop - Fixed transparency issue */}
-            <div 
-              className="absolute inset-0"
-              style={{ 
-                backgroundColor: 'rgba(10, 1, 24, 1)' // Fully opaque now
-              }}
-              onClick={closeMobileMenu}
-            ></div>
-            
-            {/* Menu Content - Fixed alignment and made fully opaque */}
-            <div 
-              className="relative h-full overflow-y-auto"
-              style={{ 
-                backgroundColor: '#0a0118' // Solid background for menu content
-              }}
-            >
-              <div className="flex flex-col min-h-full">
-                {/* Header - Improved alignment */}
-                <div className="flex items-center justify-between p-6 border-b border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="p-2 rounded-xl"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                      }}
-                    >
-                      <Target className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-black text-xl text-white">Menu</span>
-                  </div>
-                  <button
-                    onClick={closeMobileMenu}
-                    className="p-2 rounded-xl text-white hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                {/* Menu Items - Fixed backgrounds to be fully opaque */}
-                <div className="flex-1 p-6">
-                  <div className="space-y-3">
-                    {[
-                      { path: '/dashboard', icon: Target, label: 'Dashboard', color: 'from-blue-500 to-purple-600' },
-                      { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
-                      { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                      { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                      { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
-                      { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                      { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' },
-                      { path: '/profile', icon: Target, label: 'Profile', color: 'from-blue-500 to-cyan-500' }
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item.path);
-                      return (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={closeMobileMenu}
-                          className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 border ${
-                            active 
-                              ? 'text-white shadow-lg border-white/30' 
-                              : 'text-slate-200 hover:text-white border-transparent hover:border-blue-300/50'
-                          }`}
-                          style={{
-                            backgroundColor: active ? 'rgba(59, 130, 246, 0.8)' : 'rgba(30, 41, 59, 0.8)', // Fully opaque backgrounds
-                            boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
-                          }}
-                        >
-                          <div className={`p-3 rounded-xl bg-gradient-to-r ${item.color} shadow-lg`}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <span className="font-bold text-lg flex-1">{item.label}</span>
-                          {active && (
-                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Footer Actions - Improved alignment */}
-                <div className="p-6 border-t border-white/20">
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeMobileMenu();
-                    }}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 text-slate-200 hover:text-red-300 border border-transparent hover:border-red-400/50"
-                    style={{
-                      backgroundColor: 'rgba(220, 38, 38, 0.8)', // Fully opaque background
-                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
-                    }}
-                  >
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 shadow-lg">
-                      <LogOut className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-lg">Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </nav>
-
-      {/* Add top padding to prevent content overlap - smaller padding for modern bar */}
-      <div className="mobile-nav-spacer"></div>
-    </>
-  );
-};
-
-// Component to apply theme to body - needs to be inside AppProvider
-const BodyThemeApplier: React.FC = () => {
-  const { state } = useApp();
-
-  // Apply theme-specific styles to body
-  useEffect(() => {
-    if (state?.settings?.theme) {
-      // For space and galaxy themes, let the animated background handle it
-      if (state.settings.theme === 'space' || state.settings.theme === 'galaxy') {
-        // Set a minimal dark background and let the space-background handle the visual
-        document.body.style.background = '#000000';
-      } else {
-        const themeBackground = getThemeBackground(state.settings.theme);
-        document.body.style.background = themeBackground;
-      }
-    }
-  }, [state?.settings?.theme]);
-
-  return null;
-};
-
-const AppContent: React.FC = () => {
-  return (
-    <AuthProvider>
-      <AppProvider>
-        <div className="min-h-dvh safe-area-inset text-gray-100">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <StreakChecker />
-                <ThemeApplier />
-                <BodyThemeApplier />
-                <QuotesBar />
-                <ThemedMainContent />
-              </ProtectedRoute>
-            } />
-          </Routes>
-          {/* Security Components */}
-          <OfflineIndicator />
-        </div>
-      </AppProvider>
-    </AuthProvider>
-  );
-};
-
-const ThemedMainContent: React.FC = () => {
-  const { state } = useApp();
-  
-  // For space and galaxy themes, don't apply solid background - let animated background handle it
-  const shouldUseAnimatedBackground = state.settings.theme === 'galaxy' || state.settings.theme === 'space';
-  const themeBackground = shouldUseAnimatedBackground ? 'transparent' : getThemeBackground(state.settings.theme);
-
-  return (
-    <div 
-      className="min-h-dvh safe-area-inset text-gray-100"
-      style={{ background: themeBackground }}
-    >
-      {/* Animated Space Background for Galaxy and Space Themes */}
-      {shouldUseAnimatedBackground && (
-        <div className="space-background">
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-        </div>
-      )}
-      
-      <Navigation />
-      
-      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
-        <Routes>
-          <Route path="/" element={<Welcome />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tasks" element={<TaskManager />} />
-          <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/challenges" element={<DailyChallenges />} />
-          <Route path="/inspiration" element={<InspirationalFigures />} />
-          <Route path="/restore" element={<RestoreMode />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/nature" element={<NatureGallery />} />
-        </Routes>
-      </main>
-    </div>
-  );
-};
+import { useState } from 'react'
 
 function App() {
+  const [currentTab, setCurrentTab] = useState('timer')
+
+  const tabs = [
+    { id: 'timer', label: 'Timer', icon: '⏱️' },
+    { id: 'tasks', label: 'Tasks', icon: '✅' },
+    { id: 'stats', label: 'Stats', icon: '📊' },
+    { id: 'profile', label: 'Profile', icon: '👤' }
+  ]
+
   return (
-    <ErrorBoundary>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppContent />
-      </Router>
-    </ErrorBoundary>
-  );
+    <div className="min-h-screen bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                           radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)`
+        }} />
+      </div>
+
+      <div className="relative z-10 container max-w-md mx-auto p-4 pb-28">
+        {/* Header */}
+        <header className="text-center py-8">
+          <h1 className="text-3xl font-bold text-white drop-shadow-lg mb-2">
+            MotivaMate
+          </h1>
+          <p className="text-white/80 text-sm drop-shadow">
+            Your Mobile Study Companion
+          </p>
+        </header>
+
+        {/* Main Content */}
+        <div className="bg-black/20 backdrop-blur-md rounded-xl border border-white/10 p-6 mb-6">
+          {currentTab === 'timer' && <TimerTab />}
+          {currentTab === 'tasks' && <TasksTab />}
+          {currentTab === 'stats' && <StatsTab />}
+          {currentTab === 'profile' && <ProfileTab />}
+        </div>
+
+        {/* Bottom Navigation */}
+        <nav className="fixed bottom-4 left-4 right-4 max-w-md mx-auto">
+          <div className="bg-black/30 backdrop-blur-xl rounded-2xl border border-white/20 p-2">
+            <div className="grid grid-cols-4 gap-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setCurrentTab(tab.id)}
+                  className={`flex flex-col items-center justify-center py-3 px-2 rounded-xl transition-all duration-200 ${
+                    currentTab === tab.id
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/60 hover:text-white/80'
+                  }`}
+                >
+                  <span className="text-xl mb-1">{tab.icon}</span>
+                  <span className="text-xs font-medium">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </nav>
+      </div>
+    </div>
+  )
 }
 
-export default App;
+function TimerTab() {
+  const [minutes, setMinutes] = useState(25)
+  const [isRunning, setIsRunning] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(25 * 60)
+
+  return (
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-white mb-6">Focus Timer</h2>
+      
+      <div className="mb-8">
+        <div className="text-6xl font-mono text-white mb-4">
+          {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:
+          {(timeLeft % 60).toString().padStart(2, '0')}
+        </div>
+        <div className="w-32 h-32 mx-auto border-4 border-white/20 rounded-full flex items-center justify-center">
+          <div className="text-white/60 text-sm">
+            {isRunning ? 'Running' : 'Ready'}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex justify-center space-x-4">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            {isRunning ? 'Pause' : 'Start'}
+          </button>
+          <button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+            Reset
+          </button>
+        </div>
+        
+        <div className="flex items-center justify-center space-x-4">
+          <button
+            onClick={() => setMinutes(Math.max(1, minutes - 5))}
+            className="bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-lg"
+          >
+            -
+          </button>
+          <span className="text-white font-medium">{minutes} min</span>
+          <button
+            onClick={() => setMinutes(minutes + 5)}
+            className="bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-lg"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TasksTab() {
+  const [tasks, setTasks] = useState([
+    { id: 1, title: 'Read Chapter 5', completed: false },
+    { id: 2, title: 'Complete Math Homework', completed: true },
+    { id: 3, title: 'Review Notes', completed: false }
+  ])
+
+  const toggleTask = (id: number) => {
+    setTasks(tasks.map(task => 
+      task.id === id ? { ...task, completed: !task.completed } : task
+    ))
+  }
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-white mb-6 text-center">Today's Tasks</h2>
+      
+      <div className="space-y-3">
+        {tasks.map((task) => (
+          <div
+            key={task.id}
+            className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg"
+          >
+            <button
+              onClick={() => toggleTask(task.id)}
+              className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                task.completed
+                  ? 'bg-green-500 border-green-500'
+                  : 'border-white/40 hover:border-white/60'
+              }`}
+            >
+              {task.completed && <span className="text-white text-sm">✓</span>}
+            </button>
+            <span
+              className={`flex-1 ${
+                task.completed
+                  ? 'text-white/60 line-through'
+                  : 'text-white'
+              }`}
+            >
+              {task.title}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <button className="w-full mt-6 bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-lg font-medium transition-colors">
+        Add New Task
+      </button>
+    </div>
+  )
+}
+
+function StatsTab() {
+  const stats = {
+    totalStudyTime: 240,
+    sessionsToday: 3,
+    currentStreak: 7,
+    completedTasks: 12
+  }
+
+  const statCards = [
+    { label: 'Study Time', value: `${stats.totalStudyTime}m`, icon: '⏱️' },
+    { label: 'Sessions Today', value: stats.sessionsToday, icon: '🎯' },
+    { label: 'Day Streak', value: stats.currentStreak, icon: '🔥' },
+    { label: 'Tasks Done', value: stats.completedTasks, icon: '✅' }
+  ]
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold text-white mb-6 text-center">Your Progress</h2>
+      
+      <div className="grid grid-cols-2 gap-4">
+        {statCards.map((stat, index) => (
+          <div key={index} className="bg-white/10 rounded-lg p-4 text-center">
+            <div className="text-2xl mb-2">{stat.icon}</div>
+            <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+            <div className="text-white/60 text-sm">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 bg-white/10 rounded-lg p-4">
+        <h3 className="text-white font-medium mb-3">Weekly Progress</h3>
+        <div className="flex justify-between items-end h-20">
+          {[20, 45, 30, 60, 25, 40, 35].map((height, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <div
+                className="bg-blue-500 rounded-t w-6"
+                style={{ height: `${height}%` }}
+              />
+              <span className="text-white/60 text-xs mt-1">
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfileTab() {
+  return (
+    <div className="text-center">
+      <h2 className="text-xl font-semibold text-white mb-6">Profile</h2>
+      
+      <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+        <span className="text-white text-2xl font-bold">U</span>
+      </div>
+      
+      <h3 className="text-white font-semibold text-lg mb-2">Study Buddy</h3>
+      <p className="text-white/60 text-sm mb-6">Level 5 Scholar</p>
+      
+      <div className="space-y-4">
+        <div className="bg-white/10 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <span className="text-white">Achievements</span>
+            <span className="text-white/60">12/25</span>
+          </div>
+          <div className="w-full bg-white/10 rounded-full h-2 mt-2">
+            <div className="bg-blue-500 h-2 rounded-full" style={{ width: '48%' }} />
+          </div>
+        </div>
+        
+        <div className="bg-white/10 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <span className="text-white">Study Goal</span>
+            <span className="text-white/60">180/300 min</span>
+          </div>
+          <div className="w-full bg-white/10 rounded-full h-2 mt-2">
+            <div className="bg-green-500 h-2 rounded-full" style={{ width: '60%' }} />
+          </div>
+        </div>
+      </div>
+
+      <button className="w-full mt-6 bg-red-600/80 hover:bg-red-600 text-white py-3 rounded-lg font-medium transition-colors">
+        Sign Out
+      </button>
+    </div>
+  )
+}
+
+export default App

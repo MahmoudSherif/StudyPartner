@@ -1,64 +1,46 @@
-# Student Productivity Hub 🎓
+# MotivaMate 📱
 
-A comprehensive web application designed to help university students monitor their progress, plan their days, track achievements, and maintain motivation throughout their academic journey.
+Your mobile study companion - a Progressive Web App designed to help students stay focused, organized, and motivated on their academic journey.
 
 ## ✨ Features
 
-### 📊 Dashboard
-- **Overview**: Quick stats and daily progress summary
-- **Current Streak**: Track consecutive days of productivity
-- **Today's Tasks**: View and complete daily tasks
-- **Upcoming Dates**: Important deadlines and events
-- **Recent Achievements**: Celebrate recent accomplishments
-- **Quick Actions**: Fast access to all features
+### ⏱️ Focus Timer
+- **Pomodoro Timer**: 25-minute focused study sessions
+- **Customizable Duration**: Adjust timer to your preference
+- **Visual Progress**: Clean, minimal timer interface
+- **Session Tracking**: Monitor your study time
 
 ### ✅ Task Management
-- **Create Tasks**: Add tasks with titles, descriptions, priorities, and due dates
-- **Task Categories**: Organize by priority (High, Medium, Low)
-- **Progress Tracking**: Mark tasks as complete with timestamps
-- **Filtering & Sorting**: View tasks by status, priority, or due date
-- **Overdue Alerts**: Visual indicators for missed deadlines
+- **Daily Tasks**: Create and track your daily to-dos
+- **Progress Tracking**: Visual completion status
+- **Quick Actions**: Add, complete, and manage tasks easily
+- **Smart Organization**: Today's tasks at your fingertips
 
-### 📅 Calendar & Important Dates
-- **Interactive Calendar**: Monthly view with event indicators
-- **Date Types**: Exams, assignments, deadlines, and events
-- **Reminders**: Set notifications for important dates
-- **Upcoming View**: List of approaching deadlines
-- **Overdue Tracking**: Monitor missed deadlines
+### 📊 Progress Statistics
+- **Study Time**: Track total minutes studied
+- **Session Counter**: Daily session completion
+- **Streak Tracking**: Maintain consistency with day streaks
+- **Task Completion**: Monitor completed tasks
+- **Weekly Overview**: Visual progress charts
 
-### 📚 Knowledge Base
-- **Q&A Storage**: Record important questions and answers
-- **Categorization**: Organize by subject or topic
-- **Tagging System**: Add tags for easy searching
-- **Search Functionality**: Find specific content quickly
-- **Study Resource**: Build a personal knowledge repository
-
-### 😊 Mood Tracking
-- **Daily Mood Logging**: Rate your day from 1-5
-- **Activity Tracking**: Record what you did each day
-- **Mood Insights**: Visualize patterns and trends
-- **Emotional Well-being**: Monitor mental health patterns
-- **Activity Correlation**: See what activities improve your mood
-
-### 🏆 Achievements & Motivation
-- **Achievement System**: Earn points for completing tasks
-- **Streak Tracking**: Build momentum with daily consistency
-- **Motivational Messages**: Encouraging feedback for progress
+### 👤 Profile & Goals
+- **User Progress**: Level system and achievements
+- **Goal Setting**: Daily and weekly study targets
+- **Achievement Tracking**: Unlock milestones
 - **Progress Visualization**: See your growth over time
-- **Milestone Celebrations**: Special recognition for major accomplishments
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (version 16 or higher)
-- npm or yarn package manager
+- Node.js (version 18 or higher)
+- npm package manager
 
 ### Installation
 
-1. **Clone or download the project**
+1. **Clone the repository**
    ```bash
-   # If you have the files locally, navigate to the project directory
-   cd student-productivity-hub
+   git clone https://github.com/MahmoudSherif/StudyPartner.git
+   cd StudyPartner
    ```
 
 2. **Install dependencies**
@@ -72,73 +54,95 @@ A comprehensive web application designed to help university students monitor the
    ```
 
 4. **Open your browser**
-   Navigate to `http://localhost:3000` to access the application
+   Navigate to `http://localhost:5000` to access MotivaMate
 
 ### Building for Production
 ```bash
 npm run build
 ```
 
+## 📱 Mobile-First Design
+
+MotivaMate is built with mobile users in mind:
+
+- **Progressive Web App (PWA)**: Install on your phone like a native app
+- **Touch-Optimized**: Designed for touch interactions
+- **Responsive Layout**: Works perfectly on all screen sizes
+- **Offline Support**: Basic functionality works without internet
+- **Mobile Navigation**: Intuitive bottom tab navigation
+
 ## 🎯 How to Use
 
-### First Time Setup
-1. **Start with the Dashboard**: Get an overview of your current status
-2. **Add Your First Task**: Use the quick add feature or go to the Task Manager
-3. **Set Important Dates**: Add upcoming exams, assignments, and deadlines
-4. **Track Your Mood**: Begin logging your daily emotional state
-5. **Build Your Knowledge Base**: Start recording important questions and answers
+### Getting Started
+1. **Start Your Timer**: Use the focus timer for productive study sessions
+2. **Add Tasks**: Create your daily task list
+3. **Track Progress**: Watch your stats grow as you complete sessions
+4. **Check Your Profile**: Monitor your overall progress and achievements
 
-### Daily Routine
-1. **Check Dashboard**: Review your daily progress and upcoming tasks
-2. **Complete Tasks**: Mark off completed items and add new ones
-3. **Log Your Mood**: Record how you're feeling and what you did
-4. **Review Calendar**: Check for upcoming important dates
-5. **Celebrate Achievements**: Acknowledge your progress and accomplishments
+### Daily Workflow
+1. **Plan Your Day**: Add tasks you want to complete
+2. **Focus Sessions**: Use the timer for concentrated study periods
+3. **Complete Tasks**: Check off items as you finish them
+4. **Review Progress**: Check your stats and celebrate achievements
 
-### Best Practices
-- **Consistency**: Try to use the app daily to build good habits
-- **Realistic Goals**: Set achievable tasks to maintain motivation
-- **Regular Review**: Check your progress weekly to adjust goals
-- **Mood Awareness**: Use mood tracking to identify patterns
-- **Knowledge Building**: Regularly add to your knowledge base
+### PWA Installation
+- **iOS**: Tap the share button in Safari → "Add to Home Screen"
+- **Android**: Use "Add to Home Screen" option in Chrome menu
+- **Desktop**: Look for the install button in your browser's address bar
 
-## 💾 Data Storage
+## 🎨 Design Philosophy
 
-All data is stored locally in your browser using localStorage. This means:
-- ✅ Your data stays private and secure
-- ✅ No account creation required
-- ✅ Works offline
-- ⚠️ Data is tied to your browser/device
-- ⚠️ Clearing browser data will remove your information
-
-## 🎨 Design Features
-
-- **Modern UI**: Clean, intuitive interface with smooth animations
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Accessibility**: Keyboard navigation and screen reader friendly
-- **Dark/Light Mode**: Automatic theme detection
-- **Visual Feedback**: Hover effects and transitions for better UX
+- **Minimalist Interface**: Clean, distraction-free design
+- **Space Theme**: Cosmic gradient backgrounds for inspiration
+- **Mobile-First**: Optimized for smartphone usage
+- **Touch-Friendly**: Large tap targets and smooth interactions
+- **Visual Feedback**: Satisfying animations and transitions
 
 ## 🔧 Technical Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Styling**: Custom CSS with modern design principles
-- **State Management**: React Context API with useReducer
-- **Routing**: React Router for navigation
-- **Icons**: Lucide React for consistent iconography
-- **Date Handling**: date-fns for reliable date operations
-- **Build Tool**: Vite for fast development and building
+- **Frontend**: React 19 with TypeScript
+- **Styling**: Tailwind CSS v4 with custom themes
+- **UI Components**: Radix UI primitives
+- **Build Tool**: Vite 6 for fast development
+- **PWA Features**: Service Worker and Web App Manifest
+- **Mobile Optimization**: Touch gestures and responsive design
 
 ## 📱 Browser Support
 
+### Mobile Browsers
+- **iOS Safari** (recommended for iOS)
+- **Chrome Mobile** (recommended for Android)
+- **Firefox Mobile**
+- **Samsung Internet**
+
+### Desktop Browsers
 - Chrome (recommended)
 - Firefox
 - Safari
 - Edge
 
+## 🌟 PWA Features
+
+- ✅ **Installable**: Add to home screen
+- ✅ **Offline Support**: Basic functionality without internet
+- ✅ **Mobile Optimized**: Native app-like experience
+- ✅ **Touch Gestures**: Swipe navigation between tabs
+- ✅ **Responsive Design**: Adapts to any screen size
+
+## 📊 Privacy & Data
+
+- **Local Storage**: All data stays on your device
+- **No Account Required**: Start using immediately
+- **Privacy First**: No data collection or tracking
+- **Offline Capable**: Works without internet connection
+
 ## 🤝 Contributing
 
-This is a personal project, but suggestions and feedback are welcome!
+This project welcomes contributions! Feel free to:
+- Report bugs or issues
+- Suggest new features
+- Submit pull requests
+- Share feedback
 
 ## 📄 License
 
@@ -146,14 +150,14 @@ This project is open source and available under the MIT License.
 
 ## 🆘 Support
 
-If you encounter any issues or have questions:
-1. Check the browser console for error messages
+If you encounter any issues:
+1. Check your browser's developer console for errors
 2. Ensure you're using a supported browser
-3. Try refreshing the page or clearing browser cache
-4. Make sure all dependencies are properly installed
+3. Try refreshing the page or clearing browser data
+4. Make sure JavaScript is enabled
 
 ---
 
 **Happy Studying! 📚✨**
 
-*Remember: Every small step forward is progress. You've got this! 💪* 
+*Stay focused, stay motivated, reach your goals! 🎯* 
