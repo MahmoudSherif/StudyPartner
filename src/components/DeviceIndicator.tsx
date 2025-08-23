@@ -1,0 +1,1 @@
+// Device indicator removed for production - debug component not needed

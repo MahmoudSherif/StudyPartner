@@ -1,75 +1,96 @@
-import { useState, useEffect } from 'react';
-import { WifiOff, Wifi } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { WifiSlash, Wifi, Database, DatabaseSlash } from '@phosphor-icons/react'
+import { isFirebaseAvailable } from '@/lib/firebase'
+import { toast } from 'sonner'
 
-const OfflineIndicator: React.FC = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [showNotification, setShowNotification] = useState(false);
+export function OfflineIndicator() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [showIndicator, setShowIndicator] = useState(false)
 
   useEffect(() => {
     const handleOnline = () => {
-      setIsOnline(true);
-      setShowNotification(true);
-      // Auto-hide success notification
-      setTimeout(() => setShowNotification(false), 3000);
-    };
+      setIsOnline(true)
+      setShowIndicator(true)
+      toast.success('Back online! 🌐', {
+        duration: 3000
+      })
+      
+      // Hide indicator after showing "back online" message
+      setTimeout(() => setShowIndicator(false), 3000)
+    }
 
     const handleOffline = () => {
-      setIsOnline(false);
-      setShowNotification(true);
-    };
+      setIsOnline(false)
+      setShowIndicator(true)
+      toast.error('You are offline 📱', {
+        description: 'Some features may be limited',
+        duration: 5000
+      })
+    }
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
 
-    // Show initial notification if offline
-    if (!navigator.onLine) {
-      setShowNotification(true);
+    // Show indicator initially if offline or Firebase unavailable
+    if (!navigator.onLine || !isFirebaseAvailable) {
+      setShowIndicator(true)
     }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
-  if (!showNotification) return null;
+  // Show indicator if offline or Firebase unavailable
+  const shouldShowIndicator = showIndicator && (!isOnline || !isFirebaseAvailable)
+  
+  if (!shouldShowIndicator) return null
+
+  const getIndicatorContent = () => {
+    if (!isOnline && !isFirebaseAvailable) {
+      return {
+        icon: <WifiSlash size={16} />,
+        text: 'Offline Mode',
+        bgColor: 'bg-red-500/90',
+        borderColor: 'border-red-400/50'
+      }
+    }
+    
+    if (!isOnline) {
+      return {
+        icon: <WifiSlash size={16} />,
+        text: 'No Internet',
+        bgColor: 'bg-red-500/90',
+        borderColor: 'border-red-400/50'
+      }
+    }
+    
+    if (!isFirebaseAvailable) {
+      return {
+        icon: <DatabaseSlash size={16} />,
+        text: 'Local Mode',
+        bgColor: 'bg-yellow-500/90',
+        borderColor: 'border-yellow-400/50'
+      }
+    }
+
+    return {
+      icon: <Wifi size={16} />,
+      text: 'Online',
+      bgColor: 'bg-green-500/90',
+      borderColor: 'border-green-400/50'
+    }
+  }
+
+  const { icon, text, bgColor, borderColor } = getIndicatorContent()
 
   return (
-    <div className={`fixed top-4 right-4 z-50 transition-all duration-300 ${
-      showNotification ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-    }`}>
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg backdrop-blur-md border ${
-        isOnline 
-          ? 'bg-green-900/80 border-green-500/30 text-green-100' 
-          : 'bg-red-900/80 border-red-500/30 text-red-100'
-      }`}>
-        {isOnline ? (
-          <>
-            <Wifi className="w-5 h-5" />
-            <div>
-              <div className="font-semibold">Back online!</div>
-              <div className="text-sm opacity-90">Data will sync automatically</div>
-            </div>
-          </>
-        ) : (
-          <>
-            <WifiOff className="w-5 h-5" />
-            <div>
-              <div className="font-semibold">You're offline</div>
-              <div className="text-sm opacity-90">Changes will sync when reconnected</div>
-            </div>
-          </>
-        )}
-        
-        <button
-          onClick={() => setShowNotification(false)}
-          className="text-current opacity-70 hover:opacity-100 ml-2"
-        >
-          ×
-        </button>
+    <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 ${bgColor} backdrop-blur-sm rounded-full px-4 py-2 border ${borderColor} ${!isFirebaseAvailable ? 'animate-pulse' : ''}`}>
+      <div className="flex items-center gap-2 text-white text-sm font-medium">
+        {icon}
+        <span>{text}</span>
       </div>
     </div>
-  );
-};
-
-export default OfflineIndicator; 
+  )
+}
