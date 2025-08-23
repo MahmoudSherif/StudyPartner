@@ -1,9 +1,9 @@
 #!/bin/bash
 
-echo "🔥 Firebase Firestore Rules Checker"
-echo "===================================="
+echo "🔥 Firebase Firestore Rules Update Required"
+echo "==========================================="
 echo ""
-echo "You're getting 'Missing or insufficient permissions' errors."
+echo "❌ You're getting 'Missing or insufficient permissions' errors for challenges."
 echo "This means the Firestore security rules need to be updated in Firebase Console."
 echo ""
 echo "📋 REQUIRED STEPS:"
@@ -34,6 +34,26 @@ service cloud.firestore {
     match /userData/{document} {
       allow create: if request.auth != null && 
         request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Shared challenges - allow authenticated users to read all and create/update their own
+    match /shared-challenges/{challengeId} {
+      // Anyone authenticated can read challenges (to join them)
+      allow read: if request.auth != null;
+      
+      // Only the creator can create challenges
+      allow create: if request.auth != null && 
+        request.resource.data.createdBy == request.auth.uid;
+      
+      // Creators and participants can update challenges
+      allow update: if request.auth != null && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.uid in resource.data.participants
+      );
+      
+      // Only the creator can delete challenges
+      allow delete: if request.auth != null && 
+        resource.data.createdBy == request.auth.uid;
     }
   }
 }

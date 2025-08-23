@@ -33,6 +33,13 @@ export class FirestoreService {
       }))
       return 'Network requests blocked (possibly by ad blocker) - data saved locally'
     }
+    
+    // Handle permission errors specifically for shared challenges
+    if (error.code === 'permission-denied' && error.message?.includes('Missing or insufficient permissions')) {
+      console.warn('Firestore permission denied - likely need to update security rules')
+      return 'Permission denied - Firestore security rules need to be updated for shared challenges'
+    }
+    
     return error.message || 'Unknown error occurred'
   }
 
@@ -219,14 +226,22 @@ export class FirestoreService {
         return { error: 'Firestore database not available - offline mode' }
       }
       
+      console.log('Saving shared challenge to Firestore:', challenge)
+      
       const challengeRef = doc(db, 'shared-challenges', challenge.id)
-      await setDoc(challengeRef, {
+      const challengeData = {
         ...challenge,
         createdAt: challenge.createdAt,
         updatedAt: serverTimestamp()
-      })
+      }
+      
+      console.log('Challenge data to save:', challengeData)
+      
+      await setDoc(challengeRef, challengeData)
+      console.log('Challenge saved successfully to Firestore')
       return { error: null }
     } catch (error: any) {
+      console.error('Error saving shared challenge:', error)
       const errorMessage = this.handleFirestoreError(error)
       console.warn('Firestore saveSharedChallenge failed:', errorMessage)
       return { error: errorMessage }
@@ -269,13 +284,19 @@ export class FirestoreService {
         return { data: null, error: 'Firestore database not available - offline mode' }
       }
       
+      console.log('Searching for challenge with code:', code)
+      
       const challengesRef = collection(db, 'shared-challenges')
       const q = query(challengesRef, where('code', '==', code), where('isActive', '==', true))
+      console.log('Executing query for challenges...')
+      
       const querySnapshot = await getDocs(q)
+      console.log('Query result - docs found:', querySnapshot.size)
       
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0]
         const data = doc.data()
+        console.log('Found challenge:', data)
         return { 
           data: {
             ...data,
@@ -286,9 +307,11 @@ export class FirestoreService {
           error: null 
         }
       } else {
+        console.log('No challenge found with code:', code)
         return { data: null, error: null }
       }
     } catch (error: any) {
+      console.error('Error finding shared challenge:', error)
       const errorMessage = this.handleFirestoreError(error)
       console.warn('Firestore findSharedChallengeByCode failed:', errorMessage)
       return { data: null, error: errorMessage }

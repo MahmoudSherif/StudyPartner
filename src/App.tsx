@@ -600,22 +600,35 @@ function AppContent() {
   // Challenge management functions
   const handleCreateChallenge = async (challengeData: Omit<Challenge, 'id' | 'createdAt'>) => {
     try {
+      console.log('Creating challenge with data:', challengeData)
+      
       const newChallenge: Challenge = {
         ...challengeData,
         id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 9),
         createdAt: new Date()
       }
 
+      console.log('New challenge object:', newChallenge)
+
       // Save to shared challenges collection in Firestore
       const result = await firestoreService.saveSharedChallenge(newChallenge)
       if (result.error) {
+        console.error('Failed to save challenge to Firestore:', result.error)
+        if (result.error.includes('Permission denied')) {
+          toast.error('Challenge creation requires updated Firebase rules. Check console for instructions.')
+          console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
+          console.error('Run ./firebase-rules-fix.sh for instructions')
+          return
+        }
         toast.error('Failed to create challenge: ' + result.error)
         return
       }
 
+      console.log('Challenge saved to Firestore successfully')
+      
       // Add to local state
       setChallenges(current => [...current, newChallenge])
-      toast.success('Challenge created successfully!')
+      toast.success(`Challenge created successfully! Code: ${newChallenge.code}`)
     } catch (error) {
       console.error('Error creating challenge:', error)
       toast.error('Failed to create challenge. Please try again.')
@@ -624,14 +637,32 @@ function AppContent() {
 
   const handleJoinChallenge = async (code: string) => {
     try {
+      console.log('Attempting to join challenge with code:', code)
+      
       // Find challenge in shared collection by code
       const result = await firestoreService.findSharedChallengeByCode(code)
+      console.log('Find challenge result:', result)
+      
+      if (result.error) {
+        if (result.error.includes('Permission denied')) {
+          toast.error('Challenge sharing requires updated Firebase rules. Check console for instructions.')
+          console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
+          console.error('Run ./firebase-rules-fix.sh for instructions')
+          return
+        }
+        toast.error('Error finding challenge: ' + result.error)
+        return
+      }
+      
       if (!result.data) {
+        console.log('Challenge not found or inactive for code:', code)
         toast.error('Challenge not found or inactive')
         return
       }
 
       const challenge = result.data
+      console.log('Found challenge:', challenge)
+      
       if (challenge.participants.includes(currentUserId)) {
         toast.info('You are already participating in this challenge')
         return
@@ -644,6 +675,13 @@ function AppContent() {
       })
 
       if (updateResult.error) {
+        console.error('Failed to update challenge participants:', updateResult.error)
+        if (updateResult.error.includes('Permission denied')) {
+          toast.error('Challenge sharing requires updated Firebase rules. Check console for instructions.')
+          console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
+          console.error('Run ./firebase-rules-fix.sh for instructions')
+          return
+        }
         toast.error('Failed to join challenge: ' + updateResult.error)
         return
       }
