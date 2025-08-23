@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { 
   Plus, 
@@ -399,6 +399,9 @@ export function NotesTab() {
         <DialogContent className="bg-black/90 backdrop-blur-md border-white/20 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">Create New Note</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Add a new note to organize your thoughts and ideas
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input
@@ -468,6 +471,9 @@ export function NotesTab() {
           <DialogContent className="bg-black/90 backdrop-blur-md border-white/20 text-white">
             <DialogHeader>
               <DialogTitle className="text-white">Edit Note</DialogTitle>
+              <DialogDescription className="text-white/70">
+                Make changes to your note
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Input

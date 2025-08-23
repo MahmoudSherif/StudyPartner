@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Plus, Trash, Palette, Target, Gear } from '@phosphor-icons/react'
 import { Subject } from '@/lib/types'
 import { SUBJECT_COLORS } from '@/lib/constants'
@@ -84,6 +84,9 @@ export function SubjectManagement({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Subject</DialogTitle>
+              <DialogDescription>
+                Create a new subject to organize your study sessions and track progress
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -197,6 +200,9 @@ export function SubjectManagement({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Set Study Targets for {targetSubject?.name}</DialogTitle>
+            <DialogDescription>
+              Set daily and weekly study time goals to track your progress and stay motivated
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { usePWA } from '@/hooks/usePWA'
 import { Download, X } from '@phosphor-icons/react'
 import { useState } from 'react'
@@ -52,6 +52,9 @@ export function PWAInstallPrompt() {
                 <X size={16} />
               </Button>
             </DialogTitle>
+            <DialogDescription className="text-white/70 text-center">
+              Install MotivaMate as an app for the best experience
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">

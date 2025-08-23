@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -328,6 +328,9 @@ export function Calendar({ subjects }: CalendarProps) {
         <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-white">Add New Event</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Create a new event for your calendar
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">

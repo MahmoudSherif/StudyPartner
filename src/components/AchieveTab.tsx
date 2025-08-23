@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { 
   Play, 
@@ -703,6 +703,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
         <DialogContent className="bg-black/90 backdrop-blur-md border-white/20 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">Add New Goal</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Create a new goal to track your progress
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input

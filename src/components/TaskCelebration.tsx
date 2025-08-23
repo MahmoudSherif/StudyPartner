@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import confetti from 'canvas-confetti'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Star, Target, Sparkle } from '@phosphor-icons/react'
 import { mobileFeedback } from '@/lib/mobileFeedback'
@@ -76,6 +76,9 @@ export function TaskCelebration({
           <DialogTitle className="text-2xl font-bold text-white text-center">
             {isChallenge ? '🏆 Challenge Task Complete!' : '🎉 Task Complete!'}
           </DialogTitle>
+          <DialogDescription className="text-white/70 text-center">
+            {isChallenge ? 'Great job completing a challenge task!' : 'Congratulations on completing your task!'}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="text-center space-y-6 py-4">
