@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,15 +7,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { 
   Plus, 
-  Edit2, 
-  Trash2, 
-  Pin, 
-  PinOff,
-  Search,
+  PencilSimple, 
+  Trash, 
+  PushPin, 
+  PushPinSlash,
+  MagnifyingGlass,
   Tag,
-  Move3D,
-  Maximize2,
-  Minimize2
+  ArrowsOutCardinal,
+  ArrowsInCardinal
 } from '@phosphor-icons/react'
 import { StickyNote } from '@/lib/types'
 import { toast } from 'sonner'
@@ -50,7 +48,10 @@ export function NotesTab() {
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  const [notes, setNotes] = useKV<StickyNote[]>(userDataKey('sticky-notes'), [])
+  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
+  // TODO: Migrate to Firebase-based notes storage
+  const [notes, setNotes] = useState<StickyNote[]>([])
+  // const [notes, setNotes] = useKV<StickyNote[]>(userDataKey('sticky-notes'), [])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0])
   const [showAddNote, setShowAddNote] = useState(false)
@@ -244,7 +245,7 @@ export function NotesTab() {
       {/* Search and Add Controls */}
       <div className="flex gap-2 items-center">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
+          <MagnifyingGlass size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
           <Input
             placeholder="Search notes..."
             value={searchTerm}
@@ -337,7 +338,7 @@ export function NotesTab() {
                           note.isPinned ? 'text-red-600' : 'text-gray-600'
                         }`}
                       >
-                        {note.isPinned ? <Pin size={12} /> : <PinOff size={12} />}
+                        {note.isPinned ? <PushPin size={12} /> : <PushPinSlash size={12} />}
                       </Button>
                       <Button
                         variant="ghost"
@@ -348,7 +349,7 @@ export function NotesTab() {
                         }}
                         className="h-6 w-6 p-0 text-gray-600 hover:bg-black/10"
                       >
-                        <Edit2 size={12} />
+                        <PencilSimple size={12} />
                       </Button>
                     </div>
                   </div>
@@ -385,7 +386,7 @@ export function NotesTab() {
 
                 {/* Move Handle */}
                 <div className="absolute bottom-1 right-1 opacity-40 hover:opacity-80">
-                  <Move3D size={16} className="text-gray-600" />
+                  <ArrowsOutCardinal size={16} className="text-gray-600" />
                 </div>
               </div>
             )
@@ -506,7 +507,7 @@ export function NotesTab() {
                   variant="outline"
                   className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
                 >
-                  <Trash2 size={16} />
+                  <Trash size={16} />
                 </Button>
                 <Button
                   onClick={() => {

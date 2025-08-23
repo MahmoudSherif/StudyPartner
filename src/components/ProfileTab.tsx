@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Trophy, Target, Clock, Flame, Calendar, TrendingUp, SignOut, User as UserIcon, Globe } from '@phosphor-icons/react'
+import { Trophy, Target, Clock, Flame, Calendar, ArrowUp, SignOut, User as UserIcon, Globe } from '@phosphor-icons/react'
 import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
@@ -11,7 +12,6 @@ import { ActivityGrid } from '@/components/ActivityGrid'
 import { ActivityCharts } from '@/components/ActivityCharts'
 import { NotificationSettings } from '@/components/NotificationSettings'
 import { StudyPartnerIntegration } from '@/components/StudyPartnerIntegration'
-import { useKV } from '@github/spark/hooks'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -27,7 +27,9 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
   // Get user-specific focus sessions
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
-  const [focusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
+  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
+  const [focusSessions] = useState<FocusSession[]>([])
+  // const [focusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
   
   const handleSignOut = async () => {
     const { error } = await signOut()
@@ -198,7 +200,7 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
 
             <Card>
               <CardContent className="p-4 text-center">
-                <TrendingUp size={24} className="mx-auto text-accent mb-2" />
+                <ArrowUp size={24} className="mx-auto text-accent mb-2" />
                 <div className="text-2xl font-bold text-white">{bestTimeString}</div>
                 <div className="text-sm text-white/70">Best Study Time</div>
                 {bestTime.sessions > 0 && (

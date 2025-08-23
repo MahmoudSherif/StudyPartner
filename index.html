@@ -16,9 +16,9 @@
     
     <!-- PWA Icons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon.svg">
+    <link rel="icon" type="image/svg+xml" sizes="16x16" href="/favicon.svg">
     <link rel="manifest" href="/manifest.json">
     
     <!-- Splash Screen Images for iOS -->
@@ -26,7 +26,8 @@
     
     <!-- Service Worker -->
     <script>
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+            // Only register service worker in production (HTTPS)
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
@@ -36,13 +37,15 @@
                         console.log('SW registration failed: ', registrationError);
                     });
             });
+        } else if ('serviceWorker' in navigator) {
+            // Unregister any existing service worker in development
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
         }
     </script>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Styles -->
     <link href="/src/main.css" rel="stylesheet" />

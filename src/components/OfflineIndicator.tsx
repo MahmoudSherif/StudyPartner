@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { WifiSlash, Wifi, Database, DatabaseSlash } from '@phosphor-icons/react'
+import { X, Globe, Circle } from '@phosphor-icons/react'
 import { isFirebaseAvailable } from '@/lib/firebase'
 import { toast } from 'sonner'
 
@@ -50,7 +50,7 @@ export function OfflineIndicator() {
   const getIndicatorContent = () => {
     if (!isOnline && !isFirebaseAvailable) {
       return {
-        icon: <WifiSlash size={16} />,
+        icon: <X size={16} />,
         text: 'Offline Mode',
         bgColor: 'bg-red-500/90',
         borderColor: 'border-red-400/50'
@@ -59,7 +59,7 @@ export function OfflineIndicator() {
     
     if (!isOnline) {
       return {
-        icon: <WifiSlash size={16} />,
+        icon: <X size={16} />,
         text: 'No Internet',
         bgColor: 'bg-red-500/90',
         borderColor: 'border-red-400/50'
@@ -68,7 +68,7 @@ export function OfflineIndicator() {
     
     if (!isFirebaseAvailable) {
       return {
-        icon: <DatabaseSlash size={16} />,
+        icon: <X size={16} />,
         text: 'Local Mode',
         bgColor: 'bg-yellow-500/90',
         borderColor: 'border-yellow-400/50'
@@ -76,7 +76,7 @@ export function OfflineIndicator() {
     }
 
     return {
-      icon: <Wifi size={16} />,
+      icon: <Globe size={16} />,
       text: 'Online',
       bgColor: 'bg-green-500/90',
       borderColor: 'border-green-400/50'

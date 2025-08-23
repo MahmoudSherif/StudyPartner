@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,8 +17,8 @@ import {
   Target, 
   Clock, 
   Trophy,
-  Edit2,
-  Trash2,
+  Pencil,
+  Trash,
   CheckCircle
 } from '@phosphor-icons/react'
 import { FocusSession, Goal, Achievement } from '@/lib/types'
@@ -39,8 +38,11 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
-  const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
+  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
+  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
+  // const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
+  // const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
   
   // Timer state
   const [isRunning, setIsRunning] = useState(false)
@@ -471,7 +473,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
                       onClick={() => deleteGoal(goal.id)}
                       className="text-white/60 hover:text-red-400"
                     >
-                      <Trash2 size={16} />
+                      <Trash size={16} />
                     </Button>
                   </div>
                   <Progress 

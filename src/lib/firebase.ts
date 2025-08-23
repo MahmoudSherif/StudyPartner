@@ -23,17 +23,18 @@ import { mockAuthFunctions } from '@/lib/mockAuth'
 
 // Firebase configuration - using StudyPartner project credentials
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCVwRQCqoR7fYY3_YYY3_YYY3_YYY3_YYY3_Y",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "studypartner-app.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "studypartner-app",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "studypartner-app.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "987654321098",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:987654321098:web:abcdef1234567890abcdef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA5NwasV9Zq0nD7m1hTIHyBYT1-HvqousU",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "motivemate-6c846.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "motivemate-6c846",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "motivemate-6c846.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1009214726351",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1009214726351:web:20b0c745c8222feb5557ba"
 }
 
 // Validate that we have the required configuration
 const hasValidConfig = firebaseConfig.apiKey && 
                       firebaseConfig.apiKey !== "demo-api-key" &&
+                      firebaseConfig.apiKey !== "AIzaSyCVwRQCqoR7fYY3_YYY3_YYY3_YYY3_YYY3_Y" &&
                       firebaseConfig.authDomain && 
                       firebaseConfig.projectId && 
                       firebaseConfig.storageBucket && 

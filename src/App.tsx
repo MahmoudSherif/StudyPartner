@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { ProfileTab } from '@/components/ProfileTab'
@@ -11,6 +10,8 @@ import { TasksManagement } from '@/components/TasksManagement'
 import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
+import { NetworkBlockIndicator } from '@/components/NetworkBlockIndicator'
+import { FirebaseStatusIndicator } from '@/components/FirebaseStatusIndicator'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AchieveTab } from '@/components/AchieveTab'
 import { NotesTab } from '@/components/NotesTab'
@@ -24,10 +25,9 @@ import {
   useFirebaseChallenges,
   useFirebaseFocusSessions,
   useFirebaseGoals
-} from '@/hooks/useFirebaseSync'
+} from '@/hooks/useFirebaseData'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
-import { FirebaseTestPanel } from '@/components/FirebaseTestPanel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -45,9 +45,8 @@ import {
   CheckSquare,
   Lightbulb,
   Target,
-  StickyNote,
-  User,
-  TestTube
+  Note,
+  User
 } from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
@@ -62,79 +61,8 @@ function App() {
 }
 
 function AppContent() {
+  // ALL HOOKS MUST BE DECLARED FIRST - BEFORE ANY CONDITIONAL RETURNS
   const { user, loading, signOut } = useAuth()
-  
-  // Show loading screen while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <SpaceBackground />
-        <div className="relative z-10 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-white/80">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-  
-  // Show auth screen if user is not logged in
-  if (!user) {
-    return <AuthScreen />
-  }
-  
-  // Initialize notifications on app start
-  useEffect(() => {
-    const setupNotifications = async () => {
-      try {
-        const initialized = await initializeNotifications();
-        // Notifications initialized silently for production
-      } catch (error) {
-        // Silent failure for notifications in production
-      }
-    };
-
-    setupNotifications();
-  }, []);
-
-  // Global error handling with improved specificity
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      // Only show toast for serious errors, not minor UI glitches
-      if (event.error && !event.error.message?.includes('ResizeObserver')) {
-        toast.error('An unexpected error occurred. Please refresh if issues persist.')
-      }
-    }
-
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      // Check if it's a useKV storage error
-      if (event.reason?.message?.includes('storage') || event.reason?.message?.includes('KV')) {
-        // Don't show error toast for storage failures as they're often recoverable
-        return
-      }
-      
-      // Check if it's a network error
-      if (event.reason?.message?.includes('fetch') || event.reason?.message?.includes('network')) {
-        // Silent network error handling
-        return
-      }
-      
-      // Only show toast for genuine application errors that impact user experience
-      if (event.reason && typeof event.reason === 'object' && event.reason.message) {
-        toast.error('Something went wrong. Please try again.')
-      }
-    }
-
-    window.addEventListener('error', handleError)
-    window.addEventListener('unhandledrejection', handleUnhandledRejection)
-
-    return () => {
-      window.removeEventListener('error', handleError)
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-    }
-  }, [])
-
-  // Get current user ID from Firebase Auth
-  const currentUserId = user?.uid || 'anonymous'
   
   // Firebase-synced data - these will automatically sync with Firestore
   const [subjects, setSubjects] = useFirebaseSubjects()
@@ -160,36 +88,26 @@ function AppContent() {
     isChallenge: false
   })
   const [showChallengeProgress, setShowChallengeProgress] = useState(false)
+  const [activeTaskProgress, setActiveTaskProgress] = useState(0)
+  const [remainingTime, setRemainingTime] = useState<number | null>(null)
+  const [previousDailyProgress, setPreviousDailyProgress] = useState(0)
+  const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
 
-  // Combine regular study sessions and focus sessions for stats calculation
-  const stats = calculateUserStats(sessions, focusSessions)
-  
-  // Combine regular study sessions and focus sessions for activity tracking
-  const allSessions = [
-    ...sessions,
-    ...focusSessions.map(fs => ({
-      id: fs.id,
-      subjectId: 'focus',
-      startTime: fs.startTime,
-      endTime: fs.endTime || fs.startTime,
-      duration: fs.duration,
-      completed: fs.completed
-    } as StudySession))
-  ]
+  // Mobile and PWA hooks
   const { isStandalone } = usePWA()
   const deviceInfo = useMobileBehavior()
 
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
-      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test']
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
       const currentIndex = tabs.indexOf(currentTab)
       if (currentIndex < tabs.length - 1) {
         setCurrentTab(tabs[currentIndex + 1])
       }
     },
     onSwipeRight: () => {
-      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test']
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
       const currentIndex = tabs.indexOf(currentTab)
       if (currentIndex > 0) {
         setCurrentTab(tabs[currentIndex - 1])
@@ -197,6 +115,39 @@ function AppContent() {
     },
     threshold: 100
   })
+
+  // Initialize notifications on app start
+  useEffect(() => {
+    const setupNotifications = async () => {
+      try {
+        const initialized = await initializeNotifications();
+        // Notifications initialized silently for production
+      } catch (error) {
+        // Silent failure for notifications in production
+      }
+    };
+
+    setupNotifications();
+  }, []);
+
+  // Enhanced error handling for unhandled errors and promise rejections
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Unhandled error:', event.error)
+    }
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason)
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleRejection)
+
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleRejection)
+    }
+  }, [])
 
   // Prevent zooming on double tap
   useEffect(() => {
@@ -237,15 +188,222 @@ function AppContent() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const tabParam = urlParams.get('tab')
-    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test'].includes(tabParam)) {
+    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration'].includes(tabParam)) {
       setCurrentTab(tabParam)
     }
   }, [])
 
+  // Show loading screen while checking authentication  // Prevent zooming on double tap
+  useEffect(() => {
+    const preventDefault = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault()
+      }
+    }
+
+    const preventZoom = (e: TouchEvent) => {
+      const t2 = e.timeStamp
+      const target = e.currentTarget as HTMLElement
+      if (!target || !target.dataset) return
+      
+      const t1 = parseFloat(target.dataset.lastTouch || t2.toString())
+      const dt = t2 - t1
+      const fingers = e.touches ? e.touches.length : 0
+      target.dataset.lastTouch = t2.toString()
+
+      if (!dt || dt > 500 || fingers > 1) return // not double-tap
+
+      e.preventDefault()
+      if (e.target && typeof (e.target as HTMLElement).click === 'function') {
+        (e.target as HTMLElement).click()
+      }
+    }
+
+    document.addEventListener('touchstart', preventDefault, { passive: false })
+    document.addEventListener('touchstart', preventZoom, { passive: false })
+
+    return () => {
+      document.removeEventListener('touchstart', preventDefault)
+      document.removeEventListener('touchstart', preventZoom)
+    }
+  }, [])
+
+  // Handle URL tab parameter for PWA shortcuts
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tabParam = urlParams.get('tab')
+    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration'].includes(tabParam)) {
+      setCurrentTab(tabParam)
+    }
+  }, [])
+
+  // Progress tracking and milestone notifications (only when user is logged in)
+  useEffect(() => {
+    if (!user) return
+    
+    try {
+      const today = new Date()
+      const todayTasks = (tasks || []).filter(task => {
+        const taskDate = new Date(task.createdAt)
+        return taskDate.toDateString() === today.toDateString()
+      })
+      
+      const completedTodayTasks = todayTasks.filter(task => task.completed)
+      
+      const dailyProgress = {
+        total: todayTasks.length,
+        completed: completedTodayTasks.length,
+        percentage: todayTasks.length > 0 ? (completedTodayTasks.length / todayTasks.length) * 100 : 0
+      }
+
+      const currentUserId = user?.uid || 'anonymous'
+      const activeChallenge = (challenges || []).find(challenge => 
+        challenge.isActive && challenge.participants.includes(currentUserId)
+      )
+
+      let challengeProgress: any = undefined
+      if (activeChallenge && showChallengeProgress) {
+        const userCompletedTasks = activeChallenge.tasks.filter(task => 
+          task.completedBy.includes(currentUserId)
+        )
+        const userPoints = userCompletedTasks.reduce((total, task) => total + task.points, 0)
+        const maxPoints = activeChallenge.tasks.reduce((total, task) => total + task.points, 0)
+        
+        challengeProgress = {
+          challengeTitle: activeChallenge.title,
+          userPoints,
+          maxPoints,
+          pointsPercentage: maxPoints > 0 ? (userPoints / maxPoints) * 100 : 0,
+          completedTasks: userCompletedTasks.length,
+          totalTasks: activeChallenge.tasks.length
+        }
+      }
+
+      const taskProgress = {
+        dailyTasks: dailyProgress,
+        challengeProgress
+      }
+
+      const dailyPercentage = taskProgress.dailyTasks.percentage
+      const challengePointsPercentage = taskProgress.challengeProgress?.pointsPercentage || 0
+
+      // Check daily task milestones (25%, 50%, 75%, 100%)
+      const dailyMilestones = [25, 50, 75, 100]
+      const reachedDailyMilestone = dailyMilestones.find(milestone => 
+        dailyPercentage >= milestone && previousDailyProgress < milestone
+      )
+
+      if (reachedDailyMilestone && dailyPercentage > 0) {
+        mobileFeedback.progressMilestone()
+        toast.success(`Daily Progress: ${reachedDailyMilestone}% complete! 🎯`, {
+          description: `${taskProgress.dailyTasks.completed}/${taskProgress.dailyTasks.total} tasks done today`,
+        })
+      }
+
+      // Check challenge milestones (based on points percentage)
+      const challengeMilestones = [25, 50, 75, 100]
+      const reachedChallengeMilestone = challengeMilestones.find(milestone => 
+        challengePointsPercentage >= milestone && previousChallengeProgress < milestone
+      )
+
+      if (reachedChallengeMilestone && challengePointsPercentage > 0 && taskProgress.challengeProgress) {
+        mobileFeedback.progressMilestone()
+        toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
+          description: `${taskProgress.challengeProgress.userPoints}/${taskProgress.challengeProgress.maxPoints} points in ${taskProgress.challengeProgress.challengeTitle}`,
+        })
+      }
+
+      setPreviousDailyProgress(dailyPercentage)
+      setPreviousChallengeProgress(challengePointsPercentage)
+    } catch (error) {
+      // Silent error handling for milestone tracking
+    }
+  }, [user, tasks, challenges, showChallengeProgress, previousDailyProgress, previousChallengeProgress])
+
+  // Achievement tracking (only when user is logged in)
+  useEffect(() => {
+    if (!user) return
+    
+    try {
+      const stats = calculateUserStats(sessions || [], focusSessions || [])
+      const updatedAchievements = updateAchievements(achievements || [], stats, sessions || [], focusSessions || [], goals || [])
+      
+      // Check for newly unlocked achievements
+      const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
+        achievement.unlocked && !(achievements || [])[index]?.unlocked
+      )
+      
+      if (newlyUnlocked.length > 0) {
+        setAchievements(updatedAchievements)
+        newlyUnlocked.forEach(async (achievement) => {
+          // Trigger achievement haptic feedback
+          mobileFeedback.achievement()
+          
+          // Show in-app toast
+          toast.success(`Achievement Unlocked: ${achievement.title}`, {
+            description: achievement.description,
+            duration: 5000
+          })
+          
+          // Send push notification
+          try {
+            await notificationManager.notifyAchievementUnlock(
+              achievement.title,
+              achievement.description
+            )
+          } catch (error) {
+            // Silent notification failure
+          }
+        })
+      } else {
+        setAchievements(updatedAchievements)
+      }
+    } catch (error) {
+      // Silent error handling for achievements update
+    }
+  }, [user, sessions, focusSessions, goals]) // Removed 'achievements' from dependencies
+
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <SpaceBackground />
+        <div className="relative z-10 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-white/80">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show auth screen if user is not logged in
+  if (!user) {
+    return <AuthScreen />
+  }
+  
+  // Get current user ID from Firebase Auth
+  const currentUserId = user?.uid || 'anonymous'
+
+  // Combine regular study sessions and focus sessions for stats calculation
+  const stats = calculateUserStats(sessions || [], focusSessions || [])
+  
+  // Combine regular study sessions and focus sessions for activity tracking
+  const allSessions = [
+    ...(sessions || []),
+    ...(focusSessions || []).map(fs => ({
+      id: fs.id,
+      subjectId: 'focus',
+      startTime: fs.startTime,
+      endTime: fs.endTime || fs.startTime,
+      duration: fs.duration,
+      completed: fs.completed
+    } as StudySession))
+  ]
+
   // Calculate task progress
   const calculateTaskProgress = (): TaskProgress => {
     const today = new Date()
-    const todayTasks = tasks.filter(task => {
+    const todayTasks = (tasks || []).filter(task => {
       const taskDate = new Date(task.createdAt)
       return taskDate.toDateString() === today.toDateString()
     })
@@ -259,11 +417,11 @@ function AppContent() {
     }
 
     // Find active challenge the user is participating in
-    const activeChallenge = challenges.find(challenge => 
+    const activeChallenge = (challenges || []).find(challenge => 
       challenge.isActive && challenge.participants.includes(currentUserId)
     )
 
-    let challengeProgress = undefined
+    let challengeProgress: TaskProgress['challengeProgress'] = undefined
     if (activeChallenge && showChallengeProgress) {
       // Calculate user points and task completion
       const userCompletedTasks = activeChallenge.tasks.filter(task => 
@@ -328,101 +486,19 @@ function AppContent() {
 
   const taskProgress = calculateTaskProgress()
 
-  // Track previous progress for milestone detection
-  const [previousDailyProgress, setPreviousDailyProgress] = useState(0)
-  const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
-
-  // Check for progress milestones and trigger haptic feedback
-  useEffect(() => {
-    try {
-      const dailyPercentage = taskProgress.dailyTasks.percentage
-      const challengePointsPercentage = taskProgress.challengeProgress?.pointsPercentage || 0
-
-      // Check daily task milestones (25%, 50%, 75%, 100%)
-      const dailyMilestones = [25, 50, 75, 100]
-      const reachedDailyMilestone = dailyMilestones.find(milestone => 
-        dailyPercentage >= milestone && previousDailyProgress < milestone
-      )
-
-      if (reachedDailyMilestone && dailyPercentage > 0) {
-        mobileFeedback.progressMilestone()
-        toast.success(`Daily Progress: ${reachedDailyMilestone}% complete! 🎯`, {
-          description: `${taskProgress.dailyTasks.completed}/${taskProgress.dailyTasks.total} tasks done today`,
-        })
-      }
-
-      // Check challenge milestones (based on points percentage)
-      const challengeMilestones = [25, 50, 75, 100]
-      const reachedChallengeMilestone = challengeMilestones.find(milestone => 
-        challengePointsPercentage >= milestone && previousChallengeProgress < milestone
-      )
-
-      if (reachedChallengeMilestone && challengePointsPercentage > 0 && taskProgress.challengeProgress) {
-        mobileFeedback.progressMilestone()
-        toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
-          description: `${taskProgress.challengeProgress.userPoints}/${taskProgress.challengeProgress.maxPoints} points in ${taskProgress.challengeProgress.challengeTitle}`,
-        })
-      }
-
-      setPreviousDailyProgress(dailyPercentage)
-      setPreviousChallengeProgress(challengePointsPercentage)
-    } catch (error) {
-      // Silent error handling for milestone tracking
-    }
-  }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.pointsPercentage])
-
-  useEffect(() => {
-    try {
-      const updatedAchievements = updateAchievements(achievements, stats, sessions, focusSessions, goals)
-      
-      // Check for newly unlocked achievements
-      const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
-        achievement.unlocked && !achievements[index]?.unlocked
-      )
-      
-      if (newlyUnlocked.length > 0) {
-        setAchievements(updatedAchievements)
-        newlyUnlocked.forEach(async (achievement) => {
-          // Trigger achievement haptic feedback
-          mobileFeedback.achievement()
-          
-          // Show in-app toast
-          toast.success(`Achievement Unlocked: ${achievement.title}`, {
-            description: achievement.description,
-            duration: 5000
-          })
-          
-          // Send push notification
-          try {
-            await notificationManager.notifyAchievementUnlock(
-              achievement.title,
-              achievement.description
-            )
-          } catch (error) {
-            // Silent notification failure
-          }
-        })
-      } else {
-        setAchievements(updatedAchievements)
-      }
-    } catch (error) {
-      // Silent error handling for achievements update
-    }
-  }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak, focusSessions.length, goals.length, goals.filter(g => g.isCompleted).length])
-
   const handleAddSubject = (subjectData: Omit<Subject, 'id'>) => {
     const newSubject: Subject = {
       ...subjectData,
       id: Date.now().toString()
     }
-    setSubjects(current => [...current, newSubject])
+    setSubjects(current => [...(current || []), newSubject])
     toast.success(`Added subject: ${newSubject.name}`)
   }
 
   const handleDeleteSubject = (id: string) => {
-    const subject = subjects.find(s => s.id === id)
-    setSubjects(current => current.filter(s => s.id !== id))
-    setSessions(current => current.filter(s => s.subjectId !== id))
+    const subject = (subjects || []).find(s => s.id === id)
+    setSubjects(current => (current || []).filter(s => s.id !== id))
+    setSessions(current => (current || []).filter(s => s.subjectId !== id))
     
     if (selectedSubject?.id === id) {
       setSelectedSubject(null)
@@ -459,11 +535,11 @@ function AppContent() {
         completed: true
       }
 
-      setSessions(current => [...current, session])
+      setSessions(current => [...(current || []), session])
       
       // Update subject total time
       setSubjects(current => 
-        current.map(subject => 
+        (current || []).map(subject => 
           subject.id === selectedSubject.id 
             ? { ...subject, totalTime: subject.totalTime + Math.round(duration) }
             : subject
@@ -497,7 +573,7 @@ function AppContent() {
       id: Date.now().toString(),
       createdAt: new Date()
     }
-    setTasks(current => [...current, newTask])
+    setTasks(current => [...(current || []), newTask])
   }
 
   const handleToggleTask = (taskId: string) => {
@@ -512,7 +588,7 @@ function AppContent() {
       }
 
       setTasks(current => 
-        current.map(t => t.id === taskId ? updatedTask : t)
+        (current || []).map(t => t.id === taskId ? updatedTask : t)
       )
 
       if (!task.completed) {
@@ -532,7 +608,7 @@ function AppContent() {
   }
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks(current => current.filter(t => t.id !== taskId))
+    setTasks(current => (current || []).filter(t => t.id !== taskId))
     toast.success('Task deleted')
   }
 
@@ -559,7 +635,7 @@ function AppContent() {
     }
 
     setChallenges(current => 
-      current.map(c => 
+      (current || []).map(c => 
         c.id === challenge.id 
           ? { ...c, participants: [...c.participants, currentUserId] }
           : c
@@ -691,9 +767,11 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen relative" ref={containerRef}>
+    <div className="min-h-screen relative mobile-scroll-container" ref={containerRef as React.RefObject<HTMLDivElement>}>
       <SpaceBackground />
       <OfflineIndicator />
+      <NetworkBlockIndicator />
+      <FirebaseStatusIndicator />
       {!isStandalone && <PWAInstallPrompt />}
       
       <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28 no-select">
@@ -730,7 +808,7 @@ function AppContent() {
         </header>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
-          <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
+          <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10" style={{ position: '-webkit-sticky' }}>
             <TabsList className="grid w-full grid-cols-8 bg-white/10 backdrop-blur-sm">
               <TabsTrigger value="achieve" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Target size={16} className="lg:size-5" />
@@ -745,7 +823,7 @@ function AppContent() {
                 <span className="text-xs lg:text-sm">Calendar</span>
               </TabsTrigger>
               <TabsTrigger value="notes" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <StickyNote size={16} className="lg:size-5" />
+                <Note size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Notes</span>
               </TabsTrigger>
               <TabsTrigger value="profile" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
@@ -759,10 +837,6 @@ function AppContent() {
               <TabsTrigger value="inspiration" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Lightbulb size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Inspire</span>
-              </TabsTrigger>
-              <TabsTrigger value="firebase-test" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <TestTube size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Test</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -824,12 +898,6 @@ function AppContent() {
           <TabsContent value="inspiration" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <InspirationCarousel />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="firebase-test" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
-              <FirebaseTestPanel />
             </div>
           </TabsContent>
         </Tabs>

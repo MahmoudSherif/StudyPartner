@@ -3,7 +3,8 @@
  */
 
 import { useEffect, useState, useCallback } from 'react'
-import { useKV } from '@github/spark/hooks'
+// Deprecated: GitHub Spark KV replaced by Firebase
+// import { useKV } from '@github/spark/hooks'
 import { studyPartnerAPI, SyncData, APIResponse } from './api'
 import { toast } from 'sonner'
 
@@ -330,7 +331,9 @@ export const useSyncedData = <T>(
   defaultValue: T,
   dataType: SyncQueueItem['type']
 ) => {
-  const [data, setData, deleteData] = useKV<T>(key, defaultValue)
+  // Temporarily disabled GitHub Spark KV
+  const [data, setData, deleteData] = [defaultValue, () => {}, () => {}] as const
+  // const [data, setData, deleteData] = useKV<T>(key, defaultValue)
   const { addToQueue } = useDataSync()
 
   const setSyncedData = useCallback((newData: T | ((current: T) => T)) => {

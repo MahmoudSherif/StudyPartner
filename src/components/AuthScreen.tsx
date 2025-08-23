@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Eye, EyeSlash, GoogleLogo, Sparkle } from '@phosphor-icons/react'
+import { Eye, X, Globe, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { SpaceBackground } from '@/components/SpaceBackground'
 
@@ -159,7 +159,7 @@ export const AuthScreen = () => {
                         className="absolute right-0 top-0 h-full px-3 text-white/70 hover:text-white hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
+                        {showPassword ? <X size={16} /> : <Eye size={16} />}
                       </Button>
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export const AuthScreen = () => {
                         className="absolute right-0 top-0 h-full px-3 text-white/70 hover:text-white hover:bg-transparent"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeSlash size={16} /> : <Eye size={16} />}
+                        {showPassword ? <X size={16} /> : <Eye size={16} />}
                       </Button>
                     </div>
                   </div>
@@ -261,7 +261,7 @@ export const AuthScreen = () => {
                 className="w-full mt-4 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
                 disabled={loading}
               >
-                <GoogleLogo size={16} className="mr-2" />
+                <Globe size={16} className="mr-2" />
                 {loading ? 'Signing In...' : 'Continue with Google'}
               </Button>
             </div>

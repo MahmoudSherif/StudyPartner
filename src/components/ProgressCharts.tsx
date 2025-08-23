@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts'
 import { StudySession, Subject } from '@/lib/types'
 import { getWeeklyData, getMonthlyData, getDailyData, getSubjectWeeklyData, getSubjectMonthlyData, getSubjectComparison } from '@/lib/chartUtils'
-import { Calendar, TrendingUp, Clock, BookOpen } from '@phosphor-icons/react'
+import { Calendar, ArrowUp, Clock, BookOpen } from '@phosphor-icons/react'
 import { useState, useMemo, useEffect } from 'react'
 
 interface ProgressChartsProps {
@@ -182,7 +182,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
             Weekly
           </TabsTrigger>
           <TabsTrigger value="monthly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-            <TrendingUp size={16} className="mr-1" />
+            <ArrowUp size={16} className="mr-1" />
             Monthly
           </TabsTrigger>
           <TabsTrigger value="daily" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">

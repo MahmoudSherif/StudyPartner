@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Bell, BellOff, Settings } from '@phosphor-icons/react'
+import { Bell, X, Gear } from '@phosphor-icons/react'
 import { useState, useEffect } from 'react'
 import { notificationManager, initializeNotifications } from '@/lib/notifications'
 import { toast } from 'sonner'
@@ -70,7 +70,7 @@ export function NotificationSettings() {
       <Card className="bg-black/40 backdrop-blur-md border-white/20">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
-            <BellOff size={20} />
+            <X size={20} />
             Notifications Not Supported
           </CardTitle>
         </CardHeader>

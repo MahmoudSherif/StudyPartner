@@ -4,9 +4,9 @@
 const CACHE_NAME = 'motivamate-v1';
 const urlsToCache = [
   '/',
-  '/src/main.css',
-  '/src/main.tsx',
-  '/manifest.json'
+  '/manifest.json',
+  '/favicon.svg',
+  '/icons/favicon.svg'
 ];
 
 // Install event - cache resources
@@ -40,13 +40,29 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache with network fallback
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests and development resources
+  if (event.request.method !== 'GET' || 
+      event.request.url.includes('@vite') ||
+      event.request.url.includes('@react-refresh') ||
+      event.request.url.includes('src/main.tsx') ||
+      event.request.url.includes('fonts.googleapis.com') ||
+      event.request.url.includes('fonts.gstatic.com')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
         // Return cached version or fetch from network
-        return response || fetch(event.request);
-      }
-    )
+        return response || fetch(event.request).catch((error) => {
+          console.log('Fetch failed for:', event.request.url);
+          // For missing icons, return a default response
+          if (event.request.url.includes('favicon') || event.request.url.includes('icon')) {
+            return caches.match('/favicon.svg');
+          }
+          throw error;
+        });
+      })
   );
 });
 

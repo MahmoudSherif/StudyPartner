@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StudySession } from '@/lib/types'
-import { Calendar, TrendingUp, Clock } from '@phosphor-icons/react'
+import { Calendar, ArrowUp, Clock } from '@phosphor-icons/react'
 import { useMemo } from 'react'
 
 interface ActivityChartsProps {
@@ -224,7 +224,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
               Weekly
             </TabsTrigger>
             <TabsTrigger value="monthly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <TrendingUp size={14} className="mr-1" />
+              <ArrowUp size={14} className="mr-1" />
               Monthly
             </TabsTrigger>
           </TabsList>

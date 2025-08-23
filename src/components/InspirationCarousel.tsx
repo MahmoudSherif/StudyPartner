@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Quote } from '@phosphor-icons/react'
+import { Chat } from '@phosphor-icons/react'
 
 interface Character {
   id: string
@@ -514,7 +514,7 @@ export function InspirationCarousel() {
             {/* Quote */}
             <div className="bg-white/5 rounded-lg p-4 lg:p-6 border border-white/10">
               <div className="flex items-start gap-3">
-                <Quote size={20} className="lg:size-6 text-accent mt-1 flex-shrink-0" />
+                <Chat size={20} className="lg:size-6 text-accent mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-white/90 italic text-sm lg:text-base leading-relaxed">
                     "{currentCharacter.quote}"

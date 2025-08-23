@@ -11,6 +11,7 @@
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    height: 100%;
   }
   
   body {
@@ -18,18 +19,25 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overscroll-behavior: none;
-    position: fixed;
+    margin: 0;
+    padding: 0;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* Fix for iOS Safari scrolling issues */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent iOS zoom on input focus */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   
   #root {
     width: 100%;
-    height: 100%;
-    overflow-y: auto;
+    min-height: 100vh;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    /* Ensure proper scrolling context */
+    position: relative;
   }
   
   /* Improve touch targets */
@@ -45,6 +53,19 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+  }
+  
+  /* Fix for iOS Safari scrolling momentum */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure proper scrolling on mobile */
+  .mobile-scroll-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
   
   /* Custom scrollbars */

@@ -1,93 +1,74 @@
-# 🔥 Firebase Setup Guide
+# Firebase Configuration Instructions
 
-## 🚀 **Step 1: Create Firebase Project**
+To connect this app to your Firebase project:
 
-1. **Go to [Firebase Console](https://console.firebase.google.com/)**
-2. **Click "Create a project"**
-3. **Enter project name:** `student-productivity-hub`
-4. **Enable Google Analytics** (optional)
-5. **Click "Create project"**
+1. Go to the Firebase Console (https://console.firebase.google.com/)
+2. Create a new project or select an existing one
+3. Go to Project Settings > General > Your apps
+4. Click "Add app" and select "Web"
+5. Register your app with a nickname (e.g., "MotivaMate Web")
+6. Copy the configuration object
+7. Replace the configuration in `src/lib/firebase.ts` with your actual values
 
-## 🔐 **Step 2: Enable Authentication**
+## Required Firebase Services
 
-1. **In Firebase Console, go to "Authentication"**
-2. **Click "Get started"**
-3. **Go to "Sign-in method" tab**
-4. **Enable "Email/Password"**
-5. **Click "Save"**
+Enable these services in your Firebase Console:
 
-## 📊 **Step 3: Create Firestore Database**
+### Authentication
+- Go to Authentication > Sign-in method
+- Enable Email/Password authentication
+- Enable Google authentication (optional)
 
-1. **Go to "Firestore Database"**
-2. **Click "Create database"**
-3. **Choose "Start in test mode"** (for development)
-4. **Select a location** (choose closest to your users)
-5. **Click "Done"**
+### Firestore Database
+- Go to Firestore Database
+- Create database in test mode (or production mode with proper security rules)
 
-## ⚙️ **Step 4: Get Your Firebase Config**
+## Security Rules (Firestore)
 
-1. **Go to Project Settings** (gear icon)
-2. **Scroll down to "Your apps"**
-3. **Click "Add app" → Web**
-4. **Register app with name:** `Student Productivity Hub`
-5. **Copy the config object**
-
-## 🔧 **Step 5: Update Firebase Config**
-
-Replace the config in `src/config/firebase.ts`:
-
-```typescript
-const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "your-sender-id",
-  appId: "your-app-id"
-};
-```
-
-## 🔒 **Step 6: Set Up Firestore Rules**
-
-In Firebase Console → Firestore Database → Rules:
+Add these rules to your Firestore Database:
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only access their own data
+    // Users can read and write their own data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // User's tasks, achievements, etc.
-    match /users/{userId}/{collection}/{document} {
+    // Allow authenticated users to read/write their study data
+    match /study-data/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
 ```
 
-## 🚀 **Step 7: Deploy**
+## Environment Variables (Optional)
 
-1. **Update the Firebase config** in your code
-2. **Push to GitHub**
-3. **Deploy to Netlify/Vercel**
+For production, consider using environment variables:
 
-## ✅ **Features You'll Get:**
+1. Create a `.env.local` file (never commit this to git)
+2. Add your Firebase config:
 
-- ✅ **User registration and login**
-- ✅ **Individual data storage per user**
-- ✅ **Secure authentication**
-- ✅ **Real-time data sync**
-- ✅ **Password reset functionality**
-- ✅ **Email verification**
+```
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
 
-## 🔧 **Next Steps:**
+3. Update `firebase.ts` to use these variables:
 
-1. **Set up Firebase project**
-2. **Update the config**
-3. **Test authentication**
-4. **Deploy your app**
-
-**Need help with any step?** Let me know! 🚀 
+```typescript
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+}
+```

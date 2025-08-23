@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Target, Clock, Flame, Calendar, TrendingUp } from '@phosphor-icons/react'
+import { Trophy, Target, Clock, Flame, Calendar, ArrowUp } from '@phosphor-icons/react'
 import { UserStats, Achievement, StudySession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
@@ -81,7 +81,7 @@ export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverv
 
         <Card>
           <CardContent className="p-4 text-center">
-            <TrendingUp size={24} className="mx-auto text-accent mb-2" />
+            <ArrowUp size={24} className="mx-auto text-accent mb-2" />
             <div className="text-2xl font-bold">{bestTimeString}</div>
             <div className="text-sm text-muted-foreground">Best Study Time</div>
             {bestTime.sessions > 0 && (

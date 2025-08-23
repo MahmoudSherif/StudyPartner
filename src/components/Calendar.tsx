@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -38,7 +37,9 @@ export function Calendar({ subjects }: CalendarProps) {
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  const [events, setEvents] = useKV<CalendarEvent[]>(userDataKey('calendar-events'), [])
+  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+  // const [events, setEvents] = useKV<CalendarEvent[]>(userDataKey('calendar-events'), [])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isAddEventOpen, setIsAddEventOpen] = useState(false)

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -22,7 +21,9 @@ export function TargetNotifications({ subjects, sessions, onSelectSubject }: Tar
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  const [dismissedNotifications, setDismissedNotifications] = useKV<string[]>(userDataKey('dismissed-notifications'), [])
+  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
+  const [dismissedNotifications, setDismissedNotifications] = useState<string[]>([])
+  // const [dismissedNotifications, setDismissedNotifications] = useKV<string[]>(userDataKey('dismissed-notifications'), [])
   const [notifications, setNotifications] = useState<TargetNotification[]>([])
 
   useEffect(() => {

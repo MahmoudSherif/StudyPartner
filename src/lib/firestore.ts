@@ -16,6 +16,26 @@ import {
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
 
 export class FirestoreService {
+  private isNetworkBlocked(error: any): boolean {
+    return error.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
+           error.code === 'failed-precondition' ||
+           error.message?.includes('blocked') ||
+           error.message?.includes('network')
+  }
+
+  private handleFirestoreError(error: any): string {
+    const isBlocked = this.isNetworkBlocked(error)
+    
+    if (isBlocked) {
+      // Dispatch a custom event to notify the NetworkBlockIndicator
+      window.dispatchEvent(new CustomEvent('firebase-error', {
+        detail: { error, isBlocked: true }
+      }))
+      return 'Network requests blocked (possibly by ad blocker) - data saved locally'
+    }
+    return error.message || 'Unknown error occurred'
+  }
+
   private getUserDocRef(userId: string) {
     if (!isFirebaseAvailable || !db) {
       throw new Error('Firestore database not available')
@@ -46,7 +66,9 @@ export class FirestoreService {
         return { data: null, error: 'User not found' }
       }
     } catch (error: any) {
-      return { data: null, error: error.message }
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore getUserProfile failed:', errorMessage)
+      return { data: null, error: errorMessage }
     }
   }
 
@@ -60,7 +82,9 @@ export class FirestoreService {
       await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() })
       return { error: null }
     } catch (error: any) {
-      return { error: error.message }
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore updateUserProfile failed:', errorMessage)
+      return { error: errorMessage }
     }
   }
 
@@ -78,7 +102,9 @@ export class FirestoreService {
       })
       return { error: null }
     } catch (error: any) {
-      return { error: error.message }
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore createUserProfile failed:', errorMessage)
+      return { error: errorMessage }
     }
   }
 
@@ -98,7 +124,9 @@ export class FirestoreService {
       })
       return { error: null }
     } catch (error: any) {
-      return { error: error.message }
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore saveUserData failed:', errorMessage)
+      return { error: errorMessage }
     }
   }
 
@@ -118,7 +146,9 @@ export class FirestoreService {
         return { data: null, error: null } // No data found is not an error
       }
     } catch (error: any) {
-      return { data: null, error: error.message }
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore getUserData failed:', errorMessage)
+      return { data: null, error: errorMessage }
     }
   }
 
