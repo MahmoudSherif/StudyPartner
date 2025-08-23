@@ -1,527 +1,863 @@
-import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { AppProvider, useApp } from './context/AppContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
-import Login from './components/Auth/Login';
-import Signup from './components/Auth/Signup';
-import ErrorBoundary from './components/ErrorBoundary';
-import OfflineIndicator from './components/OfflineIndicator';
-import { shouldResetStreak, resetStreak } from './utils/streakCalculator';
-import { applyTheme, getThemeBackground } from './utils/themeUtils';
-import {
-  Calendar,
+import { useState, useEffect } from 'react'
+import { useKV } from '@github/spark/hooks'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { ProfileTab } from '@/components/ProfileTab'
+import { Achievements } from '@/components/Achievements'
+import { SpaceBackground } from '@/components/SpaceBackground'
+import { QuotesBar } from '@/components/QuotesBar'
+import { Calendar } from '@/components/Calendar'
+import { TasksManagement } from '@/components/TasksManagement'
+import { TaskCelebration } from '@/components/TaskCelebration'
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AchieveTab } from '@/components/AchieveTab'
+import { NotesTab } from '@/components/NotesTab'
+import { AuthScreen } from '@/components/AuthScreen'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { 
+  useFirebaseSubjects,
+  useFirebaseSessions,
+  useFirebaseAchievements,
+  useFirebaseTasks,
+  useFirebaseChallenges,
+  useFirebaseFocusSessions,
+  useFirebaseGoals
+} from '@/hooks/useFirebaseSync'
+
+import { InspirationCarousel } from '@/components/InspirationCarousel'
+import { FirebaseTestPanel } from '@/components/FirebaseTestPanel'
+import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
+import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
+import { calculateUserStats, updateAchievements } from '@/lib/utils'
+import { useTouchGestures } from '@/hooks/useTouchGestures'
+import { usePWA } from '@/hooks/usePWA'
+import { useMobileBehavior } from '@/hooks/useDeviceDetection'
+import { mobileFeedback } from '@/lib/mobileFeedback'
+import { notificationManager, initializeNotifications } from '@/lib/notifications'
+import { 
+  Clock, 
+  ChartBar, 
+  Trophy, 
+  BookOpen, 
+  Calendar as CalendarIcon,
   CheckSquare,
-  BookOpen,
+  Lightbulb,
   Target,
-  Trophy,
-  LogOut,
-  Zap,
-  Menu,
-  X,
-  Lightbulb
-} from 'lucide-react';
-import Dashboard from './components/Dashboard';
-import Welcome from './components/Welcome';
-import TaskManager from './components/TaskManager';
-import CalendarView from './components/CalendarView';
-import KnowledgeBase from './components/KnowledgeBase';
-import Achievements from './components/Achievements';
-import NatureGallery from './components/NatureGallery';
-import QuotesBar from './components/QuotesBar';
-import DailyChallenges from './components/DailyChallenges';
-import InspirationalFigures from './components/InspirationalFigures';
-import RestoreMode from './components/RestoreMode';
-import UserProfile from './components/UserProfile';
-
-// Component to check and reset streak on app load
-const StreakChecker: React.FC = () => {
-  const { state, updateStreak } = useApp();
-
-  useEffect(() => {
-    if (state.streak && shouldResetStreak(state.streak)) {
-      console.log('Resetting streak due to missed days');
-      const resetStreakData = resetStreak(state.streak);
-      updateStreak(resetStreakData);
-    }
-  }, []); // Only run on mount
-
-  return null;
-};
-
-// Theme applier component
-const ThemeApplier: React.FC = () => {
-  const { state } = useApp();
-  
-  useEffect(() => {
-    // Apply theme when it changes
-    applyTheme(state.settings.theme);
-  }, [state.settings.theme]);
-
-  return null;
-};
-
-const Navigation: React.FC = () => {
-  const location = useLocation();
-  const { state } = useApp();
-  const { currentUser, logout } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  // In development mode with auth bypass, show navigation anyway
-  const devBypass = import.meta.env.DEV && localStorage.getItem('dev-bypass-auth') === 'true';
-  if (!currentUser && !devBypass) return null;
-
-  return (
-    <>
-      {/* Enhanced Space Galaxy Navigation */}
-      <nav 
-        className="fixed top-0 left-0 right-0 z-[999999] backdrop-blur-xl border-b-8 shadow-2xl"
-        style={{ 
-          backgroundColor: '#0a0118',
-          borderBottomColor: '#ffffff',
-          borderBottomWidth: '6px',
-          backgroundImage: `
-            radial-gradient(4px 4px at 20px 30px, #ffffff, transparent),
-            radial-gradient(3px 3px at 40px 70px, #e879f9, transparent),
-            radial-gradient(2px 2px at 90px 40px, #3b82f6, transparent),
-            radial-gradient(3px 3px at 140px 80px, #10b981, transparent),
-            radial-gradient(2px 2px at 180px 30px, #f59e0b, transparent),
-            radial-gradient(4px 4px at 200px 60px, #ec4899, transparent),
-            radial-gradient(2px 2px at 240px 85px, #ffffff, transparent),
-            radial-gradient(3px 3px at 60px 20px, #8b5cf6, transparent),
-            radial-gradient(1px 1px at 160px 10px, #06b6d4, transparent),
-            radial-gradient(2px 2px at 100px 90px, #ffffff, transparent)
-          `,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '280px 140px'
-        }}
-      >
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            background: 'linear-gradient(135deg, #0a0118 0%, #1a1a2e 20%, #16213e 40%, #0f172a 60%, #1e293b 80%, #334155 100%)',
-            opacity: 0.75
-          }}
-        ></div>
-        
-        {/* Desktop Navigation - Modern Bar Style */}
-        <div className="desktop-navigation relative max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between h-20">
-            
-            {/* Compact Logo Section */}
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-                <div 
-                  className="relative p-2 rounded-xl shadow-lg"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
-                  }}
-                >
-                  <Target className="w-5 h-5 text-white drop-shadow-sm" />
-                </div>
-              </div>
-              <span className="font-black text-xl text-white tracking-wide">StudyPartner</span>
-            </Link>
-
-            {/* Modern Navigation Bar */}
-            <div className="flex items-center gap-2">
-              {/* Main Navigation Items - Horizontal Bar */}
-              <div 
-                className="flex items-center gap-1 backdrop-blur-xl rounded-full px-3 py-2 border-2"
-                style={{ 
-                  backgroundColor: 'rgba(10, 1, 24, 0.9)', 
-                  borderColor: 'rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                }}
-              >
-                {[
-                  { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
-                  { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                  { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                  { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
-                  { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                  { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' }
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path);
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`relative group flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
-                        active 
-                          ? 'text-white shadow-lg border-white/50 bg-gradient-to-r from-blue-600/80 to-purple-600/80' 
-                          : 'text-slate-300 hover:text-white border-white/20 hover:border-blue-300/60 hover:bg-white/5'
-                      }`}
-                      style={{
-                        boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)' : 'none'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                          e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!active) {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }
-                      }}
-                    >
-                      <Icon className="w-5 h-5 relative z-10 flex-shrink-0" />
-                      <span className="relative z-10 font-semibold text-lg whitespace-nowrap">
-                        {item.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* User Actions Bar */}
-              <div className="flex items-center gap-2 ml-4">
-                {/* Profile Button */}
-                <Link
-                  to="/profile"
-                  className={`group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 border-2 ${
-                    isActive('/profile')
-                      ? 'text-white shadow-lg border-white/30'
-                      : 'text-slate-300 hover:text-white border-transparent hover:border-blue-300/50'
-                  }`}
-                  style={{
-                    backgroundColor: isActive('/profile') ? 'rgba(59, 130, 246, 0.6)' : 'rgba(10, 1, 24, 0.7)',
-                    boxShadow: isActive('/profile') ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.3)';
-                      e.currentTarget.style.boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive('/profile')) {
-                      e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }
-                  }}
-                >
-                  <div className="relative">
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #06b6d4 100%)',
-                        boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)'
-                      }}
-                    >
-                      {state?.settings?.avatar || '👤'}
-                    </div>
-                  </div>
-                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Profile</span>
-                </Link>
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="group relative flex items-center gap-2 px-4 py-3 rounded-full transition-all duration-300 text-slate-300 hover:text-red-300 border-2 border-transparent hover:border-red-400/50"
-                  style={{ 
-                    backgroundColor: 'rgba(10, 1, 24, 0.7)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(220, 38, 38, 0.3)';
-                    e.currentTarget.style.boxShadow = '0 0 15px rgba(220, 38, 38, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(10, 1, 24, 0.7)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <LogOut className="w-5 h-5 relative z-10 flex-shrink-0" />
-                  <span className="relative z-10 font-semibold text-lg whitespace-nowrap">Logout</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Mobile Navigation - Fixed positioned to not consume space */}
-        <div className="mobile-navigation fixed top-0 left-0 right-0 z-40 px-4 py-3 backdrop-blur-xl border-b-2 border-white/20" 
-             style={{ backgroundColor: 'rgba(10, 1, 24, 0.95)' }}>
-          <div className="flex items-center justify-between">
-            {/* Mobile Logo */}
-            <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 rounded-xl blur-sm opacity-50 group-hover:opacity-70 transition-opacity duration-500"></div>
-                <div 
-                  className="relative p-2 rounded-xl shadow-lg"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                    boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)'
-                  }}
-                >
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <span className="font-black text-lg text-white tracking-wide">StudyPartner</span>
-            </Link>
-
-            {/* Hamburger Menu Button */}
-            <button
-              onClick={toggleMobileMenu}
-              className="relative p-2 rounded-xl backdrop-blur-xl border-2 transition-all duration-300"
-              style={{
-                backgroundColor: 'rgba(10, 1, 24, 0.8)',
-                borderColor: 'rgba(255, 255, 255, 0.8)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)'
-              }}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-white" />
-              ) : (
-                <Menu className="w-6 h-6 text-white" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 overflow-hidden">
-            {/* Solid Backdrop - Fixed transparency issue */}
-            <div 
-              className="absolute inset-0"
-              style={{ 
-                backgroundColor: 'rgba(10, 1, 24, 1)' // Fully opaque now
-              }}
-              onClick={closeMobileMenu}
-            ></div>
-            
-            {/* Menu Content - Fixed alignment and made fully opaque */}
-            <div 
-              className="relative h-full overflow-y-auto"
-              style={{ 
-                backgroundColor: '#0a0118' // Solid background for menu content
-              }}
-            >
-              <div className="flex flex-col min-h-full">
-                {/* Header - Improved alignment */}
-                <div className="flex items-center justify-between p-6 border-b border-white/20">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="p-2 rounded-xl"
-                      style={{ 
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #3b82f6 60%, #10b981 100%)',
-                      }}
-                    >
-                      <Target className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-black text-xl text-white">Menu</span>
-                  </div>
-                  <button
-                    onClick={closeMobileMenu}
-                    className="p-2 rounded-xl text-white hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                {/* Menu Items - Fixed backgrounds to be fully opaque */}
-                <div className="flex-1 p-6">
-                  <div className="space-y-3">
-                    {[
-                      { path: '/dashboard', icon: Target, label: 'Dashboard', color: 'from-blue-500 to-purple-600' },
-                      { path: '/knowledge', icon: BookOpen, label: 'Learning', color: 'from-orange-500 to-red-500' },
-                      { path: '/tasks', icon: CheckSquare, label: 'Tasks', color: 'from-green-500 to-emerald-600' },
-                      { path: '/calendar', icon: Calendar, label: 'Calendar', color: 'from-purple-500 to-pink-600' },
-                      { path: '/inspiration', icon: Lightbulb, label: 'Inspiration', color: 'from-yellow-500 to-amber-600' },
-                      { path: '/achievements', icon: Trophy, label: 'Achievements', color: 'from-yellow-500 to-orange-500' },
-                      { path: '/challenges', icon: Zap, label: 'Goals', color: 'from-indigo-500 to-purple-600' },
-                      { path: '/profile', icon: Target, label: 'Profile', color: 'from-blue-500 to-cyan-500' }
-                    ].map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item.path);
-                      return (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={closeMobileMenu}
-                          className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 border ${
-                            active 
-                              ? 'text-white shadow-lg border-white/30' 
-                              : 'text-slate-200 hover:text-white border-transparent hover:border-blue-300/50'
-                          }`}
-                          style={{
-                            backgroundColor: active ? 'rgba(59, 130, 246, 0.8)' : 'rgba(30, 41, 59, 0.8)', // Fully opaque backgrounds
-                            boxShadow: active ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
-                          }}
-                        >
-                          <div className={`p-3 rounded-xl bg-gradient-to-r ${item.color} shadow-lg`}>
-                            <Icon className="w-5 h-5 text-white" />
-                          </div>
-                          <span className="font-bold text-lg flex-1">{item.label}</span>
-                          {active && (
-                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Footer Actions - Improved alignment */}
-                <div className="p-6 border-t border-white/20">
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeMobileMenu();
-                    }}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 text-slate-200 hover:text-red-300 border border-transparent hover:border-red-400/50"
-                    style={{
-                      backgroundColor: 'rgba(220, 38, 38, 0.8)', // Fully opaque background
-                      boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
-                    }}
-                  >
-                    <div className="p-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 shadow-lg">
-                      <LogOut className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-lg">Logout</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-      </nav>
-
-      {/* Add top padding to prevent content overlap - smaller padding for modern bar */}
-      <div className="mobile-nav-spacer"></div>
-    </>
-  );
-};
-
-// Component to apply theme to body - needs to be inside AppProvider
-const BodyThemeApplier: React.FC = () => {
-  const { state } = useApp();
-
-  // Apply theme-specific styles to body
-  useEffect(() => {
-    if (state?.settings?.theme) {
-      // For space and galaxy themes, let the animated background handle it
-      if (state.settings.theme === 'space' || state.settings.theme === 'galaxy') {
-        // Set a minimal dark background and let the space-background handle the visual
-        document.body.style.background = '#000000';
-      } else {
-        const themeBackground = getThemeBackground(state.settings.theme);
-        document.body.style.background = themeBackground;
-      }
-    }
-  }, [state?.settings?.theme]);
-
-  return null;
-};
-
-const AppContent: React.FC = () => {
-  return (
-    <AuthProvider>
-      <AppProvider>
-        <div className="min-h-dvh safe-area-inset text-gray-100">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <StreakChecker />
-                <ThemeApplier />
-                <BodyThemeApplier />
-                <QuotesBar />
-                <ThemedMainContent />
-              </ProtectedRoute>
-            } />
-          </Routes>
-          {/* Security Components */}
-          <OfflineIndicator />
-        </div>
-      </AppProvider>
-    </AuthProvider>
-  );
-};
-
-const ThemedMainContent: React.FC = () => {
-  const { state } = useApp();
-  
-  // For space and galaxy themes, don't apply solid background - let animated background handle it
-  const shouldUseAnimatedBackground = state.settings.theme === 'galaxy' || state.settings.theme === 'space';
-  const themeBackground = shouldUseAnimatedBackground ? 'transparent' : getThemeBackground(state.settings.theme);
-
-  return (
-    <div 
-      className="min-h-dvh safe-area-inset text-gray-100"
-      style={{ background: themeBackground }}
-    >
-      {/* Animated Space Background for Galaxy and Space Themes */}
-      {shouldUseAnimatedBackground && (
-        <div className="space-background">
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="shooting-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-          <div className="pulsing-star"></div>
-        </div>
-      )}
-      
-      <Navigation />
-      
-      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-8 pb-20 sm:pb-24 lg:pb-32 max-w-full overflow-x-hidden">
-        <Routes>
-          <Route path="/" element={<Welcome />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tasks" element={<TaskManager />} />
-          <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/knowledge" element={<KnowledgeBase />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/challenges" element={<DailyChallenges />} />
-          <Route path="/inspiration" element={<InspirationalFigures />} />
-          <Route path="/restore" element={<RestoreMode />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/nature" element={<NatureGallery />} />
-        </Routes>
-      </main>
-    </div>
-  );
-};
+  StickyNote,
+  User,
+  TestTube
+} from '@phosphor-icons/react'
+import { toast, Toaster } from 'sonner'
 
 function App() {
   return (
     <ErrorBoundary>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AuthProvider>
         <AppContent />
-      </Router>
+      </AuthProvider>
     </ErrorBoundary>
-  );
+  )
 }
 
-export default App;
+function AppContent() {
+  const { user, loading, signOut } = useAuth()
+  
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <SpaceBackground />
+        <div className="relative z-10 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-white/80">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show auth screen if user is not logged in
+  if (!user) {
+    return <AuthScreen />
+  }
+  
+  // Initialize notifications on app start
+  useEffect(() => {
+    const setupNotifications = async () => {
+      try {
+        const initialized = await initializeNotifications();
+        // Notifications initialized silently for production
+      } catch (error) {
+        // Silent failure for notifications in production
+      }
+    };
+
+    setupNotifications();
+  }, []);
+
+  // Global error handling with improved specificity
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      // Only show toast for serious errors, not minor UI glitches
+      if (event.error && !event.error.message?.includes('ResizeObserver')) {
+        toast.error('An unexpected error occurred. Please refresh if issues persist.')
+      }
+    }
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Check if it's a useKV storage error
+      if (event.reason?.message?.includes('storage') || event.reason?.message?.includes('KV')) {
+        // Don't show error toast for storage failures as they're often recoverable
+        return
+      }
+      
+      // Check if it's a network error
+      if (event.reason?.message?.includes('fetch') || event.reason?.message?.includes('network')) {
+        // Silent network error handling
+        return
+      }
+      
+      // Only show toast for genuine application errors that impact user experience
+      if (event.reason && typeof event.reason === 'object' && event.reason.message) {
+        toast.error('Something went wrong. Please try again.')
+      }
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    }
+  }, [])
+
+  // Get current user ID from Firebase Auth
+  const currentUserId = user?.uid || 'anonymous'
+  
+  // Firebase-synced data - these will automatically sync with Firestore
+  const [subjects, setSubjects] = useFirebaseSubjects()
+  const [sessions, setSessions] = useFirebaseSessions()
+  const [achievements, setAchievements] = useFirebaseAchievements()
+  const [tasks, setTasks] = useFirebaseTasks()
+  const [challenges, setChallenges] = useFirebaseChallenges()
+  const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
+  const [goals, setGoals] = useFirebaseGoals()
+  const [currentTab, setCurrentTab] = useState('achieve')
+  
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
+  const [lastSessionDuration, setLastSessionDuration] = useState(0)
+  const [celebrationData, setCelebrationData] = useState<{
+    isOpen: boolean
+    taskTitle: string
+    isChallenge: boolean
+    challengeTitle?: string
+    points?: number
+  }>({
+    isOpen: false,
+    taskTitle: '',
+    isChallenge: false
+  })
+  const [showChallengeProgress, setShowChallengeProgress] = useState(false)
+
+  // Combine regular study sessions and focus sessions for stats calculation
+  const stats = calculateUserStats(sessions, focusSessions)
+  
+  // Combine regular study sessions and focus sessions for activity tracking
+  const allSessions = [
+    ...sessions,
+    ...focusSessions.map(fs => ({
+      id: fs.id,
+      subjectId: 'focus',
+      startTime: fs.startTime,
+      endTime: fs.endTime || fs.startTime,
+      duration: fs.duration,
+      completed: fs.completed
+    } as StudySession))
+  ]
+  const { isStandalone } = usePWA()
+  const deviceInfo = useMobileBehavior()
+
+  // Touch gestures for tab navigation
+  const containerRef = useTouchGestures({
+    onSwipeLeft: () => {
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test']
+      const currentIndex = tabs.indexOf(currentTab)
+      if (currentIndex < tabs.length - 1) {
+        setCurrentTab(tabs[currentIndex + 1])
+      }
+    },
+    onSwipeRight: () => {
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test']
+      const currentIndex = tabs.indexOf(currentTab)
+      if (currentIndex > 0) {
+        setCurrentTab(tabs[currentIndex - 1])
+      }
+    },
+    threshold: 100
+  })
+
+  // Prevent zooming on double tap
+  useEffect(() => {
+    const preventDefault = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault()
+      }
+    }
+
+    const preventZoom = (e: TouchEvent) => {
+      const t2 = e.timeStamp
+      const target = e.currentTarget as HTMLElement
+      if (!target || !target.dataset) return
+      
+      const t1 = parseFloat(target.dataset.lastTouch || t2.toString())
+      const dt = t2 - t1
+      const fingers = e.touches ? e.touches.length : 0
+      target.dataset.lastTouch = t2.toString()
+
+      if (!dt || dt > 500 || fingers > 1) return // not double-tap
+
+      e.preventDefault()
+      if (e.target && typeof (e.target as HTMLElement).click === 'function') {
+        (e.target as HTMLElement).click()
+      }
+    }
+
+    document.addEventListener('touchstart', preventDefault, { passive: false })
+    document.addEventListener('touchstart', preventZoom, { passive: false })
+
+    return () => {
+      document.removeEventListener('touchstart', preventDefault)
+      document.removeEventListener('touchstart', preventZoom)
+    }
+  }, [])
+
+  // Handle URL tab parameter for PWA shortcuts
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tabParam = urlParams.get('tab')
+    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test'].includes(tabParam)) {
+      setCurrentTab(tabParam)
+    }
+  }, [])
+
+  // Calculate task progress
+  const calculateTaskProgress = (): TaskProgress => {
+    const today = new Date()
+    const todayTasks = tasks.filter(task => {
+      const taskDate = new Date(task.createdAt)
+      return taskDate.toDateString() === today.toDateString()
+    })
+    
+    const completedTodayTasks = todayTasks.filter(task => task.completed)
+    
+    const dailyProgress = {
+      total: todayTasks.length,
+      completed: completedTodayTasks.length,
+      percentage: todayTasks.length > 0 ? (completedTodayTasks.length / todayTasks.length) * 100 : 0
+    }
+
+    // Find active challenge the user is participating in
+    const activeChallenge = challenges.find(challenge => 
+      challenge.isActive && challenge.participants.includes(currentUserId)
+    )
+
+    let challengeProgress = undefined
+    if (activeChallenge && showChallengeProgress) {
+      // Calculate user points and task completion
+      const userCompletedTasks = activeChallenge.tasks.filter(task => 
+        task.completedBy.includes(currentUserId)
+      )
+      const userPoints = userCompletedTasks.reduce((total, task) => total + task.points, 0)
+      const maxPoints = activeChallenge.tasks.reduce((total, task) => total + task.points, 0)
+      
+      // Calculate leaderboard with points
+      const leaderboard = activeChallenge.participants.map(participantId => {
+        const completedTasks = activeChallenge.tasks.filter(task => 
+          task.completedBy.includes(participantId)
+        )
+        const points = completedTasks.reduce((total, task) => total + task.points, 0)
+        return {
+          userId: participantId,
+          points,
+          tasksCompleted: completedTasks.length,
+          rank: 0 // Will be calculated after sorting
+        }
+      }).sort((a, b) => b.points - a.points) // Sort by points descending
+      
+      // Assign ranks (handle ties)
+      leaderboard.forEach((participant, index) => {
+        if (index === 0) {
+          participant.rank = 1
+        } else if (participant.points === leaderboard[index - 1].points) {
+          participant.rank = leaderboard[index - 1].rank // Same rank for tied scores
+        } else {
+          participant.rank = index + 1
+        }
+      })
+      
+      const userRank = leaderboard.find(p => p.userId === currentUserId)?.rank || 1
+      
+      // Check if challenge is completed (ended)
+      const isCompleted = activeChallenge.endDate ? new Date() > new Date(activeChallenge.endDate) : false
+      const winnerId = isCompleted && leaderboard.length > 0 ? leaderboard[0].userId : undefined
+
+      challengeProgress = {
+        challengeId: activeChallenge.id,
+        challengeTitle: activeChallenge.title,
+        totalTasks: activeChallenge.tasks.length,
+        completedTasks: userCompletedTasks.length,
+        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks.length / activeChallenge.tasks.length) * 100 : 0,
+        userRank,
+        totalParticipants: activeChallenge.participants.length,
+        userPoints,
+        maxPoints,
+        pointsPercentage: maxPoints > 0 ? (userPoints / maxPoints) * 100 : 0,
+        leaderboard,
+        isCompleted,
+        winnerId
+      }
+    }
+
+    return {
+      dailyTasks: dailyProgress,
+      challengeProgress
+    }
+  }
+
+  const taskProgress = calculateTaskProgress()
+
+  // Track previous progress for milestone detection
+  const [previousDailyProgress, setPreviousDailyProgress] = useState(0)
+  const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
+
+  // Check for progress milestones and trigger haptic feedback
+  useEffect(() => {
+    try {
+      const dailyPercentage = taskProgress.dailyTasks.percentage
+      const challengePointsPercentage = taskProgress.challengeProgress?.pointsPercentage || 0
+
+      // Check daily task milestones (25%, 50%, 75%, 100%)
+      const dailyMilestones = [25, 50, 75, 100]
+      const reachedDailyMilestone = dailyMilestones.find(milestone => 
+        dailyPercentage >= milestone && previousDailyProgress < milestone
+      )
+
+      if (reachedDailyMilestone && dailyPercentage > 0) {
+        mobileFeedback.progressMilestone()
+        toast.success(`Daily Progress: ${reachedDailyMilestone}% complete! 🎯`, {
+          description: `${taskProgress.dailyTasks.completed}/${taskProgress.dailyTasks.total} tasks done today`,
+        })
+      }
+
+      // Check challenge milestones (based on points percentage)
+      const challengeMilestones = [25, 50, 75, 100]
+      const reachedChallengeMilestone = challengeMilestones.find(milestone => 
+        challengePointsPercentage >= milestone && previousChallengeProgress < milestone
+      )
+
+      if (reachedChallengeMilestone && challengePointsPercentage > 0 && taskProgress.challengeProgress) {
+        mobileFeedback.progressMilestone()
+        toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
+          description: `${taskProgress.challengeProgress.userPoints}/${taskProgress.challengeProgress.maxPoints} points in ${taskProgress.challengeProgress.challengeTitle}`,
+        })
+      }
+
+      setPreviousDailyProgress(dailyPercentage)
+      setPreviousChallengeProgress(challengePointsPercentage)
+    } catch (error) {
+      // Silent error handling for milestone tracking
+    }
+  }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.pointsPercentage])
+
+  useEffect(() => {
+    try {
+      const updatedAchievements = updateAchievements(achievements, stats, sessions, focusSessions, goals)
+      
+      // Check for newly unlocked achievements
+      const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
+        achievement.unlocked && !achievements[index]?.unlocked
+      )
+      
+      if (newlyUnlocked.length > 0) {
+        setAchievements(updatedAchievements)
+        newlyUnlocked.forEach(async (achievement) => {
+          // Trigger achievement haptic feedback
+          mobileFeedback.achievement()
+          
+          // Show in-app toast
+          toast.success(`Achievement Unlocked: ${achievement.title}`, {
+            description: achievement.description,
+            duration: 5000
+          })
+          
+          // Send push notification
+          try {
+            await notificationManager.notifyAchievementUnlock(
+              achievement.title,
+              achievement.description
+            )
+          } catch (error) {
+            // Silent notification failure
+          }
+        })
+      } else {
+        setAchievements(updatedAchievements)
+      }
+    } catch (error) {
+      // Silent error handling for achievements update
+    }
+  }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak, focusSessions.length, goals.length, goals.filter(g => g.isCompleted).length])
+
+  const handleAddSubject = (subjectData: Omit<Subject, 'id'>) => {
+    const newSubject: Subject = {
+      ...subjectData,
+      id: Date.now().toString()
+    }
+    setSubjects(current => [...current, newSubject])
+    toast.success(`Added subject: ${newSubject.name}`)
+  }
+
+  const handleDeleteSubject = (id: string) => {
+    const subject = subjects.find(s => s.id === id)
+    setSubjects(current => current.filter(s => s.id !== id))
+    setSessions(current => current.filter(s => s.subjectId !== id))
+    
+    if (selectedSubject?.id === id) {
+      setSelectedSubject(null)
+    }
+    
+    toast.success(`Deleted subject: ${subject?.name}`)
+    }
+
+  const handleUpdateSubject = (id: string, updates: Partial<Subject>) => {
+    setSubjects(current => 
+      current.map(subject => 
+        subject.id === id ? { ...subject, ...updates } : subject
+      )
+    )
+    
+    // Update selected subject if it's the one being updated
+    if (selectedSubject?.id === id) {
+      setSelectedSubject(current => current ? { ...current, ...updates } : current)
+    }
+    
+    toast.success('Subject updated successfully')
+  }
+
+  const handleSessionComplete = (duration: number) => {
+    try {
+      if (!selectedSubject) return
+
+      const session: StudySession = {
+        id: Date.now().toString(),
+        subjectId: selectedSubject.id,
+        startTime: new Date(),
+        endTime: new Date(),
+        duration: Math.round(duration),
+        completed: true
+      }
+
+      setSessions(current => [...current, session])
+      
+      // Update subject total time
+      setSubjects(current => 
+        current.map(subject => 
+          subject.id === selectedSubject.id 
+            ? { ...subject, totalTime: subject.totalTime + Math.round(duration) }
+            : subject
+        )
+      )
+
+      // Trigger haptic feedback for study session completion
+      mobileFeedback.studySessionComplete()
+
+      setLastSessionDuration(Math.round(duration))
+      
+      toast.success(`Great job! You studied ${selectedSubject.name} for ${Math.round(duration)} minutes.`)
+    } catch (error) {
+      toast.error('Failed to save session. Please try again.')
+    }
+  }
+
+  const handleSessionCancel = () => {
+    toast.info('Study session cancelled')
+  }
+
+  // Update achievements function
+  const handleUpdateAchievements = (newAchievements: Achievement[]) => {
+    setAchievements(newAchievements)
+  }
+
+  // Task management functions
+  const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    }
+    setTasks(current => [...current, newTask])
+  }
+
+  const handleToggleTask = (taskId: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId)
+      if (!task) return
+
+      const updatedTask = {
+        ...task,
+        completed: !task.completed,
+        completedAt: !task.completed ? new Date() : undefined
+      }
+
+      setTasks(current => 
+        current.map(t => t.id === taskId ? updatedTask : t)
+      )
+
+      if (!task.completed) {
+        // Trigger haptic feedback for task completion
+        mobileFeedback.taskComplete()
+        
+        // Show celebration for completed task
+        setCelebrationData({
+          isOpen: true,
+          taskTitle: task.title,
+          isChallenge: false
+        })
+      }
+    } catch (error) {
+      toast.error('Failed to update task. Please try again.')
+    }
+  }
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(current => current.filter(t => t.id !== taskId))
+    toast.success('Task deleted')
+  }
+
+  // Challenge management functions
+  const handleCreateChallenge = (challengeData: Omit<Challenge, 'id' | 'createdAt'>) => {
+    const newChallenge: Challenge = {
+      ...challengeData,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    }
+    setChallenges(current => [...current, newChallenge])
+  }
+
+  const handleJoinChallenge = (code: string) => {
+    const challenge = challenges.find(c => c.code === code && c.isActive)
+    if (!challenge) {
+      toast.error('Challenge not found or inactive')
+      return
+    }
+
+    if (challenge.participants.includes(currentUserId)) {
+      toast.info('You are already participating in this challenge')
+      return
+    }
+
+    setChallenges(current => 
+      current.map(c => 
+        c.id === challenge.id 
+          ? { ...c, participants: [...c.participants, currentUserId] }
+          : c
+      )
+    )
+    toast.success(`Joined challenge: ${challenge.title}`)
+  }
+
+  const handleAddChallengeTask = (challengeId: string, taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => {
+    const newTask: import('@/lib/types').ChallengeTask = {
+      ...taskData,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+      completedBy: []
+    }
+
+    setChallenges(current => 
+      current.map(c => 
+        c.id === challengeId 
+          ? { ...c, tasks: [...c.tasks, newTask] }
+          : c
+      )
+    )
+  }
+
+  const handleToggleChallengeTask = (challengeId: string, taskId: string) => {
+    try {
+      const challenge = challenges.find(c => c.id === challengeId)
+      const task = challenge?.tasks.find(t => t.id === taskId)
+      if (!challenge || !task) return
+
+      const isCompleted = task.completedBy.includes(currentUserId)
+      const updatedCompletedBy = isCompleted
+        ? task.completedBy.filter(id => id !== currentUserId)
+        : [...task.completedBy, currentUserId]
+
+      setChallenges(current => 
+        current.map(c => 
+          c.id === challengeId 
+            ? {
+                ...c,
+                tasks: c.tasks.map(t => 
+                  t.id === taskId 
+                    ? { ...t, completedBy: updatedCompletedBy }
+                    : t
+                )
+              }
+            : c
+        )
+      )
+
+      if (!isCompleted) {
+        // Trigger special haptic feedback for challenge task completion
+        mobileFeedback.challengeTaskComplete()
+        
+        // Show celebration for completed challenge task
+        setCelebrationData({
+          isOpen: true,
+          taskTitle: task.title,
+          isChallenge: true,
+          challengeTitle: challenge.title,
+          points: task.points
+        })
+      }
+    } catch (error) {
+      toast.error('Failed to update challenge task. Please try again.')
+    }
+  }
+
+  const handleSwitchProgressView = () => {
+    setShowChallengeProgress(!showChallengeProgress)
+  }
+
+  const handleEndChallenge = async (challengeId: string, winnerId: string) => {
+    try {
+      setChallenges(current => 
+        current.map(challenge => 
+          challenge.id === challengeId 
+            ? { ...challenge, isActive: false, winnerId }
+            : challenge
+        )
+      )
+      
+      // Trigger achievement haptic feedback
+      mobileFeedback.achievement()
+      
+      const challenge = challenges.find(c => c.id === challengeId)
+      const isCurrentUserWinner = winnerId === currentUserId
+      
+      // Calculate winner's points
+      const winnerPoints = challenge?.tasks
+        .filter(task => task.completedBy.includes(winnerId))
+        .reduce((total, task) => total + task.points, 0) || 0
+      
+      // Show in-app toast
+      toast.success(
+        isCurrentUserWinner 
+          ? `🏆 Congratulations! You won "${challenge?.title}"!`
+          : `Challenge "${challenge?.title}" has ended!`,
+        {
+          description: isCurrentUserWinner 
+            ? 'You are the challenge champion!'
+            : `Winner: User ${winnerId.slice(-4)}`,
+          duration: 5000
+        }
+      )
+      
+      // Send push notifications
+      try {
+        if (isCurrentUserWinner) {
+          // Notify winner
+          await notificationManager.notifyChallengeWin(
+            challenge?.title || 'Challenge',
+            winnerPoints
+          )
+        } else {
+          // Notify other participants
+          await notificationManager.notifyChallengeComplete(
+            challenge?.title || 'Challenge',
+            `User ${winnerId.slice(-4)}`
+          )
+        }
+      } catch (error) {
+        // Silent notification failure
+      }
+    } catch (error) {
+      toast.error('Failed to end challenge. Please try again.')
+    }
+  }
+
+  return (
+    <div className="min-h-screen relative" ref={containerRef}>
+      <SpaceBackground />
+      <OfflineIndicator />
+      {!isStandalone && <PWAInstallPrompt />}
+      
+      <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28 no-select">
+        <header className="text-center py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1"></div>
+            <div className="flex-1">
+              <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
+              <p className="text-white/80 text-sm lg:text-base drop-shadow">Your mobile study companion</p>
+              {user && (
+                <div className="mt-2 text-xs lg:text-sm text-white/60">
+                  Connected as {user.displayName || user.email?.split('@')[0]}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 flex justify-end">
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    const { error } = await signOut()
+                    if (error) {
+                      toast.error('Failed to sign out')
+                    }
+                  }}
+                  className="text-white/70 hover:text-white hover:bg-white/10 text-xs lg:text-sm"
+                >
+                  Sign Out
+                </Button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+          <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
+            <TabsList className="grid w-full grid-cols-8 bg-white/10 backdrop-blur-sm">
+              <TabsTrigger value="achieve" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Target size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Achieve</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CheckSquare size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Tasks</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CalendarIcon size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <StickyNote size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Notes</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <User size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Trophy size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Awards</span>
+              </TabsTrigger>
+              <TabsTrigger value="inspiration" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Lightbulb size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Inspire</span>
+              </TabsTrigger>
+              <TabsTrigger value="firebase-test" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <TestTube size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Test</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="achieve" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <AchieveTab 
+                achievements={achievements}
+                onUpdateAchievements={handleUpdateAchievements}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <TasksManagement
+                tasks={tasks}
+                challenges={challenges}
+                subjects={subjects}
+                taskProgress={taskProgress}
+                currentUserId={currentUserId}
+                onAddTask={handleAddTask}
+                onToggleTask={handleToggleTask}
+                onDeleteTask={handleDeleteTask}
+                onCreateChallenge={handleCreateChallenge}
+                onJoinChallenge={handleJoinChallenge}
+                onAddChallengeTask={handleAddChallengeTask}
+                onToggleChallengeTask={handleToggleChallengeTask}
+                onSwitchProgressView={handleSwitchProgressView}
+                onEndChallenge={handleEndChallenge}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <Calendar subjects={subjects} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notes" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <NotesTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <ProfileTab stats={stats} achievements={achievements} sessions={allSessions} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="achievements" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <Achievements achievements={achievements} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="inspiration" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <InspirationCarousel />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="firebase-test" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <FirebaseTestPanel />
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <QuotesBar />
+
+      <TaskCelebration
+        isOpen={celebrationData.isOpen}
+        onClose={() => setCelebrationData({ ...celebrationData, isOpen: false })}
+        taskTitle={celebrationData.taskTitle}
+        isChallenge={celebrationData.isChallenge}
+        challengeTitle={celebrationData.challengeTitle}
+        points={celebrationData.points}
+      />
+
+      <Toaster 
+        position="top-center" 
+        richColors 
+        closeButton
+        toastOptions={{
+          style: {
+            fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+          }
+        }}
+      />
+    </div>
+  )
+}
+
+export default App
