@@ -73,7 +73,7 @@ export const SyncIndicator = () => {
 
   const handleSyncClick = async () => {
     if (!isConnectedToStudyPartner) {
-      await checkConnection()
+      await checkConnection?.()
     } else {
       await forceSync()
     }

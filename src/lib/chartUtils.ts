@@ -168,7 +168,7 @@ export function calculateStudyStreak(sessions: StudySession[]): number {
   )
   
   let streak = 0
-  let currentDate = new Date(today)
+  const currentDate = new Date(today)
   currentDate.setHours(0, 0, 0, 0)
   
   // Check if user studied today or yesterday to maintain streak

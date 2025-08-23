@@ -8,6 +8,8 @@ interface User {
   email: string | null
   displayName: string | null
   photoURL?: string | null
+  isFromStudyPartner?: boolean
+  avatar?: string
 }
 
 interface AuthContextType {
@@ -17,6 +19,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: string | null }>
   signInWithGoogle: () => Promise<{ user: User | null; error: string | null }>
   signOut: () => Promise<{ error: string | null }>
+  isConnectedToStudyPartner?: boolean
+  checkConnection?: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   // Convert Firebase user to our User interface
-  const mapFirebaseUser = (firebaseUser: FirebaseUser): User => ({
+  const mapFirebaseUser = (firebaseUser: FirebaseUser | any): User => ({
     uid: firebaseUser.uid,
     email: firebaseUser.email,
     displayName: firebaseUser.displayName,
@@ -172,7 +176,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signIn,
     signInWithGoogle,
-    signOut
+    signOut,
+    isConnectedToStudyPartner: false, // Stub implementation
+    checkConnection: async () => false // Stub implementation
   }
 
   return (

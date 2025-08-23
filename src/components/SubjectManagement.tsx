@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Plus, Trash, Palette, Target, Settings } from '@phosphor-icons/react'
+import { Plus, Trash, Palette, Target, Gear } from '@phosphor-icons/react'
 import { Subject } from '@/lib/types'
 import { SUBJECT_COLORS } from '@/lib/constants'
 import { formatTime } from '@/lib/utils'
@@ -171,7 +171,7 @@ export function SubjectManagement({
                       }}
                       className="text-muted-foreground hover:text-foreground"
                     >
-                      <Settings size={16} />
+                      <Gear size={16} />
                     </Button>
                     <Button
                       variant="ghost"

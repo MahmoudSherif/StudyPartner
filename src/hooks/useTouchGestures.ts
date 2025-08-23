@@ -14,7 +14,7 @@ export function useTouchGestures(options: TouchGestureOptions) {
   const touchStartX = useRef<number>(0)
   const touchStartY = useRef<number>(0)
   const touchStartTime = useRef<number>(0)
-  const longPressTimer = useRef<NodeJS.Timeout>()
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null)
   const elementRef = useRef<HTMLElement>(null)
 
   const {
@@ -49,7 +49,7 @@ export function useTouchGestures(options: TouchGestureOptions) {
       // Clear long press if user moves finger
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current)
-        longPressTimer.current = undefined
+        longPressTimer.current = null
       }
     }
 
@@ -57,7 +57,7 @@ export function useTouchGestures(options: TouchGestureOptions) {
       // Clear long press timer
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current)
-        longPressTimer.current = undefined
+        longPressTimer.current = null
       }
 
       const touch = e.changedTouches[0]

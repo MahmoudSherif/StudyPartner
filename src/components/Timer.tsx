@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { Play, Pause, Square, RotateCcw } from '@phosphor-icons/react'
+import { Play, Pause, Square, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { formatDuration } from '@/lib/utils'
 import { Subject } from '@/lib/types'
 import { mobileFeedback } from '@/lib/mobileFeedback'
@@ -18,7 +18,7 @@ export function Timer({ subject, onSessionComplete, onSessionCancel }: TimerProp
   const [initialTime, setInitialTime] = useState(25 * 60)
   const [isRunning, setIsRunning] = useState(false)
   const [sessionStarted, setSessionStarted] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout>()
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -148,7 +148,7 @@ export function Timer({ subject, onSessionComplete, onSessionCancel }: TimerProp
                     className="w-16 h-16 rounded-full"
                     variant="outline"
                   >
-                    <RotateCcw size={24} />
+                    <ArrowCounterClockwise size={24} />
                   </Button>
                 </>
               )}

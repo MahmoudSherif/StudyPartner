@@ -332,7 +332,7 @@ export const useSyncedData = <T>(
   dataType: SyncQueueItem['type']
 ) => {
   // Temporarily disabled GitHub Spark KV
-  const [data, setData, deleteData] = [defaultValue, () => {}, () => {}] as const
+  const [data, setData, deleteData] = [defaultValue, (_: T | ((current: T) => T)) => {}, () => {}] as const
   // const [data, setData, deleteData] = useKV<T>(key, defaultValue)
   const { addToQueue } = useDataSync()
 
