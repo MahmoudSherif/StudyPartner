@@ -71,12 +71,20 @@ export function useDeviceDetection(): DeviceInfo {
       setTimeout(updateDeviceInfo, 100) // Delay to ensure dimensions are updated
     }
 
-    window.addEventListener('resize', handleOrientationChange)
-    window.addEventListener('orientationchange', handleOrientationChange)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleOrientationChange)
+      window.addEventListener('orientationchange', handleOrientationChange)
+    }
 
     return () => {
-      window.removeEventListener('resize', handleOrientationChange)
-      window.removeEventListener('orientationchange', handleOrientationChange)
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        try {
+          window.removeEventListener('resize', handleOrientationChange)
+          window.removeEventListener('orientationchange', handleOrientationChange)
+        } catch (error) {
+          // Silently handle cleanup errors
+        }
+      }
     }
   }, [])
 
@@ -106,8 +114,14 @@ export function useMobileBehavior() {
         document.addEventListener('focusout', handleFocusOut)
 
         return () => {
-          document.removeEventListener('focusin', handleFocusIn)
-          document.removeEventListener('focusout', handleFocusOut)
+          if (typeof document !== 'undefined' && document.removeEventListener) {
+            try {
+              document.removeEventListener('focusin', handleFocusIn)
+              document.removeEventListener('focusout', handleFocusOut)
+            } catch (error) {
+              // Silently handle cleanup errors
+            }
+          }
         }
       }
     }
@@ -130,12 +144,20 @@ export function useMobileBehavior() {
         }
       }
 
-      document.addEventListener('touchstart', handleTouchStart, { passive: true })
-      document.addEventListener('touchmove', handleTouchMove, { passive: false })
+      if (typeof document !== 'undefined') {
+        document.addEventListener('touchstart', handleTouchStart, { passive: true })
+        document.addEventListener('touchmove', handleTouchMove, { passive: false })
+      }
 
       return () => {
-        document.removeEventListener('touchstart', handleTouchStart)
-        document.removeEventListener('touchmove', handleTouchMove)
+        if (typeof document !== 'undefined' && document.removeEventListener) {
+          try {
+            document.removeEventListener('touchstart', handleTouchStart)
+            document.removeEventListener('touchmove', handleTouchMove)
+          } catch (error) {
+            // Silently handle cleanup errors
+          }
+        }
       }
     }
 

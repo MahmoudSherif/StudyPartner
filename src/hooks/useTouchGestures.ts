@@ -31,21 +31,28 @@ export function useTouchGestures(options: TouchGestureOptions) {
     const element = elementRef.current
     if (!element) return
 
+    // Store references for cleanup to avoid race conditions
+    let isCleanedUp = false
+
     const handleTouchStart = (e: TouchEvent) => {
+      if (isCleanedUp) return
       const touch = e.touches[0]
       touchStartX.current = touch.clientX
       touchStartY.current = touch.clientY
       touchStartTime.current = Date.now()
 
       // Setup long press detection
-      if (onLongPress) {
+      if (onLongPress && !isCleanedUp) {
         longPressTimer.current = setTimeout(() => {
-          onLongPress()
+          if (!isCleanedUp) {
+            onLongPress()
+          }
         }, longPressTimeout)
       }
     }
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (isCleanedUp) return
       // Clear long press if user moves finger
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current)
@@ -54,6 +61,7 @@ export function useTouchGestures(options: TouchGestureOptions) {
     }
 
     const handleTouchEnd = (e: TouchEvent) => {
+      if (isCleanedUp) return
       // Clear long press timer
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current)
@@ -73,16 +81,16 @@ export function useTouchGestures(options: TouchGestureOptions) {
 
       if (absDeltaX > threshold && absDeltaX > absDeltaY) {
         // Horizontal swipe
-        if (deltaX > 0 && onSwipeRight) {
+        if (deltaX > 0 && onSwipeRight && !isCleanedUp) {
           onSwipeRight()
-        } else if (deltaX < 0 && onSwipeLeft) {
+        } else if (deltaX < 0 && onSwipeLeft && !isCleanedUp) {
           onSwipeLeft()
         }
       } else if (absDeltaY > threshold && absDeltaY > absDeltaX) {
         // Vertical swipe
-        if (deltaY > 0 && onSwipeDown) {
+        if (deltaY > 0 && onSwipeDown && !isCleanedUp) {
           onSwipeDown()
-        } else if (deltaY < 0 && onSwipeUp) {
+        } else if (deltaY < 0 && onSwipeUp && !isCleanedUp) {
           onSwipeUp()
         }
       }
@@ -94,12 +102,22 @@ export function useTouchGestures(options: TouchGestureOptions) {
     element.addEventListener('touchend', handleTouchEnd, { passive: true })
 
     return () => {
-      element.removeEventListener('touchstart', handleTouchStart)
-      element.removeEventListener('touchmove', handleTouchMove)
-      element.removeEventListener('touchend', handleTouchEnd)
+      isCleanedUp = true
+      
+      // Safely remove event listeners with defensive programming
+      if (element && element.removeEventListener) {
+        try {
+          element.removeEventListener('touchstart', handleTouchStart)
+          element.removeEventListener('touchmove', handleTouchMove)
+          element.removeEventListener('touchend', handleTouchEnd)
+        } catch (error) {
+          // Silently handle DOM manipulation errors during cleanup
+        }
+      }
       
       if (longPressTimer.current) {
         clearTimeout(longPressTimer.current)
+        longPressTimer.current = undefined
       }
     }
   }, [onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown, onLongPress, threshold, longPressTimeout])

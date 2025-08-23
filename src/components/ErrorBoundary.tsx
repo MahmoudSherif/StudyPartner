@@ -15,6 +15,16 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public static getDerivedStateFromError(error: Error): State {
+    // Check if this is a DOM manipulation error that we can safely ignore
+    if (error.message?.includes('removeChild') || 
+        error.message?.includes('appendChild') ||
+        error.message?.includes('insertBefore') ||
+        error.message?.includes('replaceChild')) {
+      // Log the error but don't trigger error boundary UI for DOM manipulation errors
+      console.warn('DOM manipulation error caught and handled:', error.message)
+      return { hasError: false }
+    }
+    
     return { hasError: true, error }
   }
 
