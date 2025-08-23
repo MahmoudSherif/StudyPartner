@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Task, Challenge, Subject, TaskProgress } from '@/lib/types'
+import { firestoreService } from '@/lib/firestore'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { 
   Plus, 
@@ -282,6 +283,28 @@ export function TasksManagement({
       } catch (error) {
         // Error handling is done in the parent component
       }
+    }
+  }
+
+  // Debug function to list all challenges in database
+  const debugListAllChallenges = async () => {
+    try {
+      console.log('🔍 Running debug: List all challenges...')
+      const result = await firestoreService.getAllSharedChallenges()
+      if (result.error) {
+        console.error('❌ Debug error:', result.error)
+        toast.error('Debug failed: ' + result.error)
+      } else {
+        console.log('✅ Debug success - found challenges:', result.data.length)
+        if (result.data.length === 0) {
+          toast.info('No challenges found in database')
+        } else {
+          toast.success(`Found ${result.data.length} challenges - check console for details`)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Debug exception:', error)
+      toast.error('Debug exception - check console')
     }
   }
 
@@ -652,6 +675,16 @@ export function TasksManagement({
                 </div>
               </DialogContent>
             </Dialog>
+            
+            {/* Debug button - remove in production */}
+            <Button 
+              onClick={debugListAllChallenges}
+              variant="outline" 
+              className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
+              title="Debug: List all challenges in database"
+            >
+              🔍 Debug
+            </Button>
           </div>
 
           {/* Challenges List */}

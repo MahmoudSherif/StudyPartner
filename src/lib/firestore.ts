@@ -278,16 +278,18 @@ export class FirestoreService {
     }
   }
 
-  async findSharedChallengeByCode(code: string) {
+  async findSharedChallengeByCode(code: string, skipActiveCheck: boolean = false) {
     try {
       if (!isFirebaseAvailable || !db) {
         return { data: null, error: 'Firestore database not available - offline mode' }
       }
       
-      console.log('Searching for challenge with code:', code)
+      console.log('Searching for challenge with code:', code, skipActiveCheck ? '(ignoring isActive)' : '(only active)')
       
       const challengesRef = collection(db, 'shared-challenges')
-      const q = query(challengesRef, where('code', '==', code), where('isActive', '==', true))
+      const q = skipActiveCheck 
+        ? query(challengesRef, where('code', '==', code))
+        : query(challengesRef, where('code', '==', code), where('isActive', '==', true))
       console.log('Executing query for challenges...')
       
       const querySnapshot = await getDocs(q)
@@ -297,6 +299,11 @@ export class FirestoreService {
         const doc = querySnapshot.docs[0]
         const data = doc.data()
         console.log('Found challenge:', data)
+        
+        if (!skipActiveCheck && data.isActive !== true) {
+          console.log('Challenge found but isActive =', data.isActive)
+        }
+        
         return { 
           data: {
             ...data,
@@ -361,6 +368,45 @@ export class FirestoreService {
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
       console.warn('Firestore getUserChallenges failed:', errorMessage)
+      return { data: [], error: errorMessage }
+    }
+  }
+
+  // Debug function to list all challenges (for debugging purposes)
+  async getAllSharedChallenges() {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: [], error: 'Firestore database not available - offline mode' }
+      }
+      
+      console.log('🔍 Fetching ALL shared challenges for debugging...')
+      const challengesRef = collection(db, 'shared-challenges')
+      const querySnapshot = await getDocs(challengesRef)
+      
+      console.log('📊 Total challenges found in database:', querySnapshot.size)
+      
+      const challenges: Challenge[] = querySnapshot.docs.map(doc => {
+        const data = doc.data()
+        console.log('📄 Challenge document:', {
+          id: doc.id,
+          code: data.code,
+          title: data.title,
+          isActive: data.isActive,
+          createdBy: data.createdBy,
+          participants: data.participants
+        })
+        return {
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date()
+        } as unknown as Challenge
+      })
+      
+      return { data: challenges, error: null }
+    } catch (error: any) {
+      console.error('Error fetching all challenges:', error)
+      const errorMessage = this.handleFirestoreError(error)
       return { data: [], error: errorMessage }
     }
   }
