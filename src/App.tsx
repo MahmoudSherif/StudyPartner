@@ -12,7 +12,6 @@ import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { NetworkBlockIndicator } from '@/components/NetworkBlockIndicator'
 import { FirebaseStatusIndicator } from '@/components/FirebaseStatusIndicator'
-import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AchieveTab } from '@/components/AchieveTab'
 import { NotesTab } from '@/components/NotesTab'
 import { AuthScreen } from '@/components/AuthScreen'
@@ -52,11 +51,9 @@ import { toast, Toaster } from 'sonner'
 
 function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </ErrorBoundary>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 
@@ -190,41 +187,6 @@ function AppContent() {
     const tabParam = urlParams.get('tab')
     if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration'].includes(tabParam)) {
       setCurrentTab(tabParam)
-    }
-  }, [])
-
-  // Show loading screen while checking authentication  // Prevent zooming on double tap
-  useEffect(() => {
-    const preventDefault = (e: TouchEvent) => {
-      if (e.touches && e.touches.length > 1) {
-        e.preventDefault()
-      }
-    }
-
-    const preventZoom = (e: TouchEvent) => {
-      const t2 = e.timeStamp
-      const target = e.currentTarget as HTMLElement
-      if (!target || !target.dataset) return
-      
-      const t1 = parseFloat(target.dataset.lastTouch || t2.toString())
-      const dt = t2 - t1
-      const fingers = e.touches ? e.touches.length : 0
-      target.dataset.lastTouch = t2.toString()
-
-      if (!dt || dt > 500 || fingers > 1) return // not double-tap
-
-      e.preventDefault()
-      if (e.target && typeof (e.target as HTMLElement).click === 'function') {
-        (e.target as HTMLElement).click()
-      }
-    }
-
-    document.addEventListener('touchstart', preventDefault, { passive: false })
-    document.addEventListener('touchstart', preventZoom, { passive: false })
-
-    return () => {
-      document.removeEventListener('touchstart', preventDefault)
-      document.removeEventListener('touchstart', preventZoom)
     }
   }, [])
 
