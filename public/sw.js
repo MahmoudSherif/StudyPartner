@@ -46,7 +46,8 @@ self.addEventListener('fetch', (event) => {
       event.request.url.includes('@react-refresh') ||
       event.request.url.includes('src/main.tsx') ||
       event.request.url.includes('fonts.googleapis.com') ||
-      event.request.url.includes('fonts.gstatic.com')) {
+      event.request.url.includes('fonts.gstatic.com') ||
+      event.request.url.includes('upload.wikimedia.org')) {
     return;
   }
 

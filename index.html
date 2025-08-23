@@ -26,8 +26,8 @@
     
     <!-- Service Worker -->
     <script>
-        if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-            // Only register service worker in production (HTTPS)
+        if ('serviceWorker' in navigator) {
+            // Register service worker in both development and production
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
@@ -36,13 +36,6 @@
                     .catch(registrationError => {
                         console.log('SW registration failed: ', registrationError);
                     });
-            });
-        } else if ('serviceWorker' in navigator) {
-            // Unregister any existing service worker in development
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
             });
         }
     </script>
