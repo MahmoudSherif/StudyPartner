@@ -8,6 +8,7 @@ import { Trophy, Target, Clock, Flame, Calendar, ArrowUp, SignOut, User as UserI
 import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
+import { generateSampleSessions, generateSampleFocusSessions } from '@/lib/sampleData'
 import { ActivityGrid } from '@/components/ActivityGrid'
 import { ActivityCharts } from '@/components/ActivityCharts'
 import { NotificationSettings } from '@/components/NotificationSettings'
@@ -31,6 +32,27 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
   const [focusSessions] = useState<FocusSession[]>([])
   // const [focusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
   
+  // Development helper for testing charts with sample data
+  const [showSampleData, setShowSampleData] = useState(false)
+  const [sampleSessions, setSampleSessions] = useState<StudySession[]>([])
+  const [sampleFocusSessions, setSampleFocusSessions] = useState<FocusSession[]>([])
+  
+  const handleGenerateSampleData = () => {
+    const generatedSessions = generateSampleSessions()
+    const generatedFocusSessions = generateSampleFocusSessions()
+    setSampleSessions(generatedSessions)
+    setSampleFocusSessions(generatedFocusSessions)
+    setShowSampleData(true)
+    toast.success('Sample data generated for testing charts!')
+  }
+  
+  const handleClearSampleData = () => {
+    setSampleSessions([])
+    setSampleFocusSessions([])
+    setShowSampleData(false)
+    toast.success('Sample data cleared!')
+  }
+  
   const handleSignOut = async () => {
     const { error } = await signOut()
     if (error) {
@@ -43,10 +65,14 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
   const unlockedAchievements = achievements.filter(a => a.unlocked)
   const nextAchievement = achievements.find(a => !a.unlocked && a.progress > 0)
   
+  // Use sample data if enabled, otherwise use real data
+  const activeSessions = showSampleData ? sampleSessions : sessions
+  const activeFocusSessions = showSampleData ? sampleFocusSessions : focusSessions
+  
   // Combine regular study sessions and focus sessions for activity tracking
   const allActivitySessions = [
-    ...sessions,
-    ...focusSessions.map(fs => ({
+    ...activeSessions,
+    ...activeFocusSessions.map(fs => ({
       id: fs.id,
       subjectId: 'focus', // Use a placeholder since focus sessions don't have subjects
       startTime: fs.startTime,
@@ -62,8 +88,16 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
   const lastWeekMinutes = weeklyData[weeklyData.length - 2]?.minutes || 0
   const weeklyProgress = lastWeekMinutes > 0 ? ((thisWeekMinutes - lastWeekMinutes) / lastWeekMinutes) * 100 : 0
   
-  // Get best study time using all activity sessions
-  const bestTime = getBestStudyTime(allActivitySessions)
+  // Get best study time using all activity sessions with error handling
+  const bestTime = (() => {
+    try {
+      return getBestStudyTime(allActivitySessions)
+    } catch (error) {
+      console.warn('Error calculating best study time:', error)
+      return { hour: 0, sessions: 0 }
+    }
+  })()
+  
   const bestTimeString = bestTime.sessions > 0 ? 
     `${bestTime.hour === 0 ? 12 : bestTime.hour > 12 ? bestTime.hour - 12 : bestTime.hour}${bestTime.hour >= 12 ? 'PM' : 'AM'}` 
     : 'N/A'
@@ -135,6 +169,45 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
         </TabsList>
 
         <TabsContent value="stats" className="space-y-4 m-0">
+          {/* Development Helper - Only show if no real data exists */}
+          {(sessions.length === 0 && focusSessions.length === 0) && (
+            <Card className="border-yellow-500/30 bg-yellow-500/10">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-yellow-400 mb-1">
+                      No Study Data Available
+                    </h4>
+                    <p className="text-xs text-yellow-400/70">
+                      {showSampleData ? 'Using sample data to demonstrate charts' : 'Generate sample data to test the charts and statistics'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {!showSampleData ? (
+                      <Button
+                        onClick={handleGenerateSampleData}
+                        variant="outline"
+                        size="sm"
+                        className="bg-yellow-500/20 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30"
+                      >
+                        Generate Sample Data
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={handleClearSampleData}
+                        variant="outline"
+                        size="sm"
+                        className="bg-yellow-500/20 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/30"
+                      >
+                        Clear Sample Data
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Activity Grid - GitHub-style contribution calendar */}
           <Card>
             <CardHeader className="pb-3">
