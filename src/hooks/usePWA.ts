@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 interface PWAInstallPrompt {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+  preventDefault?: () => void
 }
 
 interface PWAHookReturn {
@@ -50,7 +51,8 @@ export function usePWA(): PWAHookReturn {
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault()
+      // Store the event but don't prevent it yet - let it show the banner
+      // Only prevent if we want to show it manually later
       setInstallPrompt(e as any)
       setIsInstallable(true)
     }
@@ -80,6 +82,8 @@ export function usePWA(): PWAHookReturn {
     if (!installPrompt) return false
 
     try {
+      // Prevent the default behavior and show our custom prompt
+      installPrompt.preventDefault?.()
       await installPrompt.prompt()
       const choiceResult = await installPrompt.userChoice
       

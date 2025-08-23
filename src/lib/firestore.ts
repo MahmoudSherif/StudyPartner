@@ -133,7 +133,7 @@ export class FirestoreService {
   async getUserData<T>(userId: string, dataType: string): Promise<{ data: T | null; error: string | null }> {
     try {
       if (!isFirebaseAvailable || !db) {
-        return { data: null, error: 'Firestore database not available - offline mode' }
+        return { data: null, error: null } // Silent offline mode
       }
       
       const docRef = this.getUserDataRef(userId, dataType)
@@ -147,8 +147,11 @@ export class FirestoreService {
       }
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
-      console.warn('Firestore getUserData failed:', errorMessage)
-      return { data: null, error: errorMessage }
+      // Only log non-permission errors to reduce noise
+      if (!errorMessage.includes('permissions')) {
+        console.warn('Firestore getUserData failed:', errorMessage)
+      }
+      return { data: null, error: null } // Return no error to prevent UI disruption
     }
   }
 
