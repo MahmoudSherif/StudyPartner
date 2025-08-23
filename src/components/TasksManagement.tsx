@@ -33,12 +33,12 @@ interface TasksManagementProps {
   onAddTask: (task: Omit<Task, 'id' | 'createdAt'>) => void
   onToggleTask: (taskId: string) => void
   onDeleteTask: (taskId: string) => void
-  onCreateChallenge: (challenge: Omit<Challenge, 'id' | 'createdAt'>) => void
-  onJoinChallenge: (code: string) => void
-  onAddChallengeTask: (challengeId: string, task: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => void
-  onToggleChallengeTask: (challengeId: string, taskId: string) => void
+  onCreateChallenge: (challenge: Omit<Challenge, 'id' | 'createdAt'>) => Promise<void>
+  onJoinChallenge: (code: string) => Promise<void>
+  onAddChallengeTask: (challengeId: string, task: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => Promise<void>
+  onToggleChallengeTask: (challengeId: string, taskId: string) => Promise<void>
   onSwitchProgressView: () => void
-  onEndChallenge?: (challengeId: string, winnerId: string) => void
+  onEndChallenge?: (challengeId: string, winnerId: string) => Promise<void>
 }
 
 export function TasksManagement({
@@ -163,7 +163,7 @@ export function TasksManagement({
     toast.success('Task added successfully!')
   }
 
-  const handleCreateChallenge = () => {
+  const handleCreateChallenge = async () => {
     // Input validation and sanitization
     const sanitizedTitle = newChallenge.title.trim()
     const sanitizedDescription = newChallenge.description?.trim()
@@ -219,45 +219,55 @@ export function TasksManagement({
       endDate: endDateValid
     }
 
-    onCreateChallenge(challenge)
-    setNewChallenge({
-      title: '',
-      description: '',
-      endDate: ''
-    })
-    setIsCreatingChallenge(false)
-    toast.success('Challenge created successfully!')
+    try {
+      await onCreateChallenge(challenge)
+      setNewChallenge({
+        title: '',
+        description: '',
+        endDate: ''
+      })
+      setIsCreatingChallenge(false)
+    } catch (error) {
+      // Error handling is done in the parent component
+    }
   }
 
-  const handleJoinChallenge = () => {
+  const handleJoinChallenge = async () => {
     if (!joinCode.trim()) {
       toast.error('Please enter a challenge code')
       return
     }
 
-    onJoinChallenge(joinCode.toUpperCase())
-    setJoinCode('')
-    setIsJoiningChallenge(false)
+    try {
+      await onJoinChallenge(joinCode.toUpperCase())
+      setJoinCode('')
+      setIsJoiningChallenge(false)
+    } catch (error) {
+      // Error handling is done in the parent component
+    }
   }
 
-  const handleAddChallengeTask = () => {
+  const handleAddChallengeTask = async () => {
     if (!selectedChallenge || !newChallengeTask.title.trim()) {
       toast.error('Please enter a task title')
       return
     }
 
-    onAddChallengeTask(selectedChallenge, {
-      title: newChallengeTask.title,
-      description: newChallengeTask.description || undefined,
-      points: newChallengeTask.points
-    })
+    try {
+      await onAddChallengeTask(selectedChallenge, {
+        title: newChallengeTask.title,
+        description: newChallengeTask.description || undefined,
+        points: newChallengeTask.points
+      })
 
-    setNewChallengeTask({
-      title: '',
-      description: '',
-      points: 10
-    })
-    toast.success('Challenge task added!')
+      setNewChallengeTask({
+        title: '',
+        description: '',
+        points: 10
+      })
+    } catch (error) {
+      // Error handling is done in the parent component
+    }
   }
 
   const copyInviteCode = (code: string) => {
@@ -265,10 +275,13 @@ export function TasksManagement({
     toast.success('Challenge code copied to clipboard!')
   }
 
-  const handleEndChallenge = (challengeId: string, winnerId: string) => {
+  const handleEndChallenge = async (challengeId: string, winnerId: string) => {
     if (onEndChallenge) {
-      onEndChallenge(challengeId, winnerId)
-      toast.success('Challenge ended! Winner declared! 🏆')
+      try {
+        await onEndChallenge(challengeId, winnerId)
+      } catch (error) {
+        // Error handling is done in the parent component
+      }
     }
   }
 

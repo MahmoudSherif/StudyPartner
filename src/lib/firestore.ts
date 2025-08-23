@@ -212,6 +212,136 @@ export class FirestoreService {
     return this.getUserData<Goal[]>(userId, 'goals')
   }
 
+  // Shared challenge methods for global access
+  async saveSharedChallenge(challenge: Challenge) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { error: 'Firestore database not available - offline mode' }
+      }
+      
+      const challengeRef = doc(db, 'shared-challenges', challenge.id)
+      await setDoc(challengeRef, {
+        ...challenge,
+        createdAt: challenge.createdAt,
+        updatedAt: serverTimestamp()
+      })
+      return { error: null }
+    } catch (error: any) {
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore saveSharedChallenge failed:', errorMessage)
+      return { error: errorMessage }
+    }
+  }
+
+  async getSharedChallenge(challengeId: string) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: null, error: 'Firestore database not available - offline mode' }
+      }
+      
+      const challengeRef = doc(db, 'shared-challenges', challengeId)
+      const docSnap = await getDoc(challengeRef)
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data()
+        return { 
+          data: {
+            ...data,
+            id: docSnap.id,
+            createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+            updatedAt: data.updatedAt?.toDate?.() || new Date()
+          } as unknown as Challenge, 
+          error: null 
+        }
+      } else {
+        return { data: null, error: null }
+      }
+    } catch (error: any) {
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore getSharedChallenge failed:', errorMessage)
+      return { data: null, error: errorMessage }
+    }
+  }
+
+  async findSharedChallengeByCode(code: string) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: null, error: 'Firestore database not available - offline mode' }
+      }
+      
+      const challengesRef = collection(db, 'shared-challenges')
+      const q = query(challengesRef, where('code', '==', code), where('isActive', '==', true))
+      const querySnapshot = await getDocs(q)
+      
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0]
+        const data = doc.data()
+        return { 
+          data: {
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+            updatedAt: data.updatedAt?.toDate?.() || new Date()
+          } as unknown as Challenge, 
+          error: null 
+        }
+      } else {
+        return { data: null, error: null }
+      }
+    } catch (error: any) {
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore findSharedChallengeByCode failed:', errorMessage)
+      return { data: null, error: errorMessage }
+    }
+  }
+
+  async updateSharedChallenge(challengeId: string, updates: Partial<Challenge>) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { error: 'Firestore database not available - offline mode' }
+      }
+      
+      const challengeRef = doc(db, 'shared-challenges', challengeId)
+      await updateDoc(challengeRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+      })
+      return { error: null }
+    } catch (error: any) {
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore updateSharedChallenge failed:', errorMessage)
+      return { error: errorMessage }
+    }
+  }
+
+  async getUserChallenges(userId: string) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: [], error: 'Firestore database not available - offline mode' }
+      }
+      
+      const challengesRef = collection(db, 'shared-challenges')
+      const q = query(challengesRef, where('participants', 'array-contains', userId))
+      const querySnapshot = await getDocs(q)
+      
+      const challenges: Challenge[] = querySnapshot.docs.map(doc => {
+        const data = doc.data()
+        return {
+          ...data,
+          id: doc.id,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date()
+        } as unknown as Challenge
+      })
+      
+      return { data: challenges, error: null }
+    } catch (error: any) {
+      const errorMessage = this.handleFirestoreError(error)
+      console.warn('Firestore getUserChallenges failed:', errorMessage)
+      return { data: [], error: errorMessage }
+    }
+  }
+
   // Batch sync all user data
   async syncAllUserData(userId: string, userData: {
     subjects: Subject[]

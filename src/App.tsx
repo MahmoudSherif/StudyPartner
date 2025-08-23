@@ -16,12 +16,12 @@ import { AchieveTab } from '@/components/AchieveTab'
 import { NotesTab } from '@/components/NotesTab'
 import { AuthScreen } from '@/components/AuthScreen'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { firestoreService } from '@/lib/firestore'
 import { 
   useFirebaseSubjects,
   useFirebaseSessions,
   useFirebaseAchievements,
   useFirebaseTasks,
-  useFirebaseChallenges,
   useFirebaseFocusSessions,
   useFirebaseGoals
 } from '@/hooks/useFirebaseData'
@@ -66,7 +66,7 @@ function AppContent() {
   const [sessions, setSessions] = useFirebaseSessions()
   const [achievements, setAchievements] = useFirebaseAchievements()
   const [tasks, setTasks] = useFirebaseTasks()
-  const [challenges, setChallenges] = useFirebaseChallenges()
+  const [challenges, setChallenges] = useState<Challenge[]>([])
   const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
   const [goals, setGoals] = useFirebaseGoals()
   const [currentTab, setCurrentTab] = useState('achieve')
@@ -126,6 +126,29 @@ function AppContent() {
 
     setupNotifications();
   }, []);
+
+  // Load user's challenges when they log in
+  useEffect(() => {
+    const loadUserChallenges = async () => {
+      if (!user?.uid) {
+        setChallenges([])
+        return
+      }
+
+      try {
+        const result = await firestoreService.getUserChallenges(user.uid)
+        if (result.data) {
+          setChallenges(result.data)
+        } else if (result.error) {
+          console.warn('Failed to load user challenges:', result.error)
+        }
+      } catch (error) {
+        console.error('Error loading user challenges:', error)
+      }
+    }
+
+    loadUserChallenges()
+  }, [user?.uid])
 
   // Enhanced error handling for unhandled errors and promise rejections
   useEffect(() => {
@@ -575,55 +598,119 @@ function AppContent() {
   }
 
   // Challenge management functions
-  const handleCreateChallenge = (challengeData: Omit<Challenge, 'id' | 'createdAt'>) => {
-    const newChallenge: Challenge = {
-      ...challengeData,
-      id: Date.now().toString(),
-      createdAt: new Date()
+  const handleCreateChallenge = async (challengeData: Omit<Challenge, 'id' | 'createdAt'>) => {
+    try {
+      const newChallenge: Challenge = {
+        ...challengeData,
+        id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 9),
+        createdAt: new Date()
+      }
+
+      // Save to shared challenges collection in Firestore
+      const result = await firestoreService.saveSharedChallenge(newChallenge)
+      if (result.error) {
+        toast.error('Failed to create challenge: ' + result.error)
+        return
+      }
+
+      // Add to local state
+      setChallenges(current => [...current, newChallenge])
+      toast.success('Challenge created successfully!')
+    } catch (error) {
+      console.error('Error creating challenge:', error)
+      toast.error('Failed to create challenge. Please try again.')
     }
-    setChallenges(current => [...current, newChallenge])
   }
 
-  const handleJoinChallenge = (code: string) => {
-    const challenge = challenges.find(c => c.code === code && c.isActive)
-    if (!challenge) {
-      toast.error('Challenge not found or inactive')
-      return
-    }
+  const handleJoinChallenge = async (code: string) => {
+    try {
+      // Find challenge in shared collection by code
+      const result = await firestoreService.findSharedChallengeByCode(code)
+      if (!result.data) {
+        toast.error('Challenge not found or inactive')
+        return
+      }
 
-    if (challenge.participants.includes(currentUserId)) {
-      toast.info('You are already participating in this challenge')
-      return
-    }
+      const challenge = result.data
+      if (challenge.participants.includes(currentUserId)) {
+        toast.info('You are already participating in this challenge')
+        return
+      }
 
-    setChallenges(current => 
-      (current || []).map(c => 
-        c.id === challenge.id 
-          ? { ...c, participants: [...c.participants, currentUserId] }
-          : c
+      // Update challenge with new participant
+      const updatedParticipants = [...challenge.participants, currentUserId]
+      const updateResult = await firestoreService.updateSharedChallenge(challenge.id, {
+        participants: updatedParticipants
+      })
+
+      if (updateResult.error) {
+        toast.error('Failed to join challenge: ' + updateResult.error)
+        return
+      }
+
+      // Update local state
+      const updatedChallenge = { ...challenge, participants: updatedParticipants }
+      setChallenges(current => {
+        const existing = current.find(c => c.id === challenge.id)
+        if (existing) {
+          return current.map(c => c.id === challenge.id ? updatedChallenge : c)
+        } else {
+          return [...current, updatedChallenge]
+        }
+      })
+
+      toast.success(`Joined challenge: ${challenge.title}`)
+    } catch (error) {
+      console.error('Error joining challenge:', error)
+      toast.error('Failed to join challenge. Please try again.')
+    }
+  }
+
+  const handleAddChallengeTask = async (challengeId: string, taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => {
+    try {
+      const newTask: import('@/lib/types').ChallengeTask = {
+        ...taskData,
+        id: Date.now().toString(),
+        createdAt: new Date(),
+        completedBy: []
+      }
+
+      // Find the challenge in local state
+      const challenge = challenges.find(c => c.id === challengeId)
+      if (!challenge) {
+        toast.error('Challenge not found')
+        return
+      }
+
+      const updatedTasks = [...challenge.tasks, newTask]
+      
+      // Update shared challenge in Firestore
+      const result = await firestoreService.updateSharedChallenge(challengeId, {
+        tasks: updatedTasks
+      })
+
+      if (result.error) {
+        toast.error('Failed to add task: ' + result.error)
+        return
+      }
+
+      // Update local state
+      setChallenges(current => 
+        current.map(c => 
+          c.id === challengeId 
+            ? { ...c, tasks: updatedTasks }
+            : c
+        )
       )
-    )
-    toast.success(`Joined challenge: ${challenge.title}`)
-  }
-
-  const handleAddChallengeTask = (challengeId: string, taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => {
-    const newTask: import('@/lib/types').ChallengeTask = {
-      ...taskData,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      completedBy: []
+      
+      toast.success('Task added to challenge!')
+    } catch (error) {
+      console.error('Error adding challenge task:', error)
+      toast.error('Failed to add task. Please try again.')
     }
-
-    setChallenges(current => 
-      current.map(c => 
-        c.id === challengeId 
-          ? { ...c, tasks: [...c.tasks, newTask] }
-          : c
-      )
-    )
   }
 
-  const handleToggleChallengeTask = (challengeId: string, taskId: string) => {
+  const handleToggleChallengeTask = async (challengeId: string, taskId: string) => {
     try {
       const challenge = challenges.find(c => c.id === challengeId)
       const task = challenge?.tasks.find(t => t.id === taskId)
@@ -634,17 +721,27 @@ function AppContent() {
         ? task.completedBy.filter(id => id !== currentUserId)
         : [...task.completedBy, currentUserId]
 
+      const updatedTasks = challenge.tasks.map(t => 
+        t.id === taskId 
+          ? { ...t, completedBy: updatedCompletedBy }
+          : t
+      )
+
+      // Update shared challenge in Firestore
+      const result = await firestoreService.updateSharedChallenge(challengeId, {
+        tasks: updatedTasks
+      })
+
+      if (result.error) {
+        toast.error('Failed to update task: ' + result.error)
+        return
+      }
+
+      // Update local state
       setChallenges(current => 
         current.map(c => 
           c.id === challengeId 
-            ? {
-                ...c,
-                tasks: c.tasks.map(t => 
-                  t.id === taskId 
-                    ? { ...t, completedBy: updatedCompletedBy }
-                    : t
-                )
-              }
+            ? { ...c, tasks: updatedTasks }
             : c
         )
       )
@@ -663,6 +760,7 @@ function AppContent() {
         })
       }
     } catch (error) {
+      console.error('Error toggling challenge task:', error)
       toast.error('Failed to update challenge task. Please try again.')
     }
   }
@@ -673,10 +771,23 @@ function AppContent() {
 
   const handleEndChallenge = async (challengeId: string, winnerId: string) => {
     try {
+      // Update shared challenge in Firestore
+      const result = await firestoreService.updateSharedChallenge(challengeId, {
+        isActive: false,
+        winnerId,
+        endDate: new Date()
+      })
+
+      if (result.error) {
+        toast.error('Failed to end challenge: ' + result.error)
+        return
+      }
+
+      // Update local state
       setChallenges(current => 
         current.map(challenge => 
           challenge.id === challengeId 
-            ? { ...challenge, isActive: false, winnerId }
+            ? { ...challenge, isActive: false, winnerId, endDate: new Date() }
             : challenge
         )
       )
