@@ -386,17 +386,25 @@ const inspirationalCharacters: Character[] = [
 
 export function InspirationCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
 
   // Auto-scroll functionality
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % inspirationalCharacters.length)
+      setCurrentIndex((prev) => {
+        const nextIndex = prev + 1;
+        return nextIndex >= inspirationalCharacters.length ? 0 : nextIndex;
+      })
     }, 8000) // Change every 8 seconds to give more time to read
 
     return () => clearInterval(interval)
   }, [])
 
   const currentCharacter = inspirationalCharacters[currentIndex]
+
+  const handleImageError = (characterId: string) => {
+    setImageErrors(prev => new Set([...prev, characterId]))
+  }
 
   return (
     <div className="space-y-4">
@@ -410,30 +418,13 @@ export function InspirationCarousel() {
           {/* Character Image */}
           <div className="h-48 lg:h-full bg-gradient-to-br from-primary/30 to-accent/30 relative flex items-center justify-center">
             <div className="text-center p-4">
-              {currentCharacter.imageType === 'portrait' && currentCharacter.imageUrl ? (
+              {currentCharacter.imageType === 'portrait' && currentCharacter.imageUrl && !imageErrors.has(currentCharacter.id) ? (
                 <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full mx-auto mb-3 overflow-hidden bg-white/20 backdrop-blur-sm border-2 border-white/30 relative">
                   <img 
                     src={currentCharacter.imageUrl} 
                     alt={`Portrait of ${currentCharacter.name}`}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Fallback to initials if image fails to load
-                      const target = e.target as HTMLImageElement;
-                      const container = target.parentElement;
-                      if (container) {
-                        try {
-                          container.innerHTML = `
-                            <div class="w-full h-full bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                              <span class="text-2xl font-bold text-white">
-                                ${currentCharacter.name.split(' ').map(n => n[0]).join('')}
-                              </span>
-                            </div>
-                          `;
-                        } catch (error) {
-                          console.debug('Image fallback error:', error);
-                        }
-                      }
-                    }}
+                    onError={() => handleImageError(currentCharacter.id)}
                   />
                 </div>
               ) : (
@@ -451,11 +442,14 @@ export function InspirationCarousel() {
             {/* Progress indicators */}
             <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1 max-w-xs overflow-hidden lg:hidden">
               <div className="flex space-x-1 bg-black/30 rounded-full px-2 py-1 backdrop-blur-sm">
-                {inspirationalCharacters.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((_, index) => {
+                {inspirationalCharacters.slice(
+                  Math.max(0, currentIndex - 2), 
+                  Math.min(inspirationalCharacters.length, currentIndex + 3)
+                ).map((_, index) => {
                   const actualIndex = Math.max(0, currentIndex - 2) + index;
                   return (
                     <div
-                      key={actualIndex}
+                      key={`progress-mobile-${actualIndex}`}
                       className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                         actualIndex === currentIndex ? 'bg-white' : 'bg-white/30'
                       }`}
@@ -464,7 +458,7 @@ export function InspirationCarousel() {
                 })}
               </div>
               <div className="text-xs text-white/60 bg-black/30 rounded px-2 py-1 backdrop-blur-sm">
-                {currentIndex + 1}/{inspirationalCharacters.length}
+                {Math.min(currentIndex + 1, inspirationalCharacters.length)}/{inspirationalCharacters.length}
               </div>
             </div>
           </div>
@@ -480,11 +474,14 @@ export function InspirationCarousel() {
               {/* Progress indicators for large screens */}
               <div className="hidden lg:flex justify-center lg:justify-start space-x-1 mt-4">
                 <div className="flex space-x-1 bg-black/30 rounded-full px-3 py-2 backdrop-blur-sm">
-                  {inspirationalCharacters.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((_, index) => {
+                  {inspirationalCharacters.slice(
+                    Math.max(0, currentIndex - 2), 
+                    Math.min(inspirationalCharacters.length, currentIndex + 3)
+                  ).map((_, index) => {
                     const actualIndex = Math.max(0, currentIndex - 2) + index;
                     return (
                       <div
-                        key={actualIndex}
+                        key={`progress-desktop-${actualIndex}`}
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${
                           actualIndex === currentIndex ? 'bg-white' : 'bg-white/30'
                         }`}
@@ -493,7 +490,7 @@ export function InspirationCarousel() {
                   })}
                 </div>
                 <div className="text-sm text-white/60 bg-black/30 rounded px-3 py-2 backdrop-blur-sm">
-                  {currentIndex + 1}/{inspirationalCharacters.length}
+                  {Math.min(currentIndex + 1, inspirationalCharacters.length)}/{inspirationalCharacters.length}
                 </div>
               </div>
             </div>
@@ -532,15 +529,19 @@ export function InspirationCarousel() {
       {/* Manual navigation */}
       <div className="flex justify-center space-x-2">
         <button
-          onClick={() => setCurrentIndex((prev) => 
-            prev === 0 ? inspirationalCharacters.length - 1 : prev - 1
-          )}
+          onClick={() => setCurrentIndex((prev) => {
+            const prevIndex = prev - 1;
+            return prevIndex < 0 ? inspirationalCharacters.length - 1 : prevIndex;
+          })}
           className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm backdrop-blur-sm border border-white/20"
         >
           Previous
         </button>
         <button
-          onClick={() => setCurrentIndex((prev) => (prev + 1) % inspirationalCharacters.length)}
+          onClick={() => setCurrentIndex((prev) => {
+            const nextIndex = prev + 1;
+            return nextIndex >= inspirationalCharacters.length ? 0 : nextIndex;
+          })}
           className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm backdrop-blur-sm border border-white/20"
         >
           Next
@@ -549,7 +550,7 @@ export function InspirationCarousel() {
 
       {/* Character counter */}
       <div className="text-center text-white/60 text-xs">
-        {currentIndex + 1} of {inspirationalCharacters.length}
+        {Math.min(currentIndex + 1, inspirationalCharacters.length)} of {inspirationalCharacters.length}
       </div>
     </div>
   )
