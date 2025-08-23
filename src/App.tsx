@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { ProfileTab } from '@/components/ProfileTab'
+import { NetworkStatus } from '@/components/NetworkStatus'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
 import { QuotesBar } from '@/components/QuotesBar'
@@ -883,6 +884,7 @@ function AppContent() {
       <OfflineIndicator />
       <NetworkBlockIndicator />
       <FirebaseStatusIndicator />
+      <NetworkStatus />
       {!isStandalone && <PWAInstallPrompt />}
       
       <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28 no-select">

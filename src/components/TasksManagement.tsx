@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -605,6 +605,9 @@ export function TasksManagement({
               <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white">
                 <DialogHeader>
                   <DialogTitle className="text-white">Create New Challenge</DialogTitle>
+                  <DialogDescription className="text-white/70">
+                    Create a challenge that others can join using a code
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <Input
@@ -652,6 +655,9 @@ export function TasksManagement({
               <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white">
                 <DialogHeader>
                   <DialogTitle className="text-white">Join Challenge</DialogTitle>
+                  <DialogDescription className="text-white/70">
+                    Enter the challenge code shared by another user
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <Input
