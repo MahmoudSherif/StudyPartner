@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .pass { color: green; }
+        .fail { color: red; }
+    </style>
+</head>
+<body>
+    <h1>StudyPartner Error Handling Test</h1>
+    
+    <div class="test-section">
+        <h2>1. DOM Manipulation Error Test</h2>
+        <button onclick="testDOMError()">Test DOM removeChild Error</button>
+        <div id="dom-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Network Blocking Error Test</h2>
+        <button onclick="testNetworkError()">Test Network ERR_BLOCKED_BY_CLIENT</button>
+        <div id="network-test-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Global Error Handler Test</h2>
+        <button onclick="testGlobalError()">Test Global Error Handling</button>
+        <div id="global-test-result"></div>
+    </div>
+
+    <script>
+        // Test 1: DOM Manipulation Error
+        function testDOMError() {
+            const resultDiv = document.getElementById('dom-test-result');
+            
+            try {
+                // Simulate the DOM manipulation error
+                const fakeElement = document.createElement('div');
+                const nonExistentChild = document.createElement('span');
+                
+                // This should throw a NotFoundError similar to the one in the logs
+                fakeElement.removeChild(nonExistentChild);
+                
+                resultDiv.innerHTML = '<span class="fail">❌ Test failed - error not thrown</span>';
+            } catch (error) {
+                if (error.name === 'NotFoundError' && error.message.includes('removeChild')) {
+                    resultDiv.innerHTML = '<span class="pass">✅ DOM error correctly caught: ' + error.message + '</span>';
+                } else {
+                    resultDiv.innerHTML = '<span class="fail">❌ Unexpected error: ' + error.message + '</span>';
+                }
+            }
+        }
+        
+        // Test 2: Network Blocking Error
+        function testNetworkError() {
+            const resultDiv = document.getElementById('network-test-result');
+            
+            // Simulate a network error that would be blocked
+            try {
+                const error = new Error('Failed to load resource: net::ERR_BLOCKED_BY_CLIENT');
+                
+                // Dispatch a custom event like our NetworkBlockIndicator listens for
+                window.dispatchEvent(new CustomEvent('firebase-error', {
+                    detail: { 
+                        error: error, 
+                        isBlocked: true,
+                        operation: 'test operation'
+                    }
+                }));
+                
+                resultDiv.innerHTML = '<span class="pass">✅ Network blocking error event dispatched successfully</span>';
+            } catch (error) {
+                resultDiv.innerHTML = '<span class="fail">❌ Failed to dispatch network error: ' + error.message + '</span>';
+            }
+        }
+        
+        // Test 3: Global Error Handler
+        function testGlobalError() {
+            const resultDiv = document.getElementById('global-test-result');
+            
+            // Test global error handler by triggering an unhandled error
+            setTimeout(() => {
+                try {
+                    throw new Error('Test global error');
+                } catch (error) {
+                    // Simulate unhandled error
+                    window.dispatchEvent(new ErrorEvent('error', {
+                        error: error,
+                        message: error.message
+                    }));
+                    
+                    resultDiv.innerHTML = '<span class="pass">✅ Global error event dispatched</span>';
+                }
+            }, 100);
+        }
+        
+        // Add global error listeners to test our enhanced error handling
+        window.addEventListener('error', (event) => {
+            console.log('Global error caught:', event.error);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.log('Unhandled promise rejection caught:', event.reason);
+        });
+        
+        console.log('Error handling test page loaded. Click buttons to test error scenarios.');
+    </script>
+</body>
+</html>

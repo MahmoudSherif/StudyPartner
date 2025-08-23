@@ -35,10 +35,12 @@ export function usePWA(): PWAHookReturn {
   useEffect(() => {
     if (!isSupported) return
 
+    let isCleanedUp = false
+
     // Register service worker
     const registerSW = async () => {
       try {
-        if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator && !isCleanedUp) {
           const registration = await navigator.serviceWorker.register('/sw.js')
           // Production logging removed
         }
@@ -51,6 +53,7 @@ export function usePWA(): PWAHookReturn {
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
+      if (isCleanedUp) return
       // Store the event but don't prevent it yet - let it show the banner
       // Only prevent if we want to show it manually later
       setInstallPrompt(e as any)
@@ -59,22 +62,35 @@ export function usePWA(): PWAHookReturn {
 
     // Listen for app installed event
     const handleAppInstalled = () => {
+      if (isCleanedUp) return
       setIsInstalled(true)
       setIsInstallable(false)
       setInstallPrompt(null)
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
+    // Safely add event listeners
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.addEventListener('appinstalled', handleAppInstalled)
+    }
 
     // Check if already installed
-    if (isStandalone) {
+    if (isStandalone && !isCleanedUp) {
       setIsInstalled(true)
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
+      isCleanedUp = true
+      
+      // Safely remove event listeners with defensive programming
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        try {
+          window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+          window.removeEventListener('appinstalled', handleAppInstalled)
+        } catch (error) {
+          // Silently handle DOM manipulation errors during cleanup
+        }
+      }
     }
   }, [isSupported, isStandalone])
 

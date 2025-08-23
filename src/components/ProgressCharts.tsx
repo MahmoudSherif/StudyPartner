@@ -5,11 +5,59 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, Area
 import { StudySession, Subject } from '@/lib/types'
 import { getWeeklyData, getMonthlyData, getDailyData, getSubjectWeeklyData, getSubjectMonthlyData, getSubjectComparison } from '@/lib/chartUtils'
 import { Calendar, ArrowUp, Clock, BookOpen } from '@phosphor-icons/react'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, Component, ReactNode } from 'react'
 
 interface ProgressChartsProps {
   sessions: StudySession[]
   subjects: Subject[]
+}
+
+// Enhanced Error boundary specifically for chart components that use DOM manipulation
+class ChartErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: ReactNode; fallback?: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    // Check if this is a DOM manipulation error from charts
+    if (error.message?.includes('removeChild') || 
+        error.message?.includes('appendChild') ||
+        error.message?.includes('insertBefore') ||
+        error.message?.includes('SVG') ||
+        error.name === 'NotFoundError') {
+      console.warn('Chart DOM manipulation error caught:', error.message)
+      return { hasError: true, error }
+    }
+    
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    // Log chart errors for debugging
+    console.warn('Chart component error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <BookOpen size={48} className="text-white/50 mb-4" />
+            <h3 className="font-medium mb-2 text-white">Error Loading Charts</h3>
+            <p className="text-sm text-white/70 text-center">
+              There was an issue loading the charts. Please refresh the page to try again.
+            </p>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    return this.props.children
+  }
 }
 
 // Error boundary wrapper for subject charts
@@ -28,22 +76,11 @@ function SubjectChartsWrapper({ children, currentSubject }: { children: React.Re
     )
   }
   
-  try {
-    return <>{children}</>
-  } catch (error) {
-    // Error handling for production
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <BookOpen size={48} className="text-white/50 mb-4" />
-          <h3 className="font-medium mb-2 text-white">Error Loading Charts</h3>
-          <p className="text-sm text-white/70 text-center">
-            There was an issue loading the charts for this subject
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
+  return (
+    <ChartErrorBoundary>
+      {children}
+    </ChartErrorBoundary>
+  )
 }
 
 export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
@@ -196,132 +233,139 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
         </TabsList>
 
         <TabsContent value="weekly" className="space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-white">Weekly Study Time</CardTitle>
-              <p className="text-sm text-white/70">
-                Your study patterns over the last 4 weeks
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={weeklyData}>
-                    <XAxis 
-                      dataKey="week" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="minutes" 
-                      stroke="hsl(var(--primary))"
-                      fill="hsl(var(--primary))"
-                      fillOpacity={0.1}
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <ChartErrorBoundary>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-white">Weekly Study Time</CardTitle>
+                <p className="text-sm text-white/70">
+                  Your study patterns over the last 4 weeks
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={weeklyData}>
+                      <XAxis 
+                        dataKey="week" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="minutes" 
+                        stroke="hsl(var(--primary))"
+                        fill="hsl(var(--primary))"
+                        fillOpacity={0.1}
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </ChartErrorBoundary>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-white">Weekly Sessions</CardTitle>
-              <p className="text-sm text-white/70">
-                Number of study sessions per week
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData}>
-                    <XAxis 
-                      dataKey="week" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                    />
-                    <Bar 
-                      dataKey="sessions" 
-                      fill="hsl(var(--accent))"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <ChartErrorBoundary>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-white">Weekly Sessions</CardTitle>
+                <p className="text-sm text-white/70">
+                  Number of study sessions per week
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyData}>
+                      <XAxis 
+                        dataKey="week" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                      />
+                      <Bar 
+                        dataKey="sessions" 
+                        fill="hsl(var(--accent))"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </ChartErrorBoundary>
         </TabsContent>
 
         <TabsContent value="monthly" className="space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-white">Monthly Trends</CardTitle>
-              <p className="text-sm text-white/70">
-                Your study progress over the last 6 months
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyData}>
-                    <XAxis 
-                      dataKey="month" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="minutes" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={3}
-                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sessions" 
-                      stroke="hsl(var(--accent))" 
-                      strokeWidth={2}
-                      dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 3 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex justify-center gap-4 mt-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  <span className="text-xs text-white/70">Study Time</span>
+          <ChartErrorBoundary>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-white">Monthly Trends</CardTitle>
+                <p className="text-sm text-white/70">
+                  Your study progress over the last 6 months
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyData}>
+                      <XAxis 
+                        dataKey="month" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="minutes" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={3}
+                        dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="sessions" 
+                        stroke="hsl(var(--accent))" 
+                        strokeWidth={2}
+                        dot={{ fill: 'hsl(var(--accent))', strokeWidth: 2, r: 3 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-accent"></div>
-                  <span className="text-xs text-white/70">Sessions</span>
+                <div className="flex justify-center gap-4 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                    <span className="text-xs text-white/70">Study Time</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-accent"></div>
+                    <span className="text-xs text-white/70">Sessions</span>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </ChartErrorBoundary>
         </TabsContent>
 
         <TabsContent value="daily" className="space-y-4">
-          <Card>
+          <ChartErrorBoundary>
+            <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-white">Daily Activity</CardTitle>
               <p className="text-sm text-white/70">
@@ -386,9 +430,11 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </CardContent>
             </Card>
           )}
+          </ChartErrorBoundary>
         </TabsContent>
 
         <TabsContent value="subjects" className="space-y-4" key={`subjects-tab-${currentSubjectId || 'none'}`}>
+          <ChartErrorBoundary>
           {!subjects || subjects.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-8">
@@ -703,6 +749,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </SubjectChartsWrapper>
             </>
           )}
+          </ChartErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

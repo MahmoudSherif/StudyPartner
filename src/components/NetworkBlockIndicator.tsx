@@ -10,8 +10,12 @@ export function NetworkBlockIndicator({ onBlockDetected }: NetworkBlockIndicator
   const [hasShownWarning, setHasShownWarning] = useState(false)
 
   useEffect(() => {
+    let isCleanedUp = false
+    
     // Listen for Firebase connection errors
     const handleFirebaseError = (event: any) => {
+      if (isCleanedUp) return
+      
       if (event.detail?.error?.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
           event.detail?.error?.message?.includes('blocked') ||
           event.detail?.isBlocked) {
@@ -22,14 +26,27 @@ export function NetworkBlockIndicator({ onBlockDetected }: NetworkBlockIndicator
 
     // Listen for network errors that might indicate blocking
     const handleNetworkError = (event: ErrorEvent) => {
+      if (isCleanedUp) return
+      
       if (event.message?.includes('ERR_BLOCKED_BY_CLIENT') ||
-          event.message?.includes('blocked')) {
+          event.message?.includes('blocked') ||
+          event.message?.includes('bugsnag')) {
         showBlockedRequestWarning('network request')
       }
     }
 
+    // Listen for resource load errors (like Bugsnag)
+    const handleResourceError = (event: Event) => {
+      if (isCleanedUp) return
+      
+      const target = event.target as HTMLElement
+      if (target && (target.src?.includes('bugsnag') || target.href?.includes('bugsnag'))) {
+        showBlockedRequestWarning('tracking service')
+      }
+    }
+
     const showBlockedRequestWarning = (operation: string = 'Firebase operation') => {
-      if (!hasShownWarning) {
+      if (!hasShownWarning && !isCleanedUp) {
         setHasShownWarning(true)
         
         toast.warning('⚠️ Network requests blocked', {
@@ -38,10 +55,12 @@ export function NetworkBlockIndicator({ onBlockDetected }: NetworkBlockIndicator
           action: {
             label: 'How to fix',
             onClick: () => {
-              toast.info('💡 Fix blocking issues:', {
-                description: '1. Disable ad blocker for this site\n2. Add Firebase domains to allowlist\n3. Refresh the page',
-                duration: 12000
-              })
+              if (!isCleanedUp) {
+                toast.info('💡 Fix blocking issues:', {
+                  description: '1. Disable ad blocker for this site\n2. Add Firebase domains to allowlist\n3. Refresh the page',
+                  duration: 12000
+                })
+              }
             }
           }
         })
@@ -50,13 +69,25 @@ export function NetworkBlockIndicator({ onBlockDetected }: NetworkBlockIndicator
       }
     }
 
-    // Add event listeners
-    window.addEventListener('firebase-error', handleFirebaseError)
-    window.addEventListener('error', handleNetworkError)
+    // Add event listeners safely
+    if (typeof window !== 'undefined') {
+      window.addEventListener('firebase-error', handleFirebaseError)
+      window.addEventListener('error', handleNetworkError)
+      window.addEventListener('error', handleResourceError, true) // Use capture phase for resource errors
+    }
 
     return () => {
-      window.removeEventListener('firebase-error', handleFirebaseError)
-      window.removeEventListener('error', handleNetworkError)
+      isCleanedUp = true
+      
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        try {
+          window.removeEventListener('firebase-error', handleFirebaseError)
+          window.removeEventListener('error', handleNetworkError)
+          window.removeEventListener('error', handleResourceError, true)
+        } catch (error) {
+          // Silently handle cleanup errors
+        }
+      }
     }
   }, [hasShownWarning, onBlockDetected])
 

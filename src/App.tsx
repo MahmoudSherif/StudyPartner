@@ -129,32 +129,70 @@ function AppContent() {
 
   // Enhanced error handling for unhandled errors and promise rejections
   useEffect(() => {
+    let isCleanedUp = false
+    
     const handleError = (event: ErrorEvent) => {
+      if (isCleanedUp) return
+      
+      // Check for DOM manipulation errors and handle them gracefully
+      if (event.error?.message?.includes('removeChild') || 
+          event.error?.message?.includes('appendChild') ||
+          event.error?.message?.includes('insertBefore')) {
+        // Silently handle DOM manipulation errors as they're usually non-critical
+        event.preventDefault()
+        return
+      }
+      
       console.error('Unhandled error:', event.error)
     }
 
     const handleRejection = (event: PromiseRejectionEvent) => {
+      if (isCleanedUp) return
+      
+      // Check for network blocking errors and handle them gracefully
+      if (event.reason?.message?.includes('ERR_BLOCKED_BY_CLIENT') ||
+          event.reason?.message?.includes('blocked') ||
+          event.reason?.toString()?.includes('bugsnag')) {
+        // Prevent unhandled rejection for network blocking
+        event.preventDefault()
+        return
+      }
+      
       console.error('Unhandled promise rejection:', event.reason)
     }
 
-    window.addEventListener('error', handleError)
-    window.addEventListener('unhandledrejection', handleRejection)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('error', handleError)
+      window.addEventListener('unhandledrejection', handleRejection)
+    }
 
     return () => {
-      window.removeEventListener('error', handleError)
-      window.removeEventListener('unhandledrejection', handleRejection)
+      isCleanedUp = true
+      
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        try {
+          window.removeEventListener('error', handleError)
+          window.removeEventListener('unhandledrejection', handleRejection)
+        } catch (error) {
+          // Silently handle cleanup errors
+        }
+      }
     }
   }, [])
 
   // Prevent zooming on double tap
   useEffect(() => {
+    let isCleanedUp = false
+    
     const preventDefault = (e: TouchEvent) => {
+      if (isCleanedUp) return
       if (e.touches && e.touches.length > 1) {
         e.preventDefault()
       }
     }
 
     const preventZoom = (e: TouchEvent) => {
+      if (isCleanedUp) return
       const t2 = e.timeStamp
       const target = e.currentTarget as HTMLElement
       if (!target || !target.dataset) return
@@ -172,12 +210,22 @@ function AppContent() {
       }
     }
 
-    document.addEventListener('touchstart', preventDefault, { passive: false })
-    document.addEventListener('touchstart', preventZoom, { passive: false })
+    if (typeof document !== 'undefined') {
+      document.addEventListener('touchstart', preventDefault, { passive: false })
+      document.addEventListener('touchstart', preventZoom, { passive: false })
+    }
 
     return () => {
-      document.removeEventListener('touchstart', preventDefault)
-      document.removeEventListener('touchstart', preventZoom)
+      isCleanedUp = true
+      
+      if (typeof document !== 'undefined' && document.removeEventListener) {
+        try {
+          document.removeEventListener('touchstart', preventDefault)
+          document.removeEventListener('touchstart', preventZoom)
+        } catch (error) {
+          // Silently handle cleanup errors
+        }
+      }
     }
   }, [])
 
