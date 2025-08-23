@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { TargetNotification, Subject, StudySession } from '@/lib/types'
 import { generateTargetNotifications } from '@/lib/utils'
-import { X, Target, AlertTriangle } from '@phosphor-icons/react'
+import { X, Target, Warning } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
 interface TargetNotificationsProps {
@@ -99,7 +99,7 @@ export function TargetNotifications({ subjects, sessions, onSelectSubject }: Tar
               : 'border-yellow-500/50 bg-yellow-500/5'
           }`}
         >
-          <AlertTriangle 
+          <Warning 
             size={16} 
             className={notification.severity === 'danger' ? 'text-destructive' : 'text-yellow-600'} 
           />

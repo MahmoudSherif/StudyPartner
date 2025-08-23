@@ -5,11 +5,17 @@ interface ActivityGridProps {
   sessions: StudySession[]
 }
 
+interface DayActivity {
+  date: Date
+  minutes: number
+  level: number
+}
+
 export function ActivityGrid({ sessions }: ActivityGridProps) {
   // Generate activity data for the last 10 weeks (70 days)
   const activityData = useMemo(() => {
     const today = new Date()
-    const days = []
+    const days: DayActivity[] = []
     
     // Go back 70 days (10 weeks)
     for (let i = 69; i >= 0; i--) {
@@ -57,7 +63,7 @@ export function ActivityGrid({ sessions }: ActivityGridProps) {
   }
 
   // Group days into weeks
-  const weeks = []
+  const weeks: DayActivity[][] = []
   for (let i = 0; i < activityData.length; i += 7) {
     weeks.push(activityData.slice(i, i + 7))
   }

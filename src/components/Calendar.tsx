@@ -63,7 +63,7 @@ export function Calendar({ subjects }: CalendarProps) {
   startDate.setDate(startDate.getDate() - firstDay.getDay())
 
   // Generate calendar days
-  const calendarDays = []
+  const calendarDays: Date[] = []
   const currentCalendarDate = new Date(startDate)
   
   for (let i = 0; i < 42; i++) {

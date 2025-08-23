@@ -387,11 +387,12 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     })
     
     // Send push notification for achievement unlock (async operation outside map)
-    if (unlockedAchievement) {
+    if (unlockedAchievement !== null) {
+      const achievement: Achievement = unlockedAchievement
       try {
         await notificationManager.notifyAchievementUnlock(
-          unlockedAchievement.title,
-          unlockedAchievement.description
+          achievement.title,
+          achievement.description
         )
       } catch (error) {
         // Silent notification failure

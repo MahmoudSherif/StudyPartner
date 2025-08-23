@@ -1,6 +1,12 @@
 // Notification utilities for MotivaMate
 // Handles push notifications for goals and challenges
 
+export interface NotificationAction {
+  action: string;
+  title: string;
+  icon?: string;
+}
+
 export interface NotificationData {
   title: string;
   body: string;
@@ -84,11 +90,8 @@ export class NotificationManager {
         badge: data.badge || '/icons/favicon-16x16.png',
         tag: data.tag || 'motivamate-notification',
         data: data.data || {},
-        actions: data.actions || [],
-        vibrate: data.vibrate || [200, 100, 200],
         requireInteraction: data.requireInteraction || false,
-        silent: false,
-        timestamp: Date.now()
+        silent: false
       };
 
       await this.registration.showNotification(data.title, options);

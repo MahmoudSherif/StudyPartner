@@ -679,10 +679,10 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                           <span className="text-sm text-white/70">Target Progress</span>
                           <div className="text-right">
                             <div className="text-sm font-medium text-white">
-                              {Math.round(((currentSubject.totalTime || 0) / ((currentSubject.targetHours || 1) * 60)) * 100)}%
+                              {Math.round(((currentSubject.totalTime || 0) / ((currentSubject.goal || 1) * 60)) * 100)}%
                             </div>
                             <div className="text-xs text-white/50">
-                              of {currentSubject.targetHours || 0}h goal
+                              of {currentSubject.goal || 0}h goal
                             </div>
                           </div>
                         </div>
@@ -690,7 +690,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                           <div 
                             className="h-2 rounded-full transition-all duration-300"
                             style={{ 
-                              width: `${Math.min(100, ((currentSubject.totalTime || 0) / ((currentSubject.targetHours || 1) * 60)) * 100)}%`,
+                              width: `${Math.min(100, ((currentSubject.totalTime || 0) / ((currentSubject.goal || 1) * 60)) * 100)}%`,
                               backgroundColor: currentSubject.color || '#6366f1'
                             }}
                           ></div>

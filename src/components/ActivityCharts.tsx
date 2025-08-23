@@ -8,11 +8,28 @@ interface ActivityChartsProps {
   sessions: StudySession[]
 }
 
+interface ChartDataPoint {
+  label: string
+  shortLabel: string
+  minutes: number
+  sessions: number
+  height: number
+}
+
+interface DayDataPoint extends ChartDataPoint {
+  date: Date
+  isToday: boolean
+}
+
+interface HourDataPoint extends ChartDataPoint {
+  hour: number
+}
+
 export function ActivityCharts({ sessions }: ActivityChartsProps) {
   // Calculate weekly activity data (last 4 weeks)
   const weeklyData = useMemo(() => {
     const now = new Date()
-    const weeks = []
+    const weeks: ChartDataPoint[] = []
     
     for (let i = 3; i >= 0; i--) {
       const weekStart = new Date(now)
@@ -50,7 +67,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
   // Calculate daily activity data (last 7 days)
   const dailyData = useMemo(() => {
     const now = new Date()
-    const days = []
+    const days: DayDataPoint[] = []
     
     for (let i = 6; i >= 0; i--) {
       const dayDate = new Date(now)
@@ -96,7 +113,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
   // Calculate hourly activity data (today's 24 hours)
   const hourlyData = useMemo(() => {
     const now = new Date()
-    const hours = []
+    const hours: HourDataPoint[] = []
     
     // Get today's start
     const todayStart = new Date(now)
@@ -157,7 +174,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
   // Calculate monthly activity data (last 6 months)
   const monthlyData = useMemo(() => {
     const now = new Date()
-    const months = []
+    const months: ChartDataPoint[] = []
     
     for (let i = 5; i >= 0; i--) {
       const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)

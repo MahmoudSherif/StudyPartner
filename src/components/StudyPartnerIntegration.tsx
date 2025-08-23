@@ -39,7 +39,7 @@ export const StudyPartnerIntegration = () => {
       studyPartnerAPI.updateConfig({ baseURL: apiUrl })
       localStorage.setItem('studypartner-api-url', apiUrl)
       
-      const connected = await checkConnection()
+      const connected = await checkConnection?.()
       if (connected) {
         toast.success('Successfully connected to StudyPartner!')
       } else {
