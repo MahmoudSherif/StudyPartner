@@ -770,8 +770,7 @@ function AppContent() {
       }
       
       // No challenge found in either storage
-      console.log('❌ Challenge not found in Firestore or local storage for code:', code)
-      toast.error('Challenge not found. Make sure the code is correct and the challenge is still active.')
+      toast.error('Challenge not found. The code may be incorrect, or the challenge may have expired or been deleted.')
     } catch (error) {
       console.error('Error joining challenge:', error)
       toast.error('Failed to join challenge. Please try again.')
