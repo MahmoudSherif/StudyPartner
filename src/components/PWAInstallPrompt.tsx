@@ -1,18 +1,28 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { usePWA } from '@/hooks/usePWA'
+import { isMobileDevice, isIOS } from '@/utils/deviceDetection'
 import { Download, X } from '@phosphor-icons/react'
 import { useState } from 'react'
 
 export function PWAInstallPrompt() {
-  const { isInstallable, installApp } = usePWA()
+  const { isInstallable, installApp, isStandalone, isInstalled } = usePWA()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [showPrompt, setShowPrompt] = useState(true)
+  const [isInstalling, setIsInstalling] = useState(false)
 
-  if (!isInstallable || !showPrompt) return null
+  const isMobile = isMobileDevice()
+  const isiOS = isIOS()
+
+  // Don't show if already installed, running as PWA, or user dismissed
+  // Also prioritize mobile devices
+  if (!isInstallable || !showPrompt || isInstalled || isStandalone || !isMobile) return null
 
   const handleInstall = async () => {
+    setIsInstalling(true)
     const success = await installApp()
+    setIsInstalling(false)
+    
     if (success) {
       setIsDialogOpen(false)
       setShowPrompt(false)
@@ -61,7 +71,13 @@ export function PWAInstallPrompt() {
             <div className="text-center space-y-2">
               <div className="text-4xl">📱</div>
               <p className="text-sm text-white/80">
-                Install MotivaMate on your device for the best experience!
+                Add MotivaMate to your home screen!
+              </p>
+              <p className="text-xs text-white/60">
+                {isiOS 
+                  ? "After tapping 'Add to Home', you'll find MotivaMate on your home screen like any other app."
+                  : "After installing, you can find the app on your home screen and use it like any other app."
+                }
               </p>
             </div>
             
@@ -94,10 +110,20 @@ export function PWAInstallPrompt() {
               </Button>
               <Button
                 onClick={handleInstall}
+                disabled={isInstalling}
                 className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
               >
-                <Download size={16} className="mr-2" />
-                Install
+                {isInstalling ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                    Installing...
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} className="mr-2" />
+                    Add to Home
+                  </>
+                )}
               </Button>
             </div>
           </div>

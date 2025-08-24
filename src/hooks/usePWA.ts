@@ -23,7 +23,8 @@ export function usePWA(): PWAHookReturn {
   const isStandalone = typeof window !== 'undefined' && (() => {
     try {
       return window.matchMedia('(display-mode: standalone)').matches ||
-             (window.navigator as any).standalone === true
+             (window.navigator as any).standalone === true ||
+             window.location.search.includes('pwa=true')
     } catch (e) {
       return (window.navigator as any).standalone === true
     }
@@ -34,6 +35,13 @@ export function usePWA(): PWAHookReturn {
 
   useEffect(() => {
     if (!isSupported) return
+
+    // Don't show install prompt if already in standalone mode
+    if (isStandalone) {
+      setIsInstalled(true)
+      setIsInstallable(false)
+      return
+    }
 
     // Register service worker
     const registerSW = async () => {
@@ -51,10 +59,12 @@ export function usePWA(): PWAHookReturn {
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Store the event but don't prevent it yet - let it show the banner
-      // Only prevent if we want to show it manually later
+      // Prevent the default mini-infobar from appearing
+      e.preventDefault()
+      // Store the event so we can trigger it later
       setInstallPrompt(e as any)
       setIsInstallable(true)
+      console.log('PWA: Install prompt available')
     }
 
     // Listen for app installed event
@@ -62,6 +72,15 @@ export function usePWA(): PWAHookReturn {
       setIsInstalled(true)
       setIsInstallable(false)
       setInstallPrompt(null)
+      console.log('PWA: App successfully installed')
+      
+      // Give user feedback about successful installation
+      setTimeout(() => {
+        if (confirm('MotivaMate has been installed! Would you like to open the app now?')) {
+          // Close the browser tab and let the user open the installed app
+          window.close()
+        }
+      }, 1000)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -79,24 +98,31 @@ export function usePWA(): PWAHookReturn {
   }, [isSupported, isStandalone])
 
   const installApp = async (): Promise<boolean> => {
-    if (!installPrompt) return false
+    if (!installPrompt) {
+      console.log('PWA: No install prompt available')
+      return false
+    }
 
     try {
-      // Prevent the default behavior and show our custom prompt
-      installPrompt.preventDefault?.()
+      console.log('PWA: Showing install prompt...')
       await installPrompt.prompt()
       const choiceResult = await installPrompt.userChoice
+      
+      console.log('PWA: User choice:', choiceResult.outcome)
       
       if (choiceResult.outcome === 'accepted') {
         setIsInstalled(true)
         setIsInstallable(false)
         setInstallPrompt(null)
+        console.log('PWA: Installation accepted')
         return true
+      } else {
+        console.log('PWA: Installation dismissed')
       }
       
       return false
     } catch (error) {
-      // Production logging removed
+      console.error('PWA: Installation error:', error)
       return false
     }
   }

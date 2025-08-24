@@ -10,6 +10,8 @@ import { Calendar } from '@/components/Calendar'
 import { TasksManagement } from '@/components/TasksManagement'
 import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
+import { PWAIndicator } from '@/components/PWAIndicator'
+import { PWAWelcome } from '@/components/PWAWelcome'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { NetworkBlockIndicator } from '@/components/NetworkBlockIndicator'
 import { FirebaseStatusIndicator } from '@/components/FirebaseStatusIndicator'
@@ -886,8 +888,10 @@ function AppContent() {
       <FirebaseStatusIndicator />
       <NetworkStatus />
       {!isStandalone && <PWAInstallPrompt />}
+      <PWAIndicator />
       
       <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28 no-select">
+        <PWAWelcome />
         <header className="text-center py-6">
           <div className="flex items-center justify-between">
             <div className="flex-1"></div>
