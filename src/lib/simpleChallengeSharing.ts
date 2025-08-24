@@ -9,7 +9,7 @@ export interface SharedChallengeData {
 
 export class SimpleChallengeSharing {
   private static readonly STORAGE_KEY = 'motivamate_shared_challenges'
-  private static readonly CLEANUP_INTERVAL = 24 * 60 * 60 * 1000 // 24 hours
+  // Note: Expiration removed - challenges now persist indefinitely
 
   // Generate a simple 6-character sharing code
   static generateCode(): string {
@@ -24,7 +24,7 @@ export class SimpleChallengeSharing {
     Object.keys(cleaned).forEach(key => {
       if (cleaned[key] === undefined) {
         // Set appropriate defaults based on field name
-        if (key === 'endDate') cleaned[key] = null
+        if (key === 'endDate') delete cleaned[key] // Remove endDate completely - no expiration
         else if (key === 'participants') cleaned[key] = []
         else if (key === 'tasks') cleaned[key] = []
         else if (key === 'description') cleaned[key] = ''
@@ -40,6 +40,9 @@ export class SimpleChallengeSharing {
     cleaned.isActive = cleaned.isActive !== false // Default to true
     cleaned.participants = cleaned.participants || []
     cleaned.tasks = cleaned.tasks || []
+    
+    // Ensure endDate is completely removed for no expiration
+    delete cleaned.endDate
 
     return cleaned as Challenge
   }
@@ -64,10 +67,7 @@ export class SimpleChallengeSharing {
       const existing = this.getSharedChallenges()
       existing[code] = sharedData
       
-      // Clean up old challenges (older than 24 hours)
-      this.cleanupOldChallenges(existing)
-      
-      // Save to localStorage
+      // Save to localStorage immediately (no cleanup - challenges persist indefinitely)
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(existing))
       
       console.log('✅ Challenge shared locally with code:', code)
@@ -89,14 +89,7 @@ export class SimpleChallengeSharing {
         return { challenge: null, error: 'Challenge not found with code: ' + normalizedCode }
       }
 
-      // Check if challenge is still valid (not too old)
-      const isExpired = Date.now() - challengeData.timestamp > this.CLEANUP_INTERVAL
-      if (isExpired) {
-        delete shared[normalizedCode]
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(shared))
-        return { challenge: null, error: 'Challenge has expired' }
-      }
-
+      // Challenges no longer expire - they persist indefinitely
       console.log('✅ Found shared challenge:', challengeData.challenge.title)
       return { challenge: challengeData.challenge, error: null }
     } catch (error) {
@@ -172,45 +165,27 @@ export class SimpleChallengeSharing {
     }
   }
 
-  // Clean up challenges older than the specified interval
-  private static cleanupOldChallenges(challenges: Record<string, SharedChallengeData>) {
-    const now = Date.now()
-    let cleaned = 0
-    
-    Object.keys(challenges).forEach(code => {
-      if (now - challenges[code].timestamp > this.CLEANUP_INTERVAL) {
-        delete challenges[code]
-        cleaned++
-      }
-    })
-    
-    if (cleaned > 0) {
-      console.log(`🧹 Cleaned up ${cleaned} expired challenges`)
-    }
-  }
-
   // Get sharing statistics
-  static getStats(): { total: number; active: number; expired: number } {
+  static getStats(): { total: number; active: number; inactive: number } {
     const shared = this.getSharedChallenges()
     const codes = Object.keys(shared)
-    const now = Date.now()
     
     let active = 0
-    let expired = 0
+    let inactive = 0
     
     codes.forEach(code => {
       const data = shared[code]
-      if (now - data.timestamp > this.CLEANUP_INTERVAL) {
-        expired++
-      } else if (data.challenge.isActive) {
+      if (data.challenge.isActive) {
         active++
+      } else {
+        inactive++
       }
     })
     
     return {
       total: codes.length,
       active,
-      expired
+      inactive // Changed from "expired" to "inactive" since challenges don't expire
     }
   }
 
