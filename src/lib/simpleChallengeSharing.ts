@@ -24,7 +24,7 @@ export class SimpleChallengeSharing {
     Object.keys(cleaned).forEach(key => {
       if (cleaned[key] === undefined) {
         // Set appropriate defaults based on field name
-        if (key === 'endDate') cleaned[key] = null
+        if (key === 'endDate') delete cleaned[key] // Remove endDate completely - no expiration
         else if (key === 'participants') cleaned[key] = []
         else if (key === 'tasks') cleaned[key] = []
         else if (key === 'description') cleaned[key] = ''
@@ -40,6 +40,9 @@ export class SimpleChallengeSharing {
     cleaned.isActive = cleaned.isActive !== false // Default to true
     cleaned.participants = cleaned.participants || []
     cleaned.tasks = cleaned.tasks || []
+    
+    // Ensure endDate is completely removed for no expiration
+    delete cleaned.endDate
 
     return cleaned as Challenge
   }
