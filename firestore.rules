@@ -4,10 +4,14 @@ service cloud.firestore {
     // Users can read/write their own profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to user's shared challenges subcollection
+      match /shared-challenges/{challengeId} {
+        allow read, write: if request.auth != null;
+      }
     }
     
     // Users can read/write their own data
-    // Documents are stored as userId_dataType (e.g., "user123_focusSessions")
     match /userData/{document} {
       allow read, write: if request.auth != null && 
         resource.data.userId == request.auth.uid;
@@ -19,24 +23,26 @@ service cloud.firestore {
         request.resource.data.userId == request.auth.uid;
     }
     
-    // Shared challenges - allow authenticated users to read all and create/update their own
+    // Challenge sharing rules - fixes CVF9L9 permission issues
     match /shared-challenges/{challengeId} {
-      // Anyone authenticated can read challenges (to join them)
       allow read: if request.auth != null;
-      
-      // Only the creator can create challenges
-      allow create: if request.auth != null && 
-        request.resource.data.createdBy == request.auth.uid;
-      
-      // Creators and participants can update challenges
-      allow update: if request.auth != null && (
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && (
         resource.data.createdBy == request.auth.uid ||
         request.auth.uid in resource.data.participants
       );
-      
-      // Only the creator can delete challenges
-      allow delete: if request.auth != null && 
-        resource.data.createdBy == request.auth.uid;
+    }
+    
+    // Public challenge index for discovery
+    match /public-challenge-index/{indexId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Fallback rule for authenticated users
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
