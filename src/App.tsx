@@ -783,7 +783,7 @@ function AppContent() {
       const updatedParticipants = [...challenge.participants, currentUserId]
       const updateResult = await firestoreService.updateSharedChallenge(challenge.id, {
         participants: updatedParticipants
-      })
+      }, currentUserId)
 
       if (updateResult.error) {
         console.error('Failed to update challenge participants:', updateResult.error)
@@ -856,7 +856,7 @@ function AppContent() {
       // Update shared challenge in Firestore
       const result = await firestoreService.updateSharedChallenge(challengeId, {
         tasks: updatedTasks
-      })
+      }, currentUserId)
 
       if (result.error) {
         toast.error('Failed to add task: ' + result.error)
@@ -899,7 +899,7 @@ function AppContent() {
       // Update shared challenge in Firestore
       const result = await firestoreService.updateSharedChallenge(challengeId, {
         tasks: updatedTasks
-      })
+      }, currentUserId)
 
       if (result.error) {
         toast.error('Failed to update task: ' + result.error)
@@ -945,7 +945,7 @@ function AppContent() {
         isActive: false,
         winnerId,
         endDate: new Date()
-      })
+      }, currentUserId)
 
       if (result.error) {
         toast.error('Failed to end challenge: ' + result.error)

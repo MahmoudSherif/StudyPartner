@@ -587,7 +587,7 @@ export class FirestoreService {
     return { error: null }
   }
 
-  async updateSharedChallenge(challengeId: string, updates: Partial<Challenge>) {
+  async updateSharedChallenge(challengeId: string, updates: Partial<Challenge>, currentUserId?: string) {
     try {
       if (!isFirebaseAvailable || !db) {
         // Try local update
@@ -597,27 +597,70 @@ export class FirestoreService {
       
       console.log('Updating shared challenge:', challengeId, updates)
       
-      // First, check if the document exists
+      // First, check if the document exists in main shared-challenges collection
       const challengeRef = doc(db, 'shared-challenges', challengeId)
       const docSnap = await getDoc(challengeRef)
       
-      if (!docSnap.exists()) {
-        console.warn('⚠️ Challenge document does not exist in Firestore, trying local update instead')
-        // Document doesn't exist, try local storage
-        const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
-        if (!localResult.error) {
-          console.log('✅ Updated challenge locally instead')
-          return { error: null }
-        }
-        
-        // If local also fails, return descriptive error
-        return { error: `Challenge ${challengeId} not found in Firestore or local storage` }
+      if (docSnap.exists()) {
+        // Document exists in main collection, proceed with update
+        await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
+        console.log('✅ Updated challenge in main Firestore collection')
+        return { error: null }
       }
       
-      // Document exists, proceed with update
-      await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
-      console.log('✅ Updated challenge in Firestore')
-      return { error: null }
+      console.warn('⚠️ Challenge not found in main collection, searching in alternative locations...')
+      
+      // If currentUserId is provided, check their personal collection first
+      if (currentUserId) {
+        try {
+          const userChallengeRef = doc(db, 'users', currentUserId, 'shared-challenges', challengeId)
+          const userDocSnap = await getDoc(userChallengeRef)
+          
+          if (userDocSnap.exists()) {
+            console.log('✅ Found challenge in current user\'s collection')
+            await updateDoc(userChallengeRef, { ...updates, updatedAt: serverTimestamp() })
+            console.log('✅ Updated challenge in user\'s Firestore collection')
+            return { error: null }
+          }
+        } catch (error) {
+          console.log('Could not access current user\'s collection')
+        }
+      }
+      
+      // Try to search in public challenge index to find the owner
+      try {
+        const indexQuery = query(collection(db, 'public-challenge-index'))
+        const indexSnapshot = await getDocs(indexQuery)
+        
+        for (const indexDoc of indexSnapshot.docs) {
+          const indexData = indexDoc.data()
+          if (indexData.challengeId === challengeId) {
+            console.log('✅ Found challenge owner in index:', indexData.ownerId)
+            const ownerChallengeRef = doc(db, 'users', indexData.ownerId, 'shared-challenges', challengeId)
+            const ownerDocSnap = await getDoc(ownerChallengeRef)
+            
+            if (ownerDocSnap.exists()) {
+              await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
+              console.log('✅ Updated challenge in owner\'s Firestore collection')
+              return { error: null }
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Could not search public index:', error)
+      }
+      
+      console.warn('⚠️ Challenge document does not exist in any Firestore location, trying local update instead')
+      
+      // Document doesn't exist anywhere in Firestore, try local storage
+      const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
+      if (!localResult.error) {
+        console.log('✅ Updated challenge locally instead')
+        return { error: null }
+      }
+      
+      // If local also fails, return descriptive error
+      return { error: `Challenge ${challengeId} not found in Firestore or local storage` }
     } catch (error: any) {
       console.error('Error updating shared challenge:', error)
       
