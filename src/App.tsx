@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { SimpleChallengeSharing } from '@/lib/simpleChallengeSharing'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { ProfileTab } from '@/components/ProfileTab'
@@ -216,6 +217,37 @@ function AppContent() {
       setCurrentTab(tabParam)
     }
   }, [])
+
+  // Handle challenge URL imports
+  useEffect(() => {
+    if (!user) return // Only import challenges when user is logged in
+    
+    const challengeImport = SimpleChallengeSharing.importChallengeFromURL()
+    if (challengeImport.challenge) {
+      console.log('📥 Importing challenge from URL:', challengeImport.challenge.title)
+      
+      // Save the imported challenge locally
+      const shareResult = SimpleChallengeSharing.shareChallenge(challengeImport.challenge)
+      if (shareResult.error) {
+        console.error('❌ Failed to import challenge:', shareResult.error)
+        toast.error('Failed to import challenge from URL')
+      } else {
+        console.log('✅ Challenge imported successfully with code:', shareResult.code)
+        toast.success(`Challenge imported: ${challengeImport.challenge.title} (Code: ${shareResult.code})`)
+        
+        // Switch to tasks tab to show the challenge
+        setCurrentTab('tasks')
+        
+        // Clean URL to remove the challenge parameter
+        const url = new URL(window.location.href)
+        url.searchParams.delete('challenge')
+        window.history.replaceState({}, '', url.toString())
+      }
+    } else if (challengeImport.error) {
+      console.error('❌ Challenge import error:', challengeImport.error)
+      toast.error('Invalid challenge URL: ' + challengeImport.error)
+    }
+  }, [user])
 
   // Handle URL tab parameter for PWA shortcuts
   useEffect(() => {

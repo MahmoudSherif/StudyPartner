@@ -155,11 +155,12 @@ export class FirestoreService {
       }
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
-      // Only log non-permission errors to reduce noise
-      if (!errorMessage.includes('permissions')) {
-        console.warn('Firestore getUserData failed:', errorMessage)
+      // Only log non-permission errors to reduce console noise
+      if (!errorMessage.includes('permission') && !errorMessage.includes('Permission')) {
+        console.warn(`Firestore getUserData failed for ${dataType}:`, errorMessage)
       }
-      return { data: null, error: null } // Return no error to prevent UI disruption
+      // Always return null data with no error to prevent UI disruption
+      return { data: null, error: null }
     }
   }
 
@@ -436,20 +437,30 @@ export class FirestoreService {
   }
 
   // Debug function to list all challenges (for debugging purposes)
-  async getAllSharedChallenges() {
+  async getAllSharedChallenges(includeInactive: boolean = false) {
     try {
       if (!isFirebaseAvailable || !db) {
         return { data: [], error: 'Firestore database not available - offline mode' }
       }
       
-      console.log('🔍 Fetching ALL shared challenges for debugging...')
+      console.log('🔍 Fetching ALL shared challenges for debugging...', includeInactive ? '(including inactive)' : '(active only)')
       const challengesRef = collection(db, 'shared-challenges')
-      const querySnapshot = await getDocs(challengesRef)
+      
+      let q
+      if (includeInactive) {
+        // Get all challenges regardless of isActive status
+        q = challengesRef
+      } else {
+        // Only get active challenges
+        q = query(challengesRef, where('isActive', '==', true))
+      }
+      
+      const querySnapshot = await getDocs(q)
       
       console.log('📊 Total challenges found in database:', querySnapshot.size)
       
       const challenges: Challenge[] = querySnapshot.docs.map(doc => {
-        const data = doc.data()
+        const data = doc.data() as any
         console.log('📄 Challenge document:', {
           id: doc.id,
           code: data.code,
@@ -461,7 +472,7 @@ export class FirestoreService {
         return {
           ...data,
           id: doc.id,
-          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt || Date.now()),
           updatedAt: data.updatedAt?.toDate?.() || new Date()
         } as unknown as Challenge
       })
