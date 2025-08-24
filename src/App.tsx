@@ -20,6 +20,7 @@ import { NotesTab } from '@/components/NotesTab'
 import { AuthScreen } from '@/components/AuthScreen'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { firestoreService } from '@/lib/firestore'
+import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
 import { 
   useFirebaseSubjects,
   useFirebaseSessions,

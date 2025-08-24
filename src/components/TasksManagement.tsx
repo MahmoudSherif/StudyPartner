@@ -308,6 +308,54 @@ export function TasksManagement({
     }
   }
 
+  // Alternative approach - test saving challenge in user collection
+  const testAlternativeApproach = async () => {
+    try {
+      console.log('🧪 Testing alternative challenge sharing approach...')
+      
+      // Create a test challenge
+      const testChallenge: Challenge = {
+        id: 'test-alt-' + Date.now(),
+        title: 'Test Alternative Challenge',
+        description: 'Testing alternative sharing method',
+        code: 'TEST' + Math.random().toString(36).substr(2, 4).toUpperCase(),
+        createdBy: currentUserId,
+        participants: [currentUserId],
+        tasks: [],
+        isActive: true,
+        createdAt: new Date(),
+        endDate: undefined
+      }
+      
+      // Try saving with alternative method
+      const saveResult = await firestoreService.saveSharedChallengeAlternative(testChallenge, currentUserId)
+      if (saveResult.error) {
+        console.error('❌ Alternative save failed:', saveResult.error)
+        toast.error('Alternative save failed: ' + saveResult.error)
+        return
+      }
+      
+      console.log('✅ Alternative save successful! Code:', testChallenge.code)
+      
+      // Try finding it back
+      const findResult = await firestoreService.findSharedChallengeByCodeAlternative(testChallenge.code)
+      if (findResult.error) {
+        console.error('❌ Alternative find failed:', findResult.error)
+        toast.error('Alternative find failed: ' + findResult.error)
+      } else if (findResult.data) {
+        console.log('✅ Alternative find successful:', findResult.data)
+        toast.success(`Alternative approach works! Found challenge: ${findResult.data.title}`)
+      } else {
+        console.log('❌ Challenge not found')
+        toast.error('Challenge saved but not found')
+      }
+      
+    } catch (error) {
+      console.error('❌ Alternative test failed:', error)
+      toast.error('Alternative test failed - check console')
+    }
+  }
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'bg-red-500/20 text-red-300 border-red-500/30'
@@ -690,6 +738,16 @@ export function TasksManagement({
               title="Debug: List all challenges in database"
             >
               🔍 Debug
+            </Button>
+            
+            {/* Alternative approach test button */}
+            <Button 
+              onClick={testAlternativeApproach}
+              variant="outline" 
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+              title="Test alternative challenge sharing method"
+            >
+              🧪 Test Alt
             </Button>
           </div>
 

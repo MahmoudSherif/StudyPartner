@@ -1,5 +1,6 @@
 // Firestore data management for user data
 import { db, isFirebaseAvailable } from '@/lib/firebase'
+import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
 import { 
   doc, 
   getDoc, 
@@ -219,32 +220,101 @@ export class FirestoreService {
     return this.getUserData<Goal[]>(userId, 'goals')
   }
 
-  // Shared challenge methods for global access
-  async saveSharedChallenge(challenge: Challenge) {
+  // ALTERNATIVE APPROACH: Save challenges in user's personal collection with sharing enabled
+  async saveSharedChallengeAlternative(challenge: Challenge, userId: string) {
     try {
       if (!isFirebaseAvailable || !db) {
         return { error: 'Firestore database not available - offline mode' }
       }
       
-      console.log('Saving shared challenge to Firestore:', challenge)
+      console.log('💡 Alternative: Saving challenge in user collection with sharing enabled')
       
-      const challengeRef = doc(db, 'shared-challenges', challenge.id)
+      // Ensure code consistency - always store in uppercase
+      const normalizedCode = challenge.code.trim().toUpperCase()
+      
+      // Save in user's personal challenges collection but mark as shareable
+      const challengeRef = doc(db, 'users', userId, 'shared-challenges', challenge.id)
       const challengeData = {
         ...challenge,
+        code: normalizedCode, // Ensure uppercase storage
+        sharingEnabled: true,
+        originalOwner: userId,
         createdAt: challenge.createdAt,
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        // Make it publicly searchable by code (also uppercase for consistency)
+        searchableCode: normalizedCode
       }
       
-      console.log('Challenge data to save:', challengeData)
-      
+      console.log('Alternative challenge data with normalized code:', normalizedCode, challengeData)
       await setDoc(challengeRef, challengeData)
-      console.log('Challenge saved successfully to Firestore')
+      
+      // Also save in a public index for faster searching (use uppercase as key)
+      const indexRef = doc(db, 'public-challenge-index', normalizedCode)
+      await setDoc(indexRef, {
+        challengeId: challenge.id,
+        ownerId: userId,
+        code: normalizedCode, // Store normalized uppercase
+        originalCode: challenge.code, // Keep original input for display if needed
+        title: challenge.title,
+        isActive: challenge.isActive,
+        createdAt: challenge.createdAt,
+        updatedAt: serverTimestamp()
+      })
+      
+      console.log('✅ Alternative save successful with normalized code:', normalizedCode)
       return { error: null }
     } catch (error: any) {
-      console.error('Error saving shared challenge:', error)
-      const errorMessage = this.handleFirestoreError(error)
-      console.warn('Firestore saveSharedChallenge failed:', errorMessage)
-      return { error: errorMessage }
+      console.error('❌ Alternative save failed:', error)
+      return { error: this.handleFirestoreError(error) }
+    }
+  }
+
+  async findSharedChallengeByCodeAlternative(code: string) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: null, error: 'Firestore database not available - offline mode' }
+      }
+      
+      // NORMALIZE CODE - always search in lowercase but preserve original case in data
+      const normalizedCode = code.toLowerCase()
+      console.log('💡 Alternative: Searching for challenge with code:', code, '(normalized:', normalizedCode + ')')
+      
+      // First, check the public index
+      const indexRef = doc(db, 'public-challenge-index', normalizedCode)
+      const indexSnap = await getDoc(indexRef)
+      
+      if (!indexSnap.exists()) {
+        console.log('❌ Challenge code not found in index for normalized code:', normalizedCode)
+        return { data: null, error: 'Challenge not found' }
+      }
+      
+      const indexData = indexSnap.data()
+      console.log('✅ Found challenge in index:', indexData)
+      
+      // Get the actual challenge from the owner's collection
+      const challengeRef = doc(db, 'users', indexData.ownerId, 'shared-challenges', indexData.challengeId)
+      const challengeSnap = await getDoc(challengeRef)
+      
+      if (!challengeSnap.exists()) {
+        console.log('❌ Challenge data not found in owner collection')
+        return { data: null, error: 'Challenge data not found' }
+      }
+      
+      const challengeData = challengeSnap.data()
+      console.log('✅ Found full challenge data:', challengeData)
+      
+      return { 
+        data: {
+          ...challengeData,
+          id: challengeSnap.id,
+          createdAt: challengeData.createdAt?.toDate?.() || new Date(challengeData.createdAt),
+          updatedAt: challengeData.updatedAt?.toDate?.() || new Date()
+        } as unknown as Challenge, 
+        error: null 
+      }
+    } catch (error: any) {
+      console.error('❌ Alternative search failed:', error)
+      return { data: null, error: this.handleFirestoreError(error) }
     }
   }
 
@@ -279,17 +349,30 @@ export class FirestoreService {
   }
 
   async findSharedChallengeByCode(code: string, skipActiveCheck: boolean = false) {
+    // Try alternative approach first, then fallback to old method
+    const normalizedCode = code.trim().toUpperCase() // Normalize input
+    console.log('🔄 Trying alternative approach first for code:', code, '(normalized:', normalizedCode + ')')
+    
+    const altResult = await this.findSharedChallengeByCodeAlternative(normalizedCode)
+    if (altResult.data) {
+      console.log('✅ Found via alternative approach')
+      return altResult
+    }
+    
+    console.log('⚠️ Alternative failed, trying original method')
+    
     try {
       if (!isFirebaseAvailable || !db) {
         return { data: null, error: 'Firestore database not available - offline mode' }
       }
       
-      console.log('Searching for challenge with code:', code, skipActiveCheck ? '(ignoring isActive)' : '(only active)')
+      console.log('Searching for challenge with normalized code:', normalizedCode, skipActiveCheck ? '(ignoring isActive)' : '(only active)')
       
       const challengesRef = collection(db, 'shared-challenges')
+      // Search with normalized (uppercase) code
       const q = skipActiveCheck 
-        ? query(challengesRef, where('code', '==', code))
-        : query(challengesRef, where('code', '==', code), where('isActive', '==', true))
+        ? query(challengesRef, where('code', '==', normalizedCode))
+        : query(challengesRef, where('code', '==', normalizedCode), where('isActive', '==', true))
       console.log('Executing query for challenges...')
       
       const querySnapshot = await getDocs(q)
@@ -314,7 +397,7 @@ export class FirestoreService {
           error: null 
         }
       } else {
-        console.log('No challenge found with code:', code)
+        console.log('No challenge found with normalized code:', normalizedCode)
         return { data: null, error: null }
       }
     } catch (error: any) {
@@ -324,26 +407,6 @@ export class FirestoreService {
       return { data: null, error: errorMessage }
     }
   }
-
-  async updateSharedChallenge(challengeId: string, updates: Partial<Challenge>) {
-    try {
-      if (!isFirebaseAvailable || !db) {
-        return { error: 'Firestore database not available - offline mode' }
-      }
-      
-      const challengeRef = doc(db, 'shared-challenges', challengeId)
-      await updateDoc(challengeRef, {
-        ...updates,
-        updatedAt: serverTimestamp()
-      })
-      return { error: null }
-    } catch (error: any) {
-      const errorMessage = this.handleFirestoreError(error)
-      console.warn('Firestore updateSharedChallenge failed:', errorMessage)
-      return { error: errorMessage }
-    }
-  }
-
   async getUserChallenges(userId: string) {
     try {
       if (!isFirebaseAvailable || !db) {
@@ -486,6 +549,55 @@ export class FirestoreService {
         goals: [],
         error: error.message
       }
+    }
+  }
+
+  // Original methods for backward compatibility
+  async saveSharedChallenge(challenge: Challenge) {
+    // Try alternative approach first, then fallback to local storage
+    console.log('💾 Trying to save challenge with alternative approach')
+    
+    const altResult = await this.saveSharedChallengeAlternative(challenge, challenge.createdBy)
+    if (!altResult.error) {
+      console.log('✅ Saved via alternative approach')
+      return altResult
+    }
+    
+    console.log('⚠️ Alternative failed, saving locally:', altResult.error)
+    
+    // Fallback to local storage
+    const localResult = LocalChallengeStorage.saveChallenge(challenge)
+    if (localResult.error) {
+      console.error('❌ Local save also failed:', localResult.error)
+      return { error: 'Failed to save challenge: ' + altResult.error }
+    }
+    
+    console.log('✅ Saved locally as fallback')
+    return { error: null }
+  }
+
+  async updateSharedChallenge(challengeId: string, updates: Partial<Challenge>) {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        // Try local update
+        const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
+        return localResult
+      }
+      
+      console.log('Updating shared challenge:', challengeId, updates)
+      
+      // Try to update in shared-challenges collection
+      const challengeRef = doc(db, 'shared-challenges', challengeId)
+      await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
+      return { error: null }
+    } catch (error: any) {
+      console.error('Error updating shared challenge:', error)
+      // Fallback to local update
+      const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
+      if (localResult.error) {
+        return { error: this.handleFirestoreError(error) }
+      }
+      return { error: null }
     }
   }
 }
