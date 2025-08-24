@@ -1,70 +1,37 @@
-// Service Worker for MotivaMate PWA
-// Handles push notifications, background sync, and caching
+// Minimal Service Worker for MotivaMate PWA
+// This service worker provides basic PWA functionality without aggressive caching
+// that could cause white screen issues
 
-const CACHE_NAME = 'motivamate-v1';
-const urlsToCache = [
-  '/',
-  '/manifest.json',
-  '/favicon.svg',
-  '/icons/favicon.svg'
-];
+console.log('Service Worker: Starting...');
 
-// Install event - cache resources
+// Install event
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
-  );
-  // Skip waiting to activate immediately
+  console.log('Service Worker: Installing...');
+  // Activate immediately without waiting
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  // Claim all clients immediately
-  return self.clients.claim();
+  console.log('Service Worker: Activating...');
+  // Take control of all pages immediately
+  event.waitUntil(self.clients.claim());
 });
 
-// Fetch event - serve from cache with network fallback
+// Fetch event - minimal intervention
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests and development resources
-  if (event.request.method !== 'GET' || 
-      event.request.url.includes('@vite') ||
-      event.request.url.includes('@react-refresh') ||
-      event.request.url.includes('src/main.tsx') ||
-      event.request.url.includes('fonts.googleapis.com') ||
-      event.request.url.includes('fonts.gstatic.com') ||
-      event.request.url.includes('upload.wikimedia.org')) {
-    return;
+  // Let all requests pass through to the network
+  // This ensures the app loads normally and prevents white screen issues
+  
+  // Only handle specific cases where we want to intervene
+  if (event.request.url.includes('manifest.json') || 
+      event.request.url.includes('favicon')) {
+    // For manifest and favicon, try network first, no caching for now
+    event.respondWith(fetch(event.request));
   }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request).catch((error) => {
-          console.log('Fetch failed for:', event.request.url);
-          // For missing icons, return a default response
-          if (event.request.url.includes('favicon') || event.request.url.includes('icon')) {
-            return caches.match('/favicon.svg');
-          }
-          throw error;
-        });
-      })
-  );
+  
+  // For all other requests, let them pass through normally
+  // This prevents service worker from interfering with app loading
 });
 
 // Push event - handle push notifications
