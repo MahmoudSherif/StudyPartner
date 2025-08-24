@@ -97,7 +97,13 @@ export const authFunctions = {
       
       return { user: result.user, error: null }
     } catch (error: any) {
-      return { user: null, error: error.message }
+      return await handleNetworkError(
+        error,
+        mockAuthFunctions.signUp,
+        email,
+        password,
+        displayName
+      )
     }
   },
 
@@ -116,6 +122,13 @@ export const authFunctions = {
       const result = await signInWithEmailAndPassword(auth, email, password)
       return { user: result.user, error: null }
     } catch (error: any) {
+      // If it's a network error (blocked by client), use mock auth
+      if (error.message?.includes('Failed to fetch') || 
+          error.code === 'auth/network-request-failed' ||
+          error.toString().includes('ERR_BLOCKED_BY_CLIENT')) {
+        console.warn('Firebase blocked by network, using mock auth...')
+        return await mockAuthFunctions.signIn(email, password)
+      }
       return { user: null, error: error.message }
     }
   },

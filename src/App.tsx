@@ -679,12 +679,53 @@ function AppContent() {
     try {
       console.log('Attempting to join challenge with code:', code)
       
-      // Try Simple Challenge Sharing first (always works)
-      console.log('🚀 Trying Simple Challenge Sharing first...')
+      // Try Firestore first (shared storage for cross-account access)
+      console.log('🔥 Trying Firestore first for cross-account access...')
+      const result = await firestoreService.findSharedChallengeByCode(code)
+      console.log('Find challenge result:', result)
+      
+      if (!result.error && result.data) {
+        // Successfully found challenge in Firestore
+        const challenge = result.data
+        console.log('✅ Found challenge via Firestore:', challenge.title)
+        
+        if (challenge.participants.includes(currentUserId)) {
+          toast.info('You are already participating in this challenge')
+          return
+        }
+
+        // Update challenge with new participant
+        const updatedParticipants = [...challenge.participants, currentUserId]
+        const updateResult = await firestoreService.updateSharedChallenge(challenge.id, {
+          participants: updatedParticipants
+        }, currentUserId)
+
+        if (!updateResult.error) {
+          // Update local state (Firestore update succeeded)
+          const updatedChallenge = { ...challenge, participants: updatedParticipants }
+          setChallenges(current => {
+            const existing = current.find(c => c.id === challenge.id)
+            if (existing) {
+              return current.map(c => c.id === challenge.id ? updatedChallenge : c)
+            } else {
+              return [...current, updatedChallenge]
+            }
+          })
+
+          toast.success(`Joined challenge: ${challenge.title}! 🎉`)
+          return
+        } else {
+          console.error('Failed to update challenge participants:', updateResult.error)
+          // Continue to fallback methods below
+        }
+      }
+      
+      // Fallback to local storage (Simple Challenge Sharing)
+      console.log('⚠️ Firestore not available, trying local storage...')
       const simpleResult = SimpleChallengeSharing.findSharedChallenge(code)
       
       if (simpleResult.challenge && !simpleResult.error) {
-        console.log('✅ Found challenge via Simple sharing:', simpleResult.challenge.title)
+        console.log('✅ Found challenge via local storage:', simpleResult.challenge.title)
         
         // Join via Simple sharing system
         const joinResult = SimpleChallengeSharing.joinChallenge(code, currentUserId)
@@ -721,118 +762,15 @@ function AppContent() {
             }
           })
           
-          console.log('✅ Simple Challenge joining successful!')
+          console.log('✅ Local storage joining successful!')
           return
         } else {
-          console.error('❌ Simple join failed:', joinResult.error)
+          console.error('❌ Local storage join failed:', joinResult.error)
         }
       }
       
-      // Fallback to Firestore approach (may fail due to permissions)
-      console.log('⚠️ Simple sharing not available, trying Firestore...')
-      
-      // Find challenge in shared collection by code
-      const result = await firestoreService.findSharedChallengeByCode(code)
-      console.log('Find challenge result:', result)
-      
-      if (result.error) {
-        if (result.error.includes('Permission denied') || result.error.includes('permissions')) {
-          // Try to migrate this challenge to Simple sharing and join
-          console.log('🔄 Firestore permission denied, trying to create local version...')
-          
-          // Create a local version of the challenge for sharing
-          const fallbackChallenge: Challenge = {
-            id: 'fallback_' + Date.now(),
-            code: code,
-            title: 'Shared Challenge (' + code + ')',
-            description: 'Challenge migrated from Firestore due to permission issues',
-            createdBy: 'unknown',
-            participants: [currentUserId],
-            tasks: [],
-            isActive: true,
-            createdAt: new Date(),
-            endDate: undefined
-          }
-          
-          const shareResult = SimpleChallengeSharing.shareChallenge(fallbackChallenge)
-          if (!shareResult.error) {
-            toast.success(`Joined challenge ${code}! (Local fallback mode)`)
-            setChallenges(current => [...current, fallbackChallenge])
-            return
-          }
-          
-          toast.error('Challenge sharing requires updated Firebase rules.')
-          console.error('🔥 FIREBASE RULES UPDATE NEEDED: Both Firestore and local fallback failed')
-          return
-        }
-        toast.error('Error finding challenge: ' + result.error)
-        return
-      }
-      
-      if (!result.data) {
-        console.log('Challenge not found or inactive for code:', code)
-        toast.error('Challenge not found or inactive')
-        return
-      }
-
-      const challenge = result.data
-      console.log('Found challenge:', challenge)
-      
-      if (challenge.participants.includes(currentUserId)) {
-        toast.info('You are already participating in this challenge')
-        return
-      }
-
-      // Update challenge with new participant
-      const updatedParticipants = [...challenge.participants, currentUserId]
-      const updateResult = await firestoreService.updateSharedChallenge(challenge.id, {
-        participants: updatedParticipants
-      }, currentUserId)
-
-      if (updateResult.error) {
-        console.error('Failed to update challenge participants:', updateResult.error)
-        console.log('🔄 Firestore update failed, migrating challenge to Simple sharing system...')
-        
-        // Create the updated challenge with new participant
-        const migratedChallenge: Challenge = {
-          ...challenge,
-          participants: updatedParticipants // Include the new participant
-        }
-        
-        // Use Simple Challenge Sharing as seamless migration
-        const shareResult = SimpleChallengeSharing.shareChallenge(migratedChallenge)
-        if (!shareResult.error) {
-          toast.success(`Joined challenge: ${challenge.title}! (Using reliable local sharing)`)
-          setChallenges(current => {
-            const existing = current.find(c => c.id === challenge.id)
-            if (existing) {
-              return current.map(c => 
-                c.id === challenge.id ? migratedChallenge : c
-              )
-            } else {
-              return [...current, migratedChallenge]
-            }
-          })
-          console.log('✅ Challenge migrated to Simple sharing successfully')
-        } else {
-          console.error('❌ Simple sharing also failed:', shareResult.error)
-          toast.error('Failed to join challenge: ' + shareResult.error)
-        }
-        return
-      }
-
-      // Update local state (Firestore update succeeded)
-      const updatedChallenge = { ...challenge, participants: updatedParticipants }
-      setChallenges(current => {
-        const existing = current.find(c => c.id === challenge.id)
-        if (existing) {
-          return current.map(c => c.id === challenge.id ? updatedChallenge : c)
-        } else {
-          return [...current, updatedChallenge]
-        }
-      })
-
-      toast.success(`Joined challenge: ${challenge.title}`)
+      // No challenge found in either storage
+      toast.error('Challenge not found. The code may be incorrect, or the challenge may have expired or been deleted.')
     } catch (error) {
       console.error('Error joining challenge:', error)
       toast.error('Failed to join challenge. Please try again.')
