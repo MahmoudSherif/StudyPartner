@@ -597,17 +597,47 @@ export class FirestoreService {
       
       console.log('Updating shared challenge:', challengeId, updates)
       
-      // Try to update in shared-challenges collection
+      // First, check if the document exists
       const challengeRef = doc(db, 'shared-challenges', challengeId)
+      const docSnap = await getDoc(challengeRef)
+      
+      if (!docSnap.exists()) {
+        console.warn('⚠️ Challenge document does not exist in Firestore, trying local update instead')
+        // Document doesn't exist, try local storage
+        const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
+        if (!localResult.error) {
+          console.log('✅ Updated challenge locally instead')
+          return { error: null }
+        }
+        
+        // If local also fails, return descriptive error
+        return { error: `Challenge ${challengeId} not found in Firestore or local storage` }
+      }
+      
+      // Document exists, proceed with update
       await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
+      console.log('✅ Updated challenge in Firestore')
       return { error: null }
     } catch (error: any) {
       console.error('Error updating shared challenge:', error)
-      // Fallback to local update
+      
+      // If it's a "No document to update" error, try local storage
+      if (error.message?.includes('No document to update')) {
+        console.log('🔄 Document missing in Firestore, trying local storage fallback')
+        const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
+        if (!localResult.error) {
+          console.log('✅ Updated challenge locally as fallback')
+          return { error: null }
+        }
+      }
+      
+      // Fallback to local update for any error
       const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
       if (localResult.error) {
         return { error: this.handleFirestoreError(error) }
       }
+      
+      console.log('✅ Updated challenge locally after Firestore error')
       return { error: null }
     }
   }

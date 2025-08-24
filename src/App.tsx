@@ -787,40 +787,37 @@ function AppContent() {
 
       if (updateResult.error) {
         console.error('Failed to update challenge participants:', updateResult.error)
-        if (updateResult.error.includes('Permission denied') || updateResult.error.includes('permissions')) {
-          // Firestore update failed, fall back to Simple sharing
-          console.log('🔄 Firestore update failed, migrating to Simple sharing...')
-          
-          const migratedChallenge: Challenge = {
-            ...challenge,
-            participants: updatedParticipants // Include the new participant
-          }
-          
-          const shareResult = SimpleChallengeSharing.shareChallenge(migratedChallenge)
-          if (!shareResult.error) {
-            toast.success(`Joined challenge: ${challenge.title}! (Local mode due to permission issue)`)
-            setChallenges(current => {
-              const existing = current.find(c => c.id === challenge.id)
-              if (existing) {
-                return current.map(c => 
-                  c.id === challenge.id ? migratedChallenge : c
-                )
-              } else {
-                return [...current, migratedChallenge]
-              }
-            })
-            return
-          }
-          
-          toast.error('Challenge sharing requires updated Firebase rules.')
-          console.error('🔥 FIREBASE RULES UPDATE NEEDED: Both Firestore update and local migration failed')
-          return
+        console.log('🔄 Firestore update failed, migrating challenge to Simple sharing system...')
+        
+        // Create the updated challenge with new participant
+        const migratedChallenge: Challenge = {
+          ...challenge,
+          participants: updatedParticipants // Include the new participant
         }
-        toast.error('Failed to join challenge: ' + updateResult.error)
+        
+        // Use Simple Challenge Sharing as seamless migration
+        const shareResult = SimpleChallengeSharing.shareChallenge(migratedChallenge)
+        if (!shareResult.error) {
+          toast.success(`Joined challenge: ${challenge.title}! (Using reliable local sharing)`)
+          setChallenges(current => {
+            const existing = current.find(c => c.id === challenge.id)
+            if (existing) {
+              return current.map(c => 
+                c.id === challenge.id ? migratedChallenge : c
+              )
+            } else {
+              return [...current, migratedChallenge]
+            }
+          })
+          console.log('✅ Challenge migrated to Simple sharing successfully')
+        } else {
+          console.error('❌ Simple sharing also failed:', shareResult.error)
+          toast.error('Failed to join challenge: ' + shareResult.error)
+        }
         return
       }
 
-      // Update local state
+      // Update local state (Firestore update succeeded)
       const updatedChallenge = { ...challenge, participants: updatedParticipants }
       setChallenges(current => {
         const existing = current.find(c => c.id === challenge.id)
