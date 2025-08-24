@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Task, Challenge, Subject, TaskProgress } from '@/lib/types'
 import { firestoreService } from '@/lib/firestore'
 import { SimpleChallengeSharing } from '@/lib/simpleChallengeSharing'
+import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { 
   Plus, 
@@ -291,17 +292,53 @@ export function TasksManagement({
   const debugListAllChallenges = async () => {
     try {
       console.log('🔍 Running debug: List all challenges...')
-      const result = await firestoreService.getAllSharedChallenges()
+      
+      // Check Firestore challenges
+      const result = await firestoreService.getAllSharedChallenges(true) // Include inactive
+      
+      // Check local challenges
+      const localChallenges = LocalChallengeStorage.getAllChallenges()
+      
+      console.log('🔍 === CHALLENGE DEBUG REPORT ===')
+      console.log('📊 Firestore challenges found:', result.data?.length || 0)
+      console.log('📊 Local challenges found:', localChallenges.length)
+      
+      // Display challenge codes prominently
+      const allCodes: string[] = []
+      
+      if (result.data && result.data.length > 0) {
+        console.log('\n🔥 FIRESTORE CHALLENGES:')
+        result.data.forEach((challenge: Challenge, index: number) => {
+          const codeDisplay = `📋 ${challenge.code} - "${challenge.title}" (${challenge.isActive ? 'Active' : 'Inactive'})`
+          console.log(`${index + 1}. ${codeDisplay}`)
+          allCodes.push(challenge.code)
+        })
+      }
+      
+      if (localChallenges.length > 0) {
+        console.log('\n🏠 LOCAL CHALLENGES:')
+        localChallenges.forEach((challenge: Challenge, index: number) => {
+          const codeDisplay = `📋 ${challenge.code} - "${challenge.title}" (${challenge.isActive ? 'Active' : 'Inactive'})`
+          console.log(`${index + 1}. ${codeDisplay}`)
+          if (!allCodes.includes(challenge.code)) {
+            allCodes.push(challenge.code)
+          }
+        })
+      }
+      
+      if (allCodes.length > 0) {
+        console.log('\n🎯 ALL CHALLENGE CODES:', allCodes.join(', '))
+        toast.success(`Found ${allCodes.length} challenges! Codes: ${allCodes.join(', ')}`, {
+          duration: 8000 // Show longer so user can see codes
+        })
+      } else {
+        console.log('❌ No challenges found anywhere')
+        toast.info('No challenges found in Firestore or local storage')
+      }
+      
       if (result.error) {
         console.error('❌ Debug error:', result.error)
         toast.error('Debug failed: ' + result.error)
-      } else {
-        console.log('✅ Debug success - found challenges:', result.data.length)
-        if (result.data.length === 0) {
-          toast.info('No challenges found in database')
-        } else {
-          toast.success(`Found ${result.data.length} challenges - check console for details`)
-        }
       }
     } catch (error) {
       console.error('❌ Debug exception:', error)
@@ -1026,6 +1063,26 @@ export function TasksManagement({
               🔍 Debug
             </Button>
             
+            {/* Show my challenge codes button */}
+            <Button 
+              onClick={() => {
+                const myCodes = challenges.map(c => c.code).filter(Boolean)
+                if (myCodes.length > 0) {
+                  console.log('📋 MY CHALLENGE CODES:', myCodes.join(', '))
+                  toast.success(`Your Challenge Codes: ${myCodes.join(', ')}`, {
+                    duration: 10000 // Show for 10 seconds so user can copy
+                  })
+                } else {
+                  toast.info('No challenge codes found. Create a challenge first!')
+                }
+              }}
+              variant="outline" 
+              className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+              title="Show all your challenge codes"
+            >
+              📋 My Codes
+            </Button>
+            
             {/* Alternative approach test button */}
             <Button 
               onClick={testAlternativeApproach}
@@ -1111,6 +1168,9 @@ export function TasksManagement({
                         <h4 className="font-semibold text-white flex items-center gap-2">
                           <Trophy size={16} />
                           {challenge.title}
+                          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 font-mono text-xs">
+                            {challenge.code}
+                          </Badge>
                           {isEnded && (
                             <Badge className="bg-green-500/20 text-green-300 border-green-500/30 ml-2">
                               Completed
