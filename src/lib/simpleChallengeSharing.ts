@@ -305,4 +305,68 @@ export class SimpleChallengeSharing {
       return { migrated: 0, errors: 1 }
     }
   }
+
+  // Get all available challenge codes for discovery
+  static getAllAvailableCodes(): { codes: string[]; details: Array<{code: string, title: string, timestamp: number}> } {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY)
+      if (!stored) {
+        return { codes: [], details: [] }
+      }
+
+      const data = JSON.parse(stored) as Record<string, SharedChallengeData>
+      const codes: string[] = []
+      const details: Array<{code: string, title: string, timestamp: number}> = []
+
+      Object.entries(data).forEach(([code, challengeData]) => {
+        if (challengeData && challengeData.challenge) {
+          codes.push(code)
+          details.push({
+            code,
+            title: challengeData.challenge.title || 'Untitled',
+            timestamp: challengeData.timestamp
+          })
+        }
+      })
+
+      console.log('📋 Found simple sharing codes:', codes.join(', '))
+      return { codes, details }
+    } catch (error) {
+      console.error('❌ Error getting available codes:', error)
+      return { codes: [], details: [] }
+    }
+  }
+
+  // Search for challenges by title/description pattern
+  static searchChallenges(searchTerm: string): Array<{code: string, challenge: Challenge}> {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY)
+      if (!stored) {
+        return []
+      }
+
+      const data = JSON.parse(stored) as Record<string, SharedChallengeData>
+      const results: Array<{code: string, challenge: Challenge}> = []
+      const lowerSearchTerm = searchTerm.toLowerCase()
+
+      Object.entries(data).forEach(([code, challengeData]) => {
+        if (challengeData && challengeData.challenge) {
+          const challenge = challengeData.challenge
+          const titleMatch = challenge.title?.toLowerCase().includes(lowerSearchTerm)
+          const descMatch = challenge.description?.toLowerCase().includes(lowerSearchTerm)
+          const codeMatch = code.toLowerCase().includes(lowerSearchTerm)
+
+          if (titleMatch || descMatch || codeMatch) {
+            results.push({ code, challenge })
+          }
+        }
+      })
+
+      console.log(`🔍 Search for "${searchTerm}" found ${results.length} matches`)
+      return results
+    } catch (error) {
+      console.error('❌ Error searching challenges:', error)
+      return []
+    }
+  }
 }

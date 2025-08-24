@@ -1073,14 +1073,133 @@ export function TasksManagement({
                     duration: 10000 // Show for 10 seconds so user can copy
                   })
                 } else {
-                  toast.info('No challenge codes found. Create a challenge first!')
+                  toast.info('No challenge codes found in your local challenges. Try "🔍 Debug" to find all available codes!')
                 }
               }}
               variant="outline" 
               className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
-              title="Show all your challenge codes"
+              title="Show challenge codes from your local challenges"
             >
               📋 My Codes
+            </Button>
+            
+            {/* Show ALL available challenge codes button */}
+            <Button 
+              onClick={async () => {
+                try {
+                  console.log('🔍 Searching for ALL available challenge codes...')
+                  
+                  // Search Firestore challenges
+                  const firestoreResult = await firestoreService.getAllSharedChallenges(true)
+                  
+                  // Search local challenges
+                  const localChallenges = LocalChallengeStorage.getAllChallenges()
+                  
+                  // Search Simple Challenge Sharing
+                  const simpleCodes = SimpleChallengeSharing.getAllAvailableCodes()
+                  
+                  const allCodes: string[] = []
+                  const codeDetails: string[] = []
+                  
+                  // Collect Firestore codes
+                  if (firestoreResult.data && firestoreResult.data.length > 0) {
+                    firestoreResult.data.forEach((challenge: Challenge) => {
+                      if (challenge.code && !allCodes.includes(challenge.code)) {
+                        allCodes.push(challenge.code)
+                        codeDetails.push(`${challenge.code} - "${challenge.title}" (Firestore)`)
+                      }
+                    })
+                  }
+                  
+                  // Collect local codes
+                  localChallenges.forEach((challenge: Challenge) => {
+                    if (challenge.code && !allCodes.includes(challenge.code)) {
+                      allCodes.push(challenge.code)
+                      codeDetails.push(`${challenge.code} - "${challenge.title}" (Local)`)
+                    }
+                  })
+                  
+                  // Collect Simple sharing codes
+                  simpleCodes.codes.forEach((code: string) => {
+                    if (!allCodes.includes(code)) {
+                      allCodes.push(code)
+                      const detail = simpleCodes.details.find(d => d.code === code)
+                      codeDetails.push(`${code} - "${detail?.title || 'Unknown'}" (Simple Sharing)`)
+                    }
+                  })
+                  
+                  console.log('🎯 ALL AVAILABLE CODES:', allCodes.join(', '))
+                  console.log('📋 CODE DETAILS:', codeDetails)
+                  
+                  if (allCodes.length > 0) {
+                    toast.success(`Found ${allCodes.length} available codes: ${allCodes.join(', ')}`, {
+                      duration: 15000 // Show for 15 seconds
+                    })
+                  } else {
+                    toast.info('No challenge codes found anywhere. Create a challenge first!')
+                  }
+                } catch (error) {
+                  console.error('Error searching for codes:', error)
+                  toast.error('Failed to search for codes - check console')
+                }
+              }}
+              variant="outline" 
+              className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10"
+              title="Find ALL available challenge codes from all sources"
+            >
+              🔍 All Codes
+            </Button>
+
+            {/* Quick code lookup for sharing */}
+            <Button 
+              onClick={() => {
+                const prompt = window.prompt('Enter part of a challenge title to search for its code:')
+                if (prompt && prompt.trim()) {
+                  const searchTerm = prompt.trim().toLowerCase()
+                  console.log('🔍 Searching for challenges containing:', searchTerm)
+                  
+                  const allMatches: Array<{code: string, title: string, source: string}> = []
+                  
+                  // Search in current challenges
+                  const localMatches = challenges.filter(c => 
+                    c.title.toLowerCase().includes(searchTerm) ||
+                    c.description?.toLowerCase().includes(searchTerm) ||
+                    c.code?.toLowerCase().includes(searchTerm)
+                  )
+                  
+                  localMatches.forEach(c => {
+                    if (c.code) {
+                      allMatches.push({ code: c.code, title: c.title, source: 'Local State' })
+                    }
+                  })
+                  
+                  // Search in Simple Challenge Sharing
+                  const simpleMatches = SimpleChallengeSharing.searchChallenges(searchTerm)
+                  simpleMatches.forEach(match => {
+                    if (!allMatches.find(m => m.code === match.code)) {
+                      allMatches.push({ 
+                        code: match.code, 
+                        title: match.challenge.title, 
+                        source: 'Simple Sharing' 
+                      })
+                    }
+                  })
+                  
+                  if (allMatches.length > 0) {
+                    const results = allMatches.map(m => `${m.code} - "${m.title}" (${m.source})`).join('\n')
+                    console.log('✅ Found matching challenges:', results)
+                    toast.success(`Found ${allMatches.length} matches:\n${results}`, { duration: 12000 })
+                  } else {
+                    console.log('❌ No matches found for:', searchTerm)
+                    toast.info(`No matches found for "${searchTerm}". Try "🔍 All Codes" to see all available codes.`)
+                  }
+                }
+              }}
+              variant="outline" 
+              className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+              title="Search for specific challenge codes by title"
+            >
+              🔍 Find Code
             </Button>
             
             {/* Alternative approach test button */}
