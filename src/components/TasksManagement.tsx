@@ -78,8 +78,7 @@ export function TasksManagement({
   
   const [newChallenge, setNewChallenge] = useState({
     title: '',
-    description: '',
-    endDate: ''
+    description: ''
   })
 
   const [newChallengeTask, setNewChallengeTask] = useState({
@@ -186,31 +185,7 @@ export function TasksManagement({
       return
     }
     
-    // Validate end date
-    let endDateValid: Date | undefined
-    if (newChallenge.endDate) {
-      endDateValid = new Date(newChallenge.endDate)
-      if (isNaN(endDateValid.getTime())) {
-        toast.error('Please enter a valid end date')
-        return
-      }
-      
-      // Check if end date is not in the past
-      const now = new Date()
-      if (endDateValid <= now) {
-        toast.error('End date must be in the future')
-        return
-      }
-      
-      // Check if end date is not too far in the future (e.g., more than 2 years)
-      const twoYearsFromNow = new Date()
-      twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2)
-      if (endDateValid > twoYearsFromNow) {
-        toast.error('End date cannot be more than 2 years in the future')
-        return
-      }
-    }
-
+    // End date validation removed - challenges now have no expiration
     const challenge: Omit<Challenge, 'id' | 'createdAt'> = {
       code: Math.random().toString(36).substring(2, 8).toUpperCase(),
       title: sanitizedTitle,
@@ -219,15 +194,14 @@ export function TasksManagement({
       participants: [currentUserId],
       tasks: [],
       isActive: true,
-      endDate: endDateValid
+      endDate: undefined // No expiration date
     }
 
     try {
       await onCreateChallenge(challenge)
       setNewChallenge({
         title: '',
-        description: '',
-        endDate: ''
+        description: ''
       })
       setIsCreatingChallenge(false)
     } catch (error) {
@@ -476,7 +450,7 @@ export function TasksManagement({
       tasks: [],
       isActive: true,
       createdAt: new Date(),
-      endDate: newChallenge.endDate ? new Date(newChallenge.endDate) : undefined
+      endDate: undefined // No expiration date
     }
 
     try {
@@ -496,8 +470,7 @@ export function TasksManagement({
 
       setNewChallenge({
         title: '',
-        description: '',
-        endDate: ''
+        description: ''
       })
       setIsCreatingChallenge(false)
     } catch (error) {
@@ -979,13 +952,6 @@ export function TasksManagement({
                     onChange={(e) => setNewChallenge({ ...newChallenge, description: e.target.value })}
                     className="bg-white/10 border-white/20 text-white"
                   />
-                  <Input
-                    type="date"
-                    placeholder="End date (optional)"
-                    value={newChallenge.endDate}
-                    onChange={(e) => setNewChallenge({ ...newChallenge, endDate: e.target.value })}
-                    className="bg-white/10 border-white/20 text-white"
-                  />
                   <div className="flex gap-2">
                     <Button onClick={handleCreateChallenge} className="flex-1 bg-primary hover:bg-primary/80">
                       Create Challenge
@@ -1077,7 +1043,7 @@ export function TasksManagement({
                   }
                 }).sort((a, b) => b.points - a.points)
                 
-                const isEnded = challenge.endDate ? new Date() > new Date(challenge.endDate) : false
+                const isEnded = !challenge.isActive // Challenges end only when manually marked inactive
                 const winner = leaderboard.length > 0 ? leaderboard[0] : null
                 
                 return (
@@ -1101,11 +1067,6 @@ export function TasksManagement({
                         <div className="flex items-center gap-4 mt-2 text-sm text-white/60">
                           <span>{challenge.participants.length} participants</span>
                           <span>{totalPoints} total points</span>
-                          {challenge.endDate && (
-                            <span>
-                              {isEnded ? 'Ended' : 'Ends'}: {new Date(challenge.endDate).toLocaleDateString()}
-                            </span>
-                          )}
                         </div>
                         
                         {/* Winner Display */}
