@@ -649,7 +649,7 @@ function AppContent() {
       // Save to shared challenges collection in Firestore
       const result = await firestoreService.saveSharedChallenge(newChallenge)
       if (result.error) {
-        console.error('Failed to save challenge to Firestore:', result.error)
+        console.error('Failed to save challenge:', result.error)
         if (result.error.includes('Permission denied')) {
           toast.error('Challenge creation requires updated Firebase rules. Check console for instructions.')
           console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
@@ -660,11 +660,15 @@ function AppContent() {
         return
       }
 
-      console.log('Challenge saved to Firestore successfully')
+      console.log('Challenge saved successfully')
       
       // Add to local state
       setChallenges(current => [...current, newChallenge])
-      toast.success(`Challenge created successfully! Code: ${newChallenge.code}`)
+      toast.success(`Challenge created successfully! Code: ${newChallenge.code} (Cross-account sharing enabled)`)
+      
+      // Log where the challenge was saved for debugging
+      console.log('🎯 Challenge code for sharing:', newChallenge.code)
+      console.log('📋 This code can be used from any account to join the challenge')
     } catch (error) {
       console.error('Error creating challenge:', error)
       toast.error('Failed to create challenge. Please try again.')

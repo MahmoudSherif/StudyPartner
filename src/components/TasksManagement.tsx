@@ -1201,6 +1201,55 @@ export function TasksManagement({
             >
               🔍 Find Code
             </Button>
+
+            {/* Test cross-account sharing */}
+            <Button 
+              onClick={async () => {
+                try {
+                  console.log('🧪 Creating test challenge for cross-account discovery...')
+                  
+                  const testChallenge: Challenge = {
+                    id: 'test-cross-account-' + Date.now(),
+                    title: 'Cross-Account Test Challenge',
+                    description: 'This challenge tests cross-account code discovery',
+                    code: SimpleChallengeSharing.generateCode(),
+                    createdBy: currentUserId,
+                    participants: [currentUserId],
+                    tasks: [{
+                      id: 'test-task-1',
+                      title: 'Test cross-account joining',
+                      description: 'Use the challenge code from another account',
+                      points: 10,
+                      createdAt: new Date(),
+                      completedBy: []
+                    }],
+                    isActive: true,
+                    createdAt: new Date(),
+                    endDate: undefined
+                  }
+                  
+                  // Force save to Simple Challenge Sharing for cross-account access
+                  const simpleResult = SimpleChallengeSharing.shareChallenge(testChallenge)
+                  if (!simpleResult.error) {
+                    console.log('✅ Test challenge saved for cross-account access with code:', simpleResult.code)
+                    toast.success(`Test challenge created! Code: ${simpleResult.code} - This code will work from ANY account!`, {
+                      duration: 15000
+                    })
+                  } else {
+                    console.error('❌ Failed to save test challenge:', simpleResult.error)
+                    toast.error('Failed to create test challenge')
+                  }
+                } catch (error) {
+                  console.error('❌ Error creating test challenge:', error)
+                  toast.error('Error creating test challenge')
+                }
+              }}
+              variant="outline" 
+              className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+              title="Create a test challenge specifically for cross-account discovery"
+            >
+              🧪 Test Cross-Account
+            </Button>
             
             {/* Alternative approach test button */}
             <Button 
