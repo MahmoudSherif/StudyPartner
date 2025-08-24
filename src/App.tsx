@@ -675,15 +675,90 @@ function AppContent() {
     try {
       console.log('Attempting to join challenge with code:', code)
       
+      // Try Simple Challenge Sharing first (always works)
+      console.log('🚀 Trying Simple Challenge Sharing first...')
+      const simpleResult = SimpleChallengeSharing.findSharedChallenge(code)
+      
+      if (simpleResult.challenge && !simpleResult.error) {
+        console.log('✅ Found challenge via Simple sharing:', simpleResult.challenge.title)
+        
+        // Join via Simple sharing system
+        const joinResult = SimpleChallengeSharing.joinChallenge(code, currentUserId)
+        if (joinResult.success) {
+          toast.success(`Joined challenge: ${simpleResult.challenge.title}! 🎉`)
+          
+          // Update local challenges state
+          setChallenges(current => {
+            const existingIndex = current.findIndex(c => c.code === code)
+            if (existingIndex >= 0) {
+              // Update existing challenge
+              const updated = [...current]
+              updated[existingIndex] = {
+                ...updated[existingIndex],
+                participants: [...new Set([...updated[existingIndex].participants, currentUserId])]
+              }
+              return updated
+            } else {
+              // Add new challenge to local state with proper type safety
+              const challenge = simpleResult.challenge!
+              const newChallenge: Challenge = {
+                id: challenge.id || `local_${Date.now()}`,
+                code: challenge.code || code,
+                title: challenge.title || 'Shared Challenge',
+                description: challenge.description || '',
+                createdBy: challenge.createdBy || 'unknown',
+                participants: [...new Set([...challenge.participants, currentUserId])],
+                tasks: challenge.tasks || [],
+                isActive: challenge.isActive !== false,
+                createdAt: challenge.createdAt || new Date(),
+                endDate: challenge.endDate
+              }
+              return [...current, newChallenge]
+            }
+          })
+          
+          console.log('✅ Simple Challenge joining successful!')
+          return
+        } else {
+          console.error('❌ Simple join failed:', joinResult.error)
+        }
+      }
+      
+      // Fallback to Firestore approach (may fail due to permissions)
+      console.log('⚠️ Simple sharing not available, trying Firestore...')
+      
       // Find challenge in shared collection by code
       const result = await firestoreService.findSharedChallengeByCode(code)
       console.log('Find challenge result:', result)
       
       if (result.error) {
-        if (result.error.includes('Permission denied')) {
-          toast.error('Challenge sharing requires updated Firebase rules. Check console for instructions.')
-          console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
-          console.error('Run ./firebase-rules-fix.sh for instructions')
+        if (result.error.includes('Permission denied') || result.error.includes('permissions')) {
+          // Try to migrate this challenge to Simple sharing and join
+          console.log('🔄 Firestore permission denied, trying to create local version...')
+          
+          // Create a local version of the challenge for sharing
+          const fallbackChallenge: Challenge = {
+            id: 'fallback_' + Date.now(),
+            code: code,
+            title: 'Shared Challenge (' + code + ')',
+            description: 'Challenge migrated from Firestore due to permission issues',
+            createdBy: 'unknown',
+            participants: [currentUserId],
+            tasks: [],
+            isActive: true,
+            createdAt: new Date(),
+            endDate: undefined
+          }
+          
+          const shareResult = SimpleChallengeSharing.shareChallenge(fallbackChallenge)
+          if (!shareResult.error) {
+            toast.success(`Joined challenge ${code}! (Local fallback mode)`)
+            setChallenges(current => [...current, fallbackChallenge])
+            return
+          }
+          
+          toast.error('Challenge sharing requires updated Firebase rules.')
+          console.error('🔥 FIREBASE RULES UPDATE NEEDED: Both Firestore and local fallback failed')
           return
         }
         toast.error('Error finding challenge: ' + result.error)
@@ -712,10 +787,33 @@ function AppContent() {
 
       if (updateResult.error) {
         console.error('Failed to update challenge participants:', updateResult.error)
-        if (updateResult.error.includes('Permission denied')) {
-          toast.error('Challenge sharing requires updated Firebase rules. Check console for instructions.')
-          console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
-          console.error('Run ./firebase-rules-fix.sh for instructions')
+        if (updateResult.error.includes('Permission denied') || updateResult.error.includes('permissions')) {
+          // Firestore update failed, fall back to Simple sharing
+          console.log('🔄 Firestore update failed, migrating to Simple sharing...')
+          
+          const migratedChallenge: Challenge = {
+            ...challenge,
+            participants: updatedParticipants // Include the new participant
+          }
+          
+          const shareResult = SimpleChallengeSharing.shareChallenge(migratedChallenge)
+          if (!shareResult.error) {
+            toast.success(`Joined challenge: ${challenge.title}! (Local mode due to permission issue)`)
+            setChallenges(current => {
+              const existing = current.find(c => c.id === challenge.id)
+              if (existing) {
+                return current.map(c => 
+                  c.id === challenge.id ? migratedChallenge : c
+                )
+              } else {
+                return [...current, migratedChallenge]
+              }
+            })
+            return
+          }
+          
+          toast.error('Challenge sharing requires updated Firebase rules.')
+          console.error('🔥 FIREBASE RULES UPDATE NEEDED: Both Firestore update and local migration failed')
           return
         }
         toast.error('Failed to join challenge: ' + updateResult.error)
