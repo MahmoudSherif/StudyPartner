@@ -161,18 +161,52 @@ export class FirestoreService {
         const ownerData: any = ownerSnap.exists() ? ownerSnap.data() : {}
         const globalData: any = globalSnap.exists() ? globalSnap.data() : {}
         const participants = Array.from(new Set([...(ownerData.participants||[]), ...(globalData.participants||[])]))
-        const tasksMap: Record<string, any> = {}
-        ;(globalData.tasks||[]).forEach((t:any)=>{ if(t?.id) tasksMap[t.id]=t })
-        ;(ownerData.tasks||[]).forEach((t:any)=>{ if(t?.id) tasksMap[t.id]=t })
-        const mergedTasks = Object.values(tasksMap)
+        const byId: Record<string, any> = {}
+        const ingest = (arr: any[]) => {
+          arr?.forEach(t => {
+            if (!t?.id) return
+            const existing = byId[t.id]
+            if (!existing) {
+              byId[t.id] = t
+            } else {
+              // Union merge completions & keep highest points/most recent meta
+              const mergedCompletions: Record<string, any> = { ...(existing.completions||{}) }
+              if (t.completions) {
+                Object.entries(t.completions).forEach(([uid, meta]: any) => {
+                  mergedCompletions[uid] = meta
+                })
+              }
+              const legacyCompleted = new Set<string>([...(existing.completedBy||[]), ...(t.completedBy||[])])
+              byId[t.id] = { ...existing, ...t, completions: mergedCompletions, completedBy: Array.from(legacyCompleted) }
+            }
+          })
+        }
+        ingest(globalData.tasks||[])
+        ingest(ownerData.tasks||[])
+        const mergedTasks = Object.values(byId)
+        // Prefer a pointsSummary that has more keys (indicates more complete data)
+        let pointsSummary = globalData.pointsSummary || ownerData.pointsSummary
+        if (ownerData.pointsSummary && globalData.pointsSummary) {
+          const ownerKeys = Object.keys(ownerData.pointsSummary.pointsByUser||{}).length
+            const globalKeys = Object.keys(globalData.pointsSummary.pointsByUser||{}).length
+          pointsSummary = ownerKeys > globalKeys ? ownerData.pointsSummary : globalData.pointsSummary
+        }
         callback({
-          ...(globalData||{}),
-          ...(ownerData||{}),
+          id: indexData.challengeId,
+          code: globalData.code || ownerData.code || indexData.code,
+          title: ownerData.title || globalData.title || 'Challenge',
+          description: ownerData.description || globalData.description || '',
+          createdBy: ownerData.createdBy || globalData.createdBy || indexData.ownerId,
+          createdAt: ownerData.createdAt?.toDate?.() || globalData.createdAt?.toDate?.() || new Date(),
           participants,
-            tasks: mergedTasks,
-            id: indexData.challengeId,
-            createdAt: ownerData.createdAt?.toDate?.() || globalData.createdAt?.toDate?.() || new Date(),
-            updatedAt: new Date()
+          tasks: mergedTasks,
+          isActive: ownerData.isActive !== undefined ? ownerData.isActive : (globalData.isActive !== undefined ? globalData.isActive : true),
+          endDate: ownerData.endDate?.toDate?.() || globalData.endDate?.toDate?.(),
+          winnerId: ownerData.winnerId || globalData.winnerId,
+          winnerIds: ownerData.winnerIds || globalData.winnerIds,
+          pointsSummary: pointsSummary,
+          finalPointsByUser: ownerData.finalPointsByUser || globalData.finalPointsByUser,
+          finalMaxPoints: ownerData.finalMaxPoints || globalData.finalMaxPoints
         } as Challenge)
       }
       // Initial emit
