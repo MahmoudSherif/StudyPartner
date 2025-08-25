@@ -5,6 +5,11 @@ const CHALLENGES_STORAGE_KEY = 'motivamate_local_challenges'
 const CHALLENGE_INDEX_KEY = 'motivamate_challenge_index'
 
 export class LocalChallengeStorage {
+  // Get single challenge by id
+  static getChallenge(challengeId: string): Challenge | null {
+    const all = this.getAllChallenges()
+    return all.find(c => c.id === challengeId) || null
+  }
   
   // Save challenge locally
   static saveChallenge(challenge: Challenge): { error: string | null } {

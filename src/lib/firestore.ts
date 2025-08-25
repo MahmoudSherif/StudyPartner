@@ -337,27 +337,46 @@ export class FirestoreService {
       const indexData = indexSnap.data()
       console.log('✅ Found challenge in index:', indexData)
       
-      // Get the actual challenge from the owner's collection
-      const challengeRef = doc(db, 'users', indexData.ownerId, 'shared-challenges', indexData.challengeId)
-      const challengeSnap = await getDoc(challengeRef)
-      
-      if (!challengeSnap.exists()) {
-        console.log('❌ Challenge data not found in owner collection')
+      // Fetch owner and global copies in parallel
+      const ownerRef = doc(db, 'users', indexData.ownerId, 'shared-challenges', indexData.challengeId)
+      const [ownerSnap, globalSnap] = await Promise.all([
+        getDoc(ownerRef),
+        getDoc(doc(db, 'shared-challenges', indexData.challengeId))
+      ])
+
+      if (!ownerSnap.exists() && !globalSnap.exists()) {
+        console.log('❌ Challenge data missing in both owner and global locations')
         return { data: null, error: 'Challenge data not found' }
       }
-      
-      const challengeData = challengeSnap.data()
-      console.log('✅ Found full challenge data:', challengeData)
-      
-      return { 
-        data: {
-          ...challengeData,
-          id: challengeSnap.id,
-          createdAt: challengeData.createdAt?.toDate?.() || new Date(challengeData.createdAt),
-          updatedAt: challengeData.updatedAt?.toDate?.() || new Date()
-        } as unknown as Challenge, 
-        error: null 
+
+      const ownerData: any = ownerSnap.exists() ? ownerSnap.data() : {}
+      const globalData: any = globalSnap.exists() ? globalSnap.data() : {}
+
+      // Merge participants uniquely
+      const mergedParticipants = Array.from(new Set([...(ownerData.participants||[]), ...(globalData.participants||[])]))
+      // Merge tasks by id (prefer owner definitions)
+      const tasksMap: Record<string, any> = {}
+      ;(globalData.tasks||[]).forEach((t:any)=>{ if(t?.id) tasksMap[t.id]=t })
+      ;(ownerData.tasks||[]).forEach((t:any)=>{ if(t?.id) tasksMap[t.id]=t })
+      const mergedTasks = Object.values(tasksMap)
+
+      const createdAt = ownerData.createdAt?.toDate?.() || globalData.createdAt?.toDate?.() || new Date(ownerData.createdAt || globalData.createdAt || Date.now())
+      const updatedOwner = ownerData.updatedAt?.toDate?.() || new Date(ownerData.updatedAt || 0)
+      const updatedGlobal = globalData.updatedAt?.toDate?.() || new Date(globalData.updatedAt || 0)
+      const updatedAt = (updatedOwner.getTime() > updatedGlobal.getTime()) ? updatedOwner : updatedGlobal
+
+      const merged: any = {
+        ...(globalData || {}),
+        ...(ownerData || {}), // owner fields override
+        participants: mergedParticipants,
+        tasks: mergedTasks,
+        id: indexData.challengeId,
+        createdAt,
+        updatedAt: updatedAt.getTime() ? updatedAt : new Date()
       }
+
+      console.log('✅ Merged challenge data (owner+global):', merged)
+      return { data: merged as Challenge, error: null }
     } catch (error: any) {
       console.error('❌ Alternative search failed:', error)
       return { data: null, error: this.handleFirestoreError(error) }
@@ -660,6 +679,48 @@ export class FirestoreService {
       }
       
       console.log('Updating shared challenge:', challengeId, updates)
+      
+      // Permission enforcement: only original owner may add new tasks
+      // Fetch owner mapping early
+      let ownerId: string | null = null
+      try {
+        const ownerMapRef = doc(db, 'challenge-owners', challengeId)
+        const ownerMapSnap = await getDoc(ownerMapRef)
+        if (ownerMapSnap.exists()) {
+          ownerId = (ownerMapSnap.data() as any).ownerId || null
+        }
+      } catch {}
+
+      // If tasks are being updated ensure non-owner cannot add new tasks (only toggle completion)
+      if (updates.tasks && ownerId && currentUserId && currentUserId !== ownerId) {
+        try {
+          // Load an existing copy (owner preferred, global fallback)
+          let existingTasks: any[] = []
+          if (ownerId) {
+            const ownerRef = doc(db, 'users', ownerId, 'shared-challenges', challengeId)
+            const ownerSnap = await getDoc(ownerRef)
+            if (ownerSnap.exists()) {
+              existingTasks = (ownerSnap.data() as any).tasks || []
+            } else {
+              const globalSnap = await getDoc(doc(db, 'shared-challenges', challengeId))
+              if (globalSnap.exists()) {
+                existingTasks = (globalSnap.data() as any).tasks || []
+              }
+            }
+          }
+          const incomingTasks = updates.tasks || []
+          const existingIds = new Set(existingTasks.map((t: any) => t.id))
+          const added = incomingTasks.filter((t: any) => t && t.id && !existingIds.has(t.id))
+          if (added.length > 0) {
+            console.warn('🚫 Non-owner attempted to add tasks. Stripping new tasks from update.')
+            // Reduce incomingTasks to only existing ones, merging completion changes
+            const sanitized = incomingTasks.filter((t: any) => t && existingIds.has(t.id))
+            updates.tasks = sanitized as any
+          }
+        } catch (permErr) {
+          console.log('Task permission check issue (continuing with caution):', permErr)
+        }
+      }
       
       // First, check if the document exists in main shared-challenges collection
       const challengeRef = doc(db, 'shared-challenges', challengeId)
