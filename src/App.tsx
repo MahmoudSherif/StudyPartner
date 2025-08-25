@@ -72,6 +72,8 @@ function AppContent() {
   const [achievements, setAchievements] = useFirebaseAchievements()
   const [tasks, setTasks] = useFirebaseTasks()
   const [challenges, setChallenges] = useState<Challenge[]>([])
+  // Active challenge code for real-time subscription
+  const [activeChallengeCode, setActiveChallengeCode] = useState<string | null>(null)
   const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
   const [goals, setGoals] = useFirebaseGoals()
   const [currentTab, setCurrentTab] = useState('achieve')
@@ -137,6 +139,7 @@ function AppContent() {
     const loadUserChallenges = async () => {
       if (!user?.uid) {
         setChallenges([])
+  setActiveChallengeCode(null)
         return
       }
 
@@ -144,6 +147,11 @@ function AppContent() {
         const result = await firestoreService.getUserChallenges(user.uid)
         if (result.data) {
           setChallenges(result.data)
+          // Auto-subscribe to first active challenge if none selected
+          if (!activeChallengeCode) {
+            const firstActive = result.data.find(c => c.isActive)
+            if (firstActive) setActiveChallengeCode(firstActive.code)
+          }
         } else if (result.error) {
           console.warn('Failed to load user challenges:', result.error)
         }
@@ -154,6 +162,24 @@ function AppContent() {
 
     loadUserChallenges()
   }, [user?.uid])
+
+  // Real-time subscription to active challenge
+  useEffect(() => {
+    if (!activeChallengeCode) return
+    const unsubscribe = firestoreService.onChallengeSnapshot(activeChallengeCode, (liveChallenge) => {
+      if (!liveChallenge) return
+      setChallenges(current => {
+        const idx = current.findIndex(c => c.id === liveChallenge.id)
+        if (idx >= 0) {
+          const updated = [...current]
+          updated[idx] = { ...updated[idx], ...liveChallenge }
+          return updated
+        }
+        return [...current, liveChallenge]
+      })
+    })
+    return () => { unsubscribe && unsubscribe() }
+  }, [activeChallengeCode])
 
   // Enhanced error handling for unhandled errors and promise rejections
   useEffect(() => {
@@ -444,55 +470,43 @@ function AppContent() {
 
     let challengeProgress: TaskProgress['challengeProgress'] = undefined
     if (activeChallenge && showChallengeProgress) {
-      // Calculate user points and task completion
-      const userCompletedTasks = activeChallenge.tasks.filter(task => 
-        task.completedBy.includes(currentUserId)
-      )
-      const userPoints = userCompletedTasks.reduce((total, task) => total + task.points, 0)
-      const maxPoints = activeChallenge.tasks.reduce((total, task) => total + task.points, 0)
-      
-      // Calculate leaderboard with points
-      const leaderboard = activeChallenge.participants.map(participantId => {
-        const completedTasks = activeChallenge.tasks.filter(task => 
-          task.completedBy.includes(participantId)
-        )
-        const points = completedTasks.reduce((total, task) => total + task.points, 0)
-        return {
-          userId: participantId,
-          points,
-          tasksCompleted: completedTasks.length,
-          rank: 0 // Will be calculated after sorting
+      const summary = activeChallenge.pointsSummary
+      let maxPoints = summary?.maxPoints
+      if (maxPoints == null) {
+        maxPoints = activeChallenge.tasks.reduce((total, task) => total + task.points, 0)
+      }
+      // Build leaderboard leveraging summary when present
+      let leaderboard = activeChallenge.participants.map(participantId => {
+        let points = summary?.pointsByUser?.[participantId]
+        if (points == null) {
+          const completed = activeChallenge.tasks.filter(t => t.completedBy.includes(participantId))
+          points = completed.reduce((sum, t) => sum + t.points, 0)
         }
-      }).sort((a, b) => b.points - a.points) // Sort by points descending
-      
-      // Assign ranks (handle ties)
-      leaderboard.forEach((participant, index) => {
-        if (index === 0) {
-          participant.rank = 1
-        } else if (participant.points === leaderboard[index - 1].points) {
-          participant.rank = leaderboard[index - 1].rank // Same rank for tied scores
-        } else {
-          participant.rank = index + 1
-        }
+        const tasksCompleted = activeChallenge.tasks.filter(t => t.completedBy.includes(participantId)).length
+        return { userId: participantId, points, tasksCompleted, rank: 0 }
+      }).sort((a,b) => b.points - a.points)
+      // Rank assignment with tie handling
+      leaderboard.forEach((p, idx) => {
+        if (idx === 0) p.rank = 1
+        else if (p.points === leaderboard[idx-1].points) p.rank = leaderboard[idx-1].rank
+        else p.rank = idx + 1
       })
-      
+      const userPoints = leaderboard.find(p => p.userId === currentUserId)?.points || 0
+      const userCompletedTasks = activeChallenge.tasks.filter(t => t.completedBy.includes(currentUserId)).length
       const userRank = leaderboard.find(p => p.userId === currentUserId)?.rank || 1
-      
-      // Check if challenge is completed (ended)
       const isCompleted = activeChallenge.endDate ? new Date() > new Date(activeChallenge.endDate) : false
       const winnerId = isCompleted && leaderboard.length > 0 ? leaderboard[0].userId : undefined
-
       challengeProgress = {
         challengeId: activeChallenge.id,
         challengeTitle: activeChallenge.title,
         totalTasks: activeChallenge.tasks.length,
-        completedTasks: userCompletedTasks.length,
-        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks.length / activeChallenge.tasks.length) * 100 : 0,
+        completedTasks: userCompletedTasks,
+        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks / activeChallenge.tasks.length) * 100 : 0,
         userRank,
         totalParticipants: activeChallenge.participants.length,
         userPoints,
         maxPoints,
-        pointsPercentage: maxPoints > 0 ? (userPoints / maxPoints) * 100 : 0,
+        pointsPercentage: (maxPoints || 0) > 0 ? (userPoints / (maxPoints || 0)) * 100 : 0,
         leaderboard,
         isCompleted,
         winnerId
@@ -664,6 +678,7 @@ function AppContent() {
       
       // Add to local state
       setChallenges(current => [...current, newChallenge])
+  if (newChallenge.code) setActiveChallengeCode(newChallenge.code)
       toast.success(`Challenge created successfully! Code: ${newChallenge.code} (Cross-account sharing enabled)`)
       
       // Log where the challenge was saved for debugging
@@ -711,6 +726,7 @@ function AppContent() {
               return [...current, updatedChallenge]
             }
           })
+          setActiveChallengeCode(updatedChallenge.code)
 
           toast.success(`Joined challenge: ${challenge.title}! 🎉`)
           return
@@ -763,6 +779,7 @@ function AppContent() {
           })
           
           console.log('✅ Local storage joining successful!')
+          setActiveChallengeCode(code.toUpperCase())
           return
         } else {
           console.error('❌ Local storage join failed:', joinResult.error)
@@ -779,18 +796,21 @@ function AppContent() {
 
   const handleAddChallengeTask = async (challengeId: string, taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => {
     try {
+      // Enforce only creator can add tasks client-side (mirrors server-side enforcement)
+      const challenge = challenges.find(c => c.id === challengeId)
+      if (!challenge) {
+        toast.error('Challenge not found')
+        return
+      }
+      if (challenge.createdBy !== currentUserId) {
+        toast.error('Only the challenge creator can add tasks')
+        return
+      }
       const newTask: import('@/lib/types').ChallengeTask = {
         ...taskData,
         id: Date.now().toString(),
         createdAt: new Date(),
         completedBy: []
-      }
-
-      // Find the challenge in local state
-      const challenge = challenges.find(c => c.id === challengeId)
-      if (!challenge) {
-        toast.error('Challenge not found')
-        return
       }
 
       const updatedTasks = [...challenge.tasks, newTask]
@@ -848,14 +868,36 @@ function AppContent() {
         return
       }
 
-      // Update local state
-      setChallenges(current => 
-        current.map(c => 
-          c.id === challengeId 
-            ? { ...c, tasks: updatedTasks }
-            : c
+      // Re-fetch merged version to ensure points/participants/state consistency
+      try {
+        const refreshed = await firestoreService.findSharedChallengeByCode(challenge.code)
+        if (refreshed.data) {
+          setChallenges(current => {
+            const exists = current.some(c => c.id === challengeId)
+            if (exists) {
+              return current.map(c => c.id === challengeId ? refreshed.data! : c)
+            }
+            return [...current, refreshed.data!]
+          })
+        } else {
+          // fallback to optimistic local update
+          setChallenges(current => 
+            current.map(c => 
+              c.id === challengeId 
+                ? { ...c, tasks: updatedTasks }
+                : c
+            )
+          )
+        }
+      } catch {
+        setChallenges(current => 
+          current.map(c => 
+            c.id === challengeId 
+              ? { ...c, tasks: updatedTasks }
+              : c
+          )
         )
-      )
+      }
 
       if (!isCompleted) {
         // Trigger special haptic feedback for challenge task completion

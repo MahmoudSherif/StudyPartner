@@ -13,11 +13,123 @@ import {
   where, 
   getDocs,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot
 } from 'firebase/firestore'
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
 
 export class FirestoreService {
+  // Recompute and persist per-user points summary inside both owner and global challenge docs
+  private async recomputeChallengePoints(challengeId: string) {
+    if (!isFirebaseAvailable || !db) return
+    try {
+      // Try owner mapping first
+      let ownerId: string | null = null
+      try {
+        const ownerMapRef = doc(db, 'challenge-owners', challengeId)
+        const ownerMapSnap = await getDoc(ownerMapRef)
+        if (ownerMapSnap.exists()) {
+          ownerId = (ownerMapSnap.data() as any).ownerId || null
+        }
+      } catch {}
+
+      let challengeData: any = null
+      if (ownerId) {
+        const ownerRef = doc(db, 'users', ownerId, 'shared-challenges', challengeId)
+        const ownerSnap = await getDoc(ownerRef)
+        if (ownerSnap.exists()) {
+          challengeData = ownerSnap.data()
+        }
+      }
+      // Fallback global
+      if (!challengeData) {
+        const globalRef = doc(db, 'shared-challenges', challengeId)
+        const globalSnap = await getDoc(globalRef)
+        if (globalSnap.exists()) {
+          challengeData = globalSnap.data()
+        }
+      }
+      if (!challengeData) return
+
+      const tasks: any[] = challengeData.tasks || []
+      const participants: string[] = challengeData.participants || []
+      const points: Record<string, number> = {}
+      participants.forEach(p => { points[p] = 0 })
+      tasks.forEach(t => {
+        const pts = typeof t.points === 'number' ? t.points : 0
+        ;(t.completedBy || []).forEach((uid: string) => {
+          if (!points[uid]) points[uid] = 0
+          points[uid] += pts
+        })
+      })
+      const maxPoints = tasks.reduce((sum, t) => sum + (typeof t.points === 'number' ? t.points : 0), 0)
+
+      const summary = { pointsByUser: points, maxPoints }
+
+      const updates = { pointsSummary: summary, updatedAt: serverTimestamp() }
+      const writePromises: Promise<any>[] = []
+      if (ownerId) {
+        writePromises.push(updateDoc(doc(db, 'users', ownerId, 'shared-challenges', challengeId), updates).catch(()=>{}))
+      }
+      writePromises.push(updateDoc(doc(db, 'shared-challenges', challengeId), updates).catch(()=>{}))
+      await Promise.all(writePromises)
+      console.log('🧮 Recomputed points summary for challenge', challengeId, summary)
+    } catch (e) {
+      console.log('Points recomputation failed (non-fatal):', e)
+    }
+  }
+
+  // Subscribe to a challenge (merges owner + global copies on each change)
+  onChallengeSnapshot(code: string, callback: (challenge: Challenge | null) => void): (() => void) | null {
+    if (!isFirebaseAvailable || !db) return null
+    // We listen to index doc first to resolve owner + challengeId, then attach listeners
+    const normalized = code.trim().toUpperCase()
+    const indexRef = doc(db, 'public-challenge-index', normalized)
+    const unsub = onSnapshot(indexRef, async (indexSnap) => {
+      if (!indexSnap.exists()) {
+        callback(null)
+        return
+      }
+      const indexData: any = indexSnap.data()
+      const ownerRef = doc(db, 'users', indexData.ownerId, 'shared-challenges', indexData.challengeId)
+      const globalRef = doc(db, 'shared-challenges', indexData.challengeId)
+      // Attach nested listeners (recreated if index changes)
+      const mergeAndEmit = async () => {
+        const [ownerSnap, globalSnap] = await Promise.all([getDoc(ownerRef), getDoc(globalRef)])
+        if (!ownerSnap.exists() && !globalSnap.exists()) { callback(null); return }
+        const ownerData: any = ownerSnap.exists() ? ownerSnap.data() : {}
+        const globalData: any = globalSnap.exists() ? globalSnap.data() : {}
+        const participants = Array.from(new Set([...(ownerData.participants||[]), ...(globalData.participants||[])]))
+        const tasksMap: Record<string, any> = {}
+        ;(globalData.tasks||[]).forEach((t:any)=>{ if(t?.id) tasksMap[t.id]=t })
+        ;(ownerData.tasks||[]).forEach((t:any)=>{ if(t?.id) tasksMap[t.id]=t })
+        const mergedTasks = Object.values(tasksMap)
+        callback({
+          ...(globalData||{}),
+          ...(ownerData||{}),
+          participants,
+            tasks: mergedTasks,
+            id: indexData.challengeId,
+            createdAt: ownerData.createdAt?.toDate?.() || globalData.createdAt?.toDate?.() || new Date(),
+            updatedAt: new Date()
+        } as Challenge)
+      }
+      // Initial emit
+      mergeAndEmit()
+      // Real-time listeners
+      const unsubOwner = onSnapshot(ownerRef, mergeAndEmit)
+      const unsubGlobal = onSnapshot(globalRef, mergeAndEmit)
+      // Return composite unsubscribe when outer unsub triggered
+      const prevUnsub = (unsub as any)._nested
+      if (prevUnsub) prevUnsub()
+      ;(unsub as any)._nested = () => { unsubOwner(); unsubGlobal() }
+    })
+    return () => {
+      const nested = (unsub as any)._nested
+      if (nested) nested()
+      unsub()
+    }
+  }
   private isNetworkBlocked(error: any): boolean {
     return error.message?.includes('ERR_BLOCKED_BY_CLIENT') || 
            error.code === 'failed-precondition' ||
@@ -730,6 +842,11 @@ export class FirestoreService {
         // Document exists in main collection, proceed with update
         await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
         console.log('✅ Updated challenge in main Firestore collection')
+
+        // Recompute points if tasks updated
+        if (updates.tasks) {
+          try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (main) failed:', e) }
+        }
         return { error: null }
       }
       
@@ -745,6 +862,7 @@ export class FirestoreService {
             console.log('✅ Found challenge in current user\'s collection')
             await updateDoc(userChallengeRef, { ...updates, updatedAt: serverTimestamp() })
             console.log('✅ Updated challenge in user\'s Firestore collection')
+            if (updates.tasks) { try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (user collection) failed:', e) } }
             return { error: null }
           }
         } catch (error) {
@@ -767,6 +885,7 @@ export class FirestoreService {
               if (ownerDocSnap.exists()) {
                 await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
                 console.log('✅ Updated challenge via owner mapping collection')
+                if (updates.tasks) { try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (owner mapping) failed:', e) } }
                 return { error: null }
               }
             }
@@ -787,6 +906,7 @@ export class FirestoreService {
             if (ownerDocSnap.exists()) {
               await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
               console.log('✅ Updated challenge in owner\'s Firestore collection')
+              if (updates.tasks) { try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (index scan) failed:', e) } }
               return { error: null }
             }
           }

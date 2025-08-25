@@ -101,6 +101,11 @@ export interface Challenge {
   endDate?: Date
   maxPoints?: number // Total points available in the challenge
   winnerId?: string // ID of the winner (set when challenge ends)
+  // Optional cached points summary (stored in Firestore owner + global docs)
+  pointsSummary?: {
+    pointsByUser: Record<string, number>
+    maxPoints: number
+  }
 }
 
 export interface ChallengeTask {
