@@ -25,6 +25,7 @@ import {
   Copy,
   Share
 } from '@phosphor-icons/react'
+import { isChallengeTaskCompletedForUser, countTaskCompletions } from '@/lib/challengeTasks'
 import { toast } from 'sonner'
 
 interface TasksManagementProps {
@@ -1089,6 +1090,7 @@ export function TasksManagement({
                 
                 const isEnded = challenge.endDate ? new Date() > new Date(challenge.endDate) : false
                 const winner = leaderboard.length > 0 ? leaderboard[0] : null
+                const finalSnapshot = (challenge as any).finalPointsByUser as Record<string, number> | undefined
                 
                 return (
                 <div key={challenge.id} className="bg-white/10 rounded-lg p-4 border border-white/20">
@@ -1119,11 +1121,11 @@ export function TasksManagement({
                         </div>
                         
                         {/* Winner Display */}
-                        {isEnded && winner && (
+        {isEnded && winner && (
                           <div className="mt-2 p-2 bg-yellow-500/20 rounded border border-yellow-500/30">
                             <span className="text-yellow-300 text-sm font-medium">
-                              🏆 Winner: {winner.userId === currentUserId ? 'You!' : (userNames[winner.userId] || `User ${winner.userId.slice(-4)}`)} 
-                              ({winner.points} points)
+          🏆 Winner: {winner.userId === currentUserId ? 'You!' : (userNames[winner.userId] || `User ${winner.userId.slice(-4)}`)} 
+          ({finalSnapshot ? finalSnapshot[winner.userId] : winner.points} points)
                             </span>
                           </div>
                         )}
@@ -1248,15 +1250,15 @@ export function TasksManagement({
                               onClick={() => onToggleChallengeTask(challenge.id, task.id)}
                               disabled={isEnded}
                               className={`p-1 h-6 w-6 rounded-full border-2 ${
-                                (task.completions?.[currentUserId]?.completed) || task.completedBy.includes(currentUserId)
+                                isChallengeTaskCompletedForUser(task, currentUserId)
                                   ? 'bg-green-500 border-green-500 text-white'
                                   : 'border-white/30 hover:border-white/50'
                               } ${isEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                              {((task.completions?.[currentUserId]?.completed) || task.completedBy.includes(currentUserId)) && <Check size={12} />}
+                              {isChallengeTaskCompletedForUser(task, currentUserId) && <Check size={12} />}
                             </Button>
                             <div>
-                              <span className={`text-sm ${(task.completions?.[currentUserId]?.completed || task.completedBy.includes(currentUserId)) ? 'line-through text-white/60' : 'text-white'}`}>
+                              <span className={`text-sm ${isChallengeTaskCompletedForUser(task, currentUserId) ? 'line-through text-white/60' : 'text-white'}`}>
                                 {task.title}
                               </span>
                               {task.description && (
@@ -1268,7 +1270,7 @@ export function TasksManagement({
                             <Badge className="bg-accent/20 text-accent border-accent/30">
                               {task.points} pts
                             </Badge>
-                            <span>{Object.values(task.completions || {}).filter((m:any)=>m?.completed).length || task.completedBy.length}/{challenge.participants.length}</span>
+                            <span>{countTaskCompletions(task)}/{challenge.participants.length}</span>
                           </div>
                         </div>
                       ))}

@@ -118,9 +118,16 @@ export class FirestoreService {
       })
       const maxPoints = tasks.reduce((sum, t) => sum + (typeof t.points === 'number' ? t.points : 0), 0)
 
-      const summary = { pointsByUser: points, maxPoints }
+  const summary = { pointsByUser: points, maxPoints }
 
-      const updates = { pointsSummary: summary, updatedAt: serverTimestamp() }
+  // If challenge already has a final snapshot (ended), do not overwrite it
+  const challengeEnded = challengeData.isActive === false || !!challengeData.endDate
+  const finalPointsByUser = challengeData.finalPointsByUser || (challengeEnded ? { ...points } : undefined)
+  const finalMaxPoints = challengeData.finalMaxPoints || (challengeEnded ? maxPoints : undefined)
+
+  const updates: any = { pointsSummary: summary, updatedAt: serverTimestamp() }
+  if (finalPointsByUser) updates.finalPointsByUser = finalPointsByUser
+  if (finalMaxPoints != null) updates.finalMaxPoints = finalMaxPoints
       const writePromises: Promise<any>[] = []
       if (ownerId) {
         writePromises.push(updateDoc(doc(db, 'users', ownerId, 'shared-challenges', challengeId), updates).catch(()=>{}))

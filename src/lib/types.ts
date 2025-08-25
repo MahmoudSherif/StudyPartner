@@ -110,6 +110,9 @@ export interface Challenge {
     pointsByUser: Record<string, number>
     maxPoints: number
   }
+  // Persist final immutable snapshot when challenge ends to prevent later recomputations from "erasing" results
+  finalPointsByUser?: Record<string, number>
+  finalMaxPoints?: number
 }
 
 export interface ChallengeTask {

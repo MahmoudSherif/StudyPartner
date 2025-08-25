@@ -924,16 +924,19 @@ function AppContent() {
       } else {
         newCompletions[currentUserId] = { completed: true, completedAt: new Date() }
       }
-      // Build legacy completedBy array for backward compatibility (only users with completed:true)
-      const updatedCompletedBy = Object.entries(newCompletions)
-        .filter(([_, meta]: any) => meta?.completed)
-        .map(([uid]) => uid)
-
-      const updatedTasks = challenge.tasks.map(t =>
-        t.id === taskId
-          ? { ...t, completedBy: updatedCompletedBy, completions: newCompletions }
-          : t
-      )
+      // Only mutate current user's completion state; preserve other users untouched (per-user independence)
+      const updatedTasks = challenge.tasks.map(t => {
+        if (t.id !== taskId) return t
+        // Legacy: update completedBy only for current user add/remove
+        let legacyCompletedBy = Array.isArray(t.completedBy) ? [...t.completedBy] : []
+        const currentlyInLegacy = legacyCompletedBy.includes(currentUserId)
+        if (newCompletions[currentUserId]?.completed && !currentlyInLegacy) {
+          legacyCompletedBy.push(currentUserId)
+        } else if (!newCompletions[currentUserId]?.completed && currentlyInLegacy) {
+          legacyCompletedBy = legacyCompletedBy.filter(u => u !== currentUserId)
+        }
+        return { ...t, completedBy: legacyCompletedBy, completions: newCompletions }
+      })
 
       // Update shared challenge in Firestore
       const result = await firestoreService.updateSharedChallenge(challengeId, {
@@ -1010,12 +1013,17 @@ function AppContent() {
             winnerIds = entries.filter(([_, pts]) => pts === max).map(([uid]) => uid)
         }
       }
+      // Capture immutable final points snapshot before any further task mutations
+      const finalPointsByUser = endingChallenge?.pointsSummary?.pointsByUser ? { ...endingChallenge.pointsSummary.pointsByUser } : undefined
+      const finalMaxPoints = endingChallenge?.pointsSummary?.maxPoints
       // Update shared challenge in Firestore
       const result = await firestoreService.updateSharedChallenge(challengeId, {
         isActive: false,
         winnerId, // legacy single winner
         winnerIds: winnerIds || [winnerId],
-        endDate: new Date()
+        endDate: new Date(),
+        finalPointsByUser,
+        finalMaxPoints
       }, currentUserId)
 
       if (result.error) {
@@ -1027,7 +1035,7 @@ function AppContent() {
       setChallenges(current => 
         current.map(ch => 
           ch.id === challengeId 
-            ? { ...ch, isActive: false, winnerId, winnerIds: (ch.pointsSummary ? (winnerIds || [winnerId]) : [winnerId]), endDate: new Date() }
+            ? { ...ch, isActive: false, winnerId, winnerIds: (ch.pointsSummary ? (winnerIds || [winnerId]) : [winnerId]), endDate: new Date(), finalPointsByUser, finalMaxPoints }
             : ch
         )
       )
