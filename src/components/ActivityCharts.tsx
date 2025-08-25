@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { StudySession } from '@/lib/types'
+import { StudySession, Task, Challenge } from '@/lib/types'
 import { Calendar, ArrowUp, Clock } from '@phosphor-icons/react'
 import { useMemo } from 'react'
 
 interface ActivityChartsProps {
   sessions: StudySession[]
+  tasks?: Task[]
+  challenges?: Challenge[]
+  currentUserId?: string
 }
 
 interface ChartDataPoint {
@@ -25,7 +28,7 @@ interface HourDataPoint extends ChartDataPoint {
   hour: number
 }
 
-export function ActivityCharts({ sessions }: ActivityChartsProps) {
+export function ActivityCharts({ sessions, tasks = [], challenges = [], currentUserId }: ActivityChartsProps) {
   // Calculate weekly activity data (last 4 weeks)
   const weeklyData = useMemo(() => {
     const now = new Date()
@@ -63,6 +66,38 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
     
     return weeks
   }, [sessions])
+
+  // Task completion data (last 7 days) combining personal + challenge tasks
+  const taskDailyData = useMemo(() => {
+    const now = new Date()
+    const days: { date: Date; label: string; shortLabel: string; total: number; personal: number; challenge: number; height: number; isToday: boolean }[] = []
+    for (let i = 6; i >= 0; i--) {
+      const dayDate = new Date(now)
+      dayDate.setDate(dayDate.getDate() - i)
+      const key = dayDate.toDateString()
+      const isToday = i === 0
+      // Personal tasks completed that day
+      const personalCompleted = tasks.filter(t => t.completed && new Date(t.createdAt).toDateString() === key).length
+      // Challenge tasks completed by user that day
+      let challengeCompleted = 0
+      if (currentUserId) {
+        challenges.forEach(ch => {
+          ch.tasks.forEach(ct => {
+            const completed = (ct.completions?.[currentUserId]?.completed) || ct.completedBy.includes(currentUserId)
+            if (completed && ct.completions?.[currentUserId]?.completedAt) {
+              const at = new Date(ct.completions[currentUserId].completedAt as any)
+              if (at.toDateString() === key) challengeCompleted++
+            }
+          })
+        })
+      }
+      const total = personalCompleted + challengeCompleted
+      const height = total === 0 ? 4 : Math.min(100, total * 12)
+      const dayName = dayDate.toLocaleDateString('en', { weekday: 'short' })
+      days.push({ date: dayDate, label: isToday ? 'Today' : dayName, shortLabel: dayName.substring(0,2), total, personal: personalCompleted, challenge: challengeCompleted, height, isToday })
+    }
+    return days
+  }, [tasks, challenges, currentUserId])
 
   // Calculate daily activity data (last 7 days)
   const dailyData = useMemo(() => {
@@ -227,7 +262,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="today" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm">
             <TabsTrigger value="today" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               <Clock size={14} className="mr-1" />
               Today
@@ -244,7 +279,44 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
               <ArrowUp size={14} className="mr-1" />
               Monthly
             </TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              📋 Tasks
+            </TabsTrigger>
           </TabsList>
+          <TabsContent value="tasks" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-white">Task Completions (Last 7 days)</h4>
+              <div className="flex items-end justify-between gap-2 h-32 bg-black/20 rounded-lg p-4">
+                {taskDailyData.map((day, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-2 flex-1">
+                    <div className="relative w-full flex flex-col justify-end h-full">
+                      <div className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t-sm transition-all duration-300 hover:from-primary/80 hover:to-primary/40" style={{ height: `${day.height}%` }} title={`${day.label}: ${day.total} tasks (P:${day.personal} C:${day.challenge})`}>
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 whitespace-nowrap z-10">{day.total} tasks</div>
+                      </div>
+                    </div>
+                    <div className={`text-xs text-center ${day.isToday ? 'text-accent font-medium' : 'text-white/70'}`}>{day.shortLabel}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-xs">
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Total</div>
+                  <div className="text-white font-medium">{taskDailyData.reduce((s,d)=>s+d.total,0)}</div>
+                  <div className="text-white/50">last 7 days</div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Personal</div>
+                  <div className="text-white font-medium">{taskDailyData.reduce((s,d)=>s+d.personal,0)}</div>
+                  <div className="text-white/50">tasks</div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Challenge</div>
+                  <div className="text-white font-medium">{taskDailyData.reduce((s,d)=>s+d.challenge,0)}</div>
+                  <div className="text-white/50">tasks</div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="today" className="space-y-4 mt-4">
             <div className="space-y-3">

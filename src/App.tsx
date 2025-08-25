@@ -1141,7 +1141,7 @@ function AppContent() {
 
           <TabsContent value="profile" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
-              <ProfileTab stats={stats} achievements={achievements} sessions={allSessions} />
+              <ProfileTab stats={stats} achievements={achievements} sessions={allSessions} tasks={tasks} challenges={challenges} />
             </div>
           </TabsContent>
 

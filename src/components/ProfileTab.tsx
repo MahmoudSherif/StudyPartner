@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Trophy, Target, Clock, Flame, Calendar, ArrowUp, SignOut, User as UserIcon, Globe } from '@phosphor-icons/react'
-import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
+import { UserStats, Achievement, StudySession, FocusSession, Task, Challenge } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
 import { generateSampleSessions, generateSampleFocusSessions } from '@/lib/sampleData'
@@ -20,9 +20,11 @@ interface ProfileTabProps {
   stats: UserStats
   achievements: Achievement[]
   sessions?: StudySession[]
+  tasks?: Task[]
+  challenges?: Challenge[]
 }
 
-export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabProps) {
+export function ProfileTab({ stats, achievements, sessions = [], tasks = [], challenges = [] }: ProfileTabProps) {
   const { user, signOut } = useAuth()
   
   // Get user-specific focus sessions
@@ -219,7 +221,7 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
           </Card>
 
           {/* Activity Charts - Weekly and Monthly Bar Charts */}
-          <ActivityCharts sessions={allActivitySessions} />
+          <ActivityCharts sessions={allActivitySessions} tasks={tasks} challenges={challenges} currentUserId={currentUserId} />
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

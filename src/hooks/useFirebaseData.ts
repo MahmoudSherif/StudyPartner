@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { firestoreService } from '@/lib/firestore'
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
+import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 
 // Enhanced error handling function
 function handleFirebaseError(error: any, operation: string): string {
@@ -120,12 +121,24 @@ export function useFirebaseSessions(): [StudySession[], (value: StudySession[] |
 }
 
 export function useFirebaseAchievements(): [Achievement[], (value: Achievement[] | ((prev: Achievement[]) => Achievement[])) => void] {
-  return useFirebaseData<Achievement[]>(
+  const hook = useFirebaseData<Achievement[]>(
     'achievements',
     [] as Achievement[],
     (userId, data) => firestoreService.saveAchievements(userId, data),
     (userId) => firestoreService.getAchievements(userId)
   )
+  const [achievements, setAchievements] = hook
+  // After load, ensure all INITIAL_ACHIEVEMENTS IDs exist
+  useEffect(() => {
+    if (!achievements) return
+    if (achievements.length === 0) return // initial empty still loading maybe
+    const existingIds = new Set(achievements.map(a => a.id))
+    const missing = INITIAL_ACHIEVEMENTS.filter(a => !existingIds.has(a.id))
+    if (missing.length > 0) {
+      setAchievements(prev => [...prev, ...missing])
+    }
+  }, [achievements])
+  return [achievements, setAchievements]
 }
 
 export function useFirebaseTasks(): [Task[], (value: Task[] | ((prev: Task[]) => Task[])) => void] {
