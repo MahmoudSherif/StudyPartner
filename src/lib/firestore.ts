@@ -857,6 +857,65 @@ export class FirestoreService {
         }
       } catch {}
 
+      // If tasks array is being updated, transform update into a merge so we never accidentally
+      // drop tasks that exist in the authoritative copy (fixes disappearing tasks for other users)
+      if (updates.tasks) {
+        try {
+          // Load authoritative task list (prefer owner copy, fallback global)
+          let authoritativeTasks: any[] = []
+          if (ownerId) {
+            const ownerRef = doc(db, 'users', ownerId, 'shared-challenges', challengeId)
+            const ownerSnap = await getDoc(ownerRef)
+            if (ownerSnap.exists()) {
+              authoritativeTasks = (ownerSnap.data() as any).tasks || []
+            }
+          }
+          if (authoritativeTasks.length === 0) {
+            const globalSnap = await getDoc(doc(db, 'shared-challenges', challengeId))
+            if (globalSnap.exists()) {
+              authoritativeTasks = (globalSnap.data() as any).tasks || []
+            }
+          }
+
+          const incomingTasks = updates.tasks || []
+          const existingMap = new Map<string, any>(authoritativeTasks.filter(t=>t && t.id).map(t=>[t.id, t]))
+          const incomingMap = new Map<string, any>(incomingTasks.filter(t=>t && t.id).map(t=>[t.id, t]))
+
+            // Build merged list: start with all existing tasks preserving order
+          const merged: any[] = authoritativeTasks.map(et => {
+            if (!et || !et.id) return et
+            const incoming = incomingMap.get(et.id)
+            if (!incoming) return et // not touched in this update
+            // Merge completions so we never lose another user's completion state
+            const mergedCompletions: Record<string, any> = { ...(et.completions || {}) }
+            if (incoming.completions) {
+              Object.entries(incoming.completions).forEach(([uid, meta]) => {
+                mergedCompletions[uid] = meta
+              })
+            }
+            // Rebuild legacy completedBy from merged completions
+            const rebuiltCompletedBy = Object.entries(mergedCompletions)
+              .filter(([_, meta]: any) => meta?.completed)
+              .map(([uid]) => uid)
+            return { ...et, ...incoming, completions: mergedCompletions, completedBy: rebuiltCompletedBy }
+          })
+
+          // Owner may add new tasks; non-owner additions are ignored
+          if (ownerId && currentUserId === ownerId) {
+            incomingTasks.forEach(t => {
+              if (t && t.id && !existingMap.has(t.id)) {
+                merged.push(t)
+              }
+            })
+          }
+
+          updates.tasks = merged as any
+          console.log('🔀 Merged challenge tasks update. Incoming:', incomingTasks.length, 'Existing:', authoritativeTasks.length, 'Result:', merged.length)
+        } catch (mergeErr) {
+          console.warn('Task merge failed (continuing with existing strategy):', mergeErr)
+        }
+      }
+
       // If tasks are being updated ensure non-owner cannot add new tasks (only toggle completion)
       if (updates.tasks && ownerId && currentUserId && currentUserId !== ownerId) {
         try {

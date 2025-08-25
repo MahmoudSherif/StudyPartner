@@ -42,6 +42,7 @@ interface TasksManagementProps {
   onToggleChallengeTask: (challengeId: string, taskId: string) => Promise<void>
   onSwitchProgressView: () => void
   onEndChallenge?: (challengeId: string, winnerId: string) => Promise<void>
+  userNames?: Record<string,string>
 }
 
 export function TasksManagement({
@@ -58,7 +59,8 @@ export function TasksManagement({
   onAddChallengeTask,
   onToggleChallengeTask,
   onSwitchProgressView,
-  onEndChallenge
+  onEndChallenge,
+  userNames = {}
 }: TasksManagementProps) {
   const [isAddingTask, setIsAddingTask] = useState(false)
   const [isCreatingChallenge, setIsCreatingChallenge] = useState(false)
@@ -765,7 +767,7 @@ export function TasksManagement({
                           {participant.rank}
                         </span>
                         <span className={`${participant.userId === currentUserId ? 'text-white font-medium' : 'text-white/70'}`}>
-                          {participant.userId === currentUserId ? 'You' : `User ${participant.userId.slice(-4)}`}
+                          {participant.userId === currentUserId ? 'You' : (userNames[participant.userId] || `User ${participant.userId.slice(-4)}`)}
                         </span>
                       </div>
                       <span className="text-white/80">{participant.points} pts</span>
@@ -1120,7 +1122,7 @@ export function TasksManagement({
                         {isEnded && winner && (
                           <div className="mt-2 p-2 bg-yellow-500/20 rounded border border-yellow-500/30">
                             <span className="text-yellow-300 text-sm font-medium">
-                              🏆 Winner: {winner.userId === currentUserId ? 'You!' : `User ${winner.userId.slice(-4)}`} 
+                              🏆 Winner: {winner.userId === currentUserId ? 'You!' : (userNames[winner.userId] || `User ${winner.userId.slice(-4)}`)} 
                               ({winner.points} points)
                             </span>
                           </div>
@@ -1172,7 +1174,7 @@ export function TasksManagement({
                                   {index + 1}
                                 </span>
                                 <span className={`text-sm ${participant.userId === currentUserId ? 'text-white font-medium' : 'text-white/70'}`}>
-                                  {participant.userId === currentUserId ? 'You' : `User ${participant.userId.slice(-4)}`}
+                                  {participant.userId === currentUserId ? 'You' : (userNames[participant.userId] || `User ${participant.userId.slice(-4)}`)}
                                 </span>
                                 {index === 0 && isEnded && (
                                   <Trophy size={14} className="text-yellow-400" />

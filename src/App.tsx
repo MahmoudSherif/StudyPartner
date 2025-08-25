@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { SimpleChallengeSharing } from '@/lib/simpleChallengeSharing'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,8 @@ import { NotesTab } from '@/components/NotesTab'
 import { AuthScreen } from '@/components/AuthScreen'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { firestoreService } from '@/lib/firestore'
+import { db, isFirebaseAvailable } from '@/lib/firebase'
+import { doc, getDoc } from 'firebase/firestore'
 import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
 import { 
   useFirebaseSubjects,
@@ -97,6 +99,27 @@ function AppContent() {
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
   const [previousDailyProgress, setPreviousDailyProgress] = useState(0)
   const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
+  // Cache mapping userId -> display name
+  const [userNames, setUserNames] = useState<Record<string,string>>({})
+
+  const resolveUserName = useCallback(async (uid: string) => {
+    if (!uid) return ''
+    if (userNames[uid]) return userNames[uid]
+    if (!isFirebaseAvailable || !db) return ''
+    try {
+      const snap = await getDoc(doc(db, 'users', uid))
+      let name = ''
+      if (snap.exists()) {
+        const data: any = snap.data()
+        name = data.displayName || data.name || ''
+      }
+      if (!name) name = 'User ' + uid.slice(-4)
+      setUserNames(prev => ({ ...prev, [uid]: name }))
+      return name
+    } catch {
+      return ''
+    }
+  }, [userNames])
 
   // Mobile and PWA hooks
   const { isStandalone, isInstallable, installApp } = usePWA()
@@ -848,7 +871,7 @@ function AppContent() {
 
       const updatedTasks = [...challenge.tasks, newTask]
       
-      // Update shared challenge in Firestore
+      // Update shared challenge in Firestore (server will merge to avoid dropping other tasks)
       const result = await firestoreService.updateSharedChallenge(challengeId, {
         tasks: updatedTasks
       }, currentUserId)
@@ -914,8 +937,24 @@ function AppContent() {
         toast.error('Failed to update task: ' + result.error)
         return
       }
-  // Optimistic local update (real-time subscription will reconcile)
-  setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
+      // Optimistic local update (real-time subscription will reconcile)
+      setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
+      // Optimistic points tweak for smoother UI
+      setChallenges(current => current.map(c => {
+        if (c.id !== challengeId) return c
+        if (!c.pointsSummary) return c
+        const delta = isCompleted ? -task.points : task.points
+        return {
+          ...c,
+          pointsSummary: {
+            ...c.pointsSummary,
+            pointsByUser: {
+              ...c.pointsSummary.pointsByUser,
+              [currentUserId]: (c.pointsSummary.pointsByUser[currentUserId] || 0) + delta
+            }
+          }
+        }
+      }))
 
       if (!isCompleted) {
         // Trigger special haptic feedback for challenge task completion
@@ -1005,7 +1044,7 @@ function AppContent() {
         {
           description: isCurrentUserWinner 
             ? 'You are the challenge champion!'
-            : `Winner: User ${winnerId.slice(-4)}`,
+            : `Winner: ${userNames[winnerId] || 'User ' + winnerId.slice(-4)}`,
           duration: 5000
         }
       )
@@ -1022,7 +1061,7 @@ function AppContent() {
           // Notify other participants
           await notificationManager.notifyChallengeComplete(
             challenge?.title || 'Challenge',
-            `User ${winnerId.slice(-4)}`
+            (userNames[winnerId] || 'User ' + winnerId.slice(-4))
           )
         }
       } catch (error) {
