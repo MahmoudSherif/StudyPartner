@@ -712,7 +712,7 @@ export function TasksManagement({
             className="h-2 bg-white/20"
           />
           
-          {taskProgress.challengeProgress && (
+          {taskProgress.challengeProgress && (() => { const currentChallenge = challenges.find(c => c.id === taskProgress.challengeProgress!.challengeId); return (
             <>
               <div className="border-t border-white/20 pt-3 mt-4">
                 <div className="flex items-center justify-between mb-2">
@@ -721,7 +721,9 @@ export function TasksManagement({
                     <span className="text-white font-medium">
                       #{taskProgress.challengeProgress.userRank}/{taskProgress.challengeProgress.totalParticipants}
                     </span>
-                    {taskProgress.challengeProgress.isCompleted && taskProgress.challengeProgress.winnerId === currentUserId && (
+                    {taskProgress.challengeProgress.isCompleted && (
+                      (taskProgress.challengeProgress.winnerId === currentUserId || (currentChallenge?.winnerIds && currentChallenge.winnerIds.includes(currentUserId)))
+                    ) && (
                       <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
                         <Trophy size={12} className="mr-1" />
                         Winner!
@@ -742,6 +744,12 @@ export function TasksManagement({
                   className="h-2 bg-white/20 mb-3"
                 />
                 
+                {/* Winners (if multiple) */}
+        {taskProgress.challengeProgress.isCompleted && (currentChallenge?.winnerIds?.length || 0) > 1 && (
+                  <div className="mb-2 text-xs text-yellow-300/80">
+          Winners: {currentChallenge!.winnerIds!.map(w=> w===currentUserId ? 'You' : w.slice(-4)).join(', ')}
+                  </div>
+                )}
                 {/* Mini Leaderboard */}
                 <div className="space-y-1">
                   <div className="text-xs text-white/60 mb-2">Leaderboard (Top 3)</div>
@@ -766,7 +774,7 @@ export function TasksManagement({
                 </div>
               </div>
             </>
-          )}
+      )})()}
         </div>
       </div>
 
@@ -1067,7 +1075,7 @@ export function TasksManagement({
                 const totalPoints = challenge.tasks.reduce((sum, task) => sum + task.points, 0)
                 const leaderboard = challenge.participants.map(participantId => {
                   const completedTasks = challenge.tasks.filter(task => 
-                    task.completedBy.includes(participantId)
+                    (task.completions?.[participantId]?.completed) || task.completedBy.includes(participantId)
                   )
                   const points = completedTasks.reduce((total, task) => total + task.points, 0)
                   return {
@@ -1238,15 +1246,15 @@ export function TasksManagement({
                               onClick={() => onToggleChallengeTask(challenge.id, task.id)}
                               disabled={isEnded}
                               className={`p-1 h-6 w-6 rounded-full border-2 ${
-                                task.completedBy.includes(currentUserId)
+                                (task.completions?.[currentUserId]?.completed) || task.completedBy.includes(currentUserId)
                                   ? 'bg-green-500 border-green-500 text-white'
                                   : 'border-white/30 hover:border-white/50'
                               } ${isEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                              {task.completedBy.includes(currentUserId) && <Check size={12} />}
+                              {((task.completions?.[currentUserId]?.completed) || task.completedBy.includes(currentUserId)) && <Check size={12} />}
                             </Button>
                             <div>
-                              <span className={`text-sm ${task.completedBy.includes(currentUserId) ? 'line-through text-white/60' : 'text-white'}`}>
+                              <span className={`text-sm ${(task.completions?.[currentUserId]?.completed || task.completedBy.includes(currentUserId)) ? 'line-through text-white/60' : 'text-white'}`}>
                                 {task.title}
                               </span>
                               {task.description && (
@@ -1258,7 +1266,7 @@ export function TasksManagement({
                             <Badge className="bg-accent/20 text-accent border-accent/30">
                               {task.points} pts
                             </Badge>
-                            <span>{task.completedBy.length}/{challenge.participants.length}</span>
+                            <span>{Object.values(task.completions || {}).filter((m:any)=>m?.completed).length || task.completedBy.length}/{challenge.participants.length}</span>
                           </div>
                         </div>
                       ))}

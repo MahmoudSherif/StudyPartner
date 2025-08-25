@@ -100,7 +100,9 @@ export interface Challenge {
   isActive: boolean
   endDate?: Date
   maxPoints?: number // Total points available in the challenge
-  winnerId?: string // ID of the winner (set when challenge ends)
+  // Backward compatibility: single winnerId retained; prefer winnerIds for ties
+  winnerId?: string // (legacy) single winner
+  winnerIds?: string[] // All winners in case of tie
   // Optional cached points summary (stored in Firestore owner + global docs)
   pointsSummary?: {
     pointsByUser: Record<string, number>
@@ -112,7 +114,13 @@ export interface ChallengeTask {
   id: string
   title: string
   description?: string
-  completedBy: string[] // user IDs who completed this task
+  // Legacy field: array of user IDs who completed the task (kept for backward compatibility & quick counts)
+  completedBy: string[]
+  // New structured per-user completion metadata
+  completions?: Record<string, {
+    completed: boolean
+    completedAt?: Date
+  }>
   points: number
   createdAt: Date
 }

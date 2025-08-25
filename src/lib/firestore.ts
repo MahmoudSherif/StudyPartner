@@ -19,6 +19,50 @@ import {
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
 
 export class FirestoreService {
+  // One-time migration: backfill tasks with structured completions map & multi-winner support
+  async migrateChallengeTasksStructure() {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const challengesCol = collection(db, 'shared-challenges')
+      const snap = await getDocs(challengesCol)
+      let updated = 0
+      for (const docSnap of snap.docs) {
+        const data: any = docSnap.data()
+        let tasks = data.tasks || []
+        let modified = false
+        tasks = tasks.map((t: any) => {
+          if (!t) return t
+            // Backfill completions map if missing
+            if (!t.completions && Array.isArray(t.completedBy)) {
+              const completions: Record<string, any> = {}
+              t.completedBy.forEach((uid: string) => { completions[uid] = { completed: true } })
+              t.completions = completions
+              modified = true
+            }
+            return t
+        })
+        // Backfill winnerIds if challenge ended
+        let updates: any = {}
+        if (modified) {
+          updates.tasks = tasks
+        }
+        if (data.isActive === false && !data.winnerIds && data.winnerId) {
+          updates.winnerIds = [data.winnerId]
+        }
+        if (Object.keys(updates).length) {
+          updates.updatedAt = serverTimestamp()
+          await updateDoc(doc(db, 'shared-challenges', docSnap.id), updates).catch(()=>{})
+          try { await this.recomputeChallengePoints(docSnap.id) } catch {}
+          updated++
+        }
+      }
+      console.log(`✅ Migration complete. Updated ${updated} challenges.`)
+      return { error: null, updated }
+    } catch (e:any) {
+      console.error('Migration failed:', e)
+      return { error: e.message || 'Migration failed' }
+    }
+  }
   // Recompute and persist per-user points summary inside both owner and global challenge docs
   private async recomputeChallengePoints(challengeId: string) {
     if (!isFirebaseAvailable || !db) return
@@ -57,10 +101,20 @@ export class FirestoreService {
       participants.forEach(p => { points[p] = 0 })
       tasks.forEach(t => {
         const pts = typeof t.points === 'number' ? t.points : 0
-        ;(t.completedBy || []).forEach((uid: string) => {
-          if (!points[uid]) points[uid] = 0
-          points[uid] += pts
-        })
+        // Prefer structured completions map; fallback to legacy completedBy array
+        if (t.completions && typeof t.completions === 'object') {
+          Object.entries(t.completions).forEach(([uid, meta]: any) => {
+            if (meta?.completed) {
+              if (points[uid] == null) points[uid] = 0
+              points[uid] += pts
+            }
+          })
+        } else {
+          ;(t.completedBy || []).forEach((uid: string) => {
+            if (points[uid] == null) points[uid] = 0
+            points[uid] += pts
+          })
+        }
       })
       const maxPoints = tasks.reduce((sum, t) => sum + (typeof t.points === 'number' ? t.points : 0), 0)
 

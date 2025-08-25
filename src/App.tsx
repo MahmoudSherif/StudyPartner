@@ -500,10 +500,10 @@ function AppContent() {
       let leaderboard = activeChallenge.participants.map(participantId => {
         let points = summary?.pointsByUser?.[participantId]
         if (points == null) {
-          const completed = activeChallenge.tasks.filter(t => t.completedBy.includes(participantId))
+          const completed = activeChallenge.tasks.filter(t => (t.completions?.[participantId]?.completed) || t.completedBy.includes(participantId))
           points = completed.reduce((sum, t) => sum + t.points, 0)
         }
-        const tasksCompleted = activeChallenge.tasks.filter(t => t.completedBy.includes(participantId)).length
+  const tasksCompleted = activeChallenge.tasks.filter(t => (t.completions?.[participantId]?.completed) || t.completedBy.includes(participantId)).length
         return { userId: participantId, points, tasksCompleted, rank: 0 }
       }).sort((a,b) => b.points - a.points)
       // Rank assignment with tie handling
@@ -513,7 +513,7 @@ function AppContent() {
         else p.rank = idx + 1
       })
       const userPoints = leaderboard.find(p => p.userId === currentUserId)?.points || 0
-      const userCompletedTasks = activeChallenge.tasks.filter(t => t.completedBy.includes(currentUserId)).length
+  const userCompletedTasks = activeChallenge.tasks.filter(t => (t.completions?.[currentUserId]?.completed) || t.completedBy.includes(currentUserId)).length
       const userRank = leaderboard.find(p => p.userId === currentUserId)?.rank || 1
       const isCompleted = activeChallenge.endDate ? new Date() > new Date(activeChallenge.endDate) : false
       const winnerId = isCompleted && leaderboard.length > 0 ? leaderboard[0].userId : undefined
@@ -831,7 +831,8 @@ function AppContent() {
         ...taskData,
         id: Date.now().toString(),
         createdAt: new Date(),
-        completedBy: []
+  completedBy: [],
+  completions: {}
       }
 
       const updatedTasks = [...challenge.tasks, newTask]
@@ -867,15 +868,29 @@ function AppContent() {
       const challenge = challenges.find(c => c.id === challengeId)
       const task = challenge?.tasks.find(t => t.id === taskId)
       if (!challenge || !task) return
+      // Determine current completion via new completions map (fallback to legacy array)
+      const existingCompletions = task.completions || {}
+      const isCompleted = existingCompletions[currentUserId]?.completed || task.completedBy.includes(currentUserId)
+      const newCompletions = { ...existingCompletions }
+      if (isCompleted) {
+        // Mark as not completed
+        if (newCompletions[currentUserId]) {
+          newCompletions[currentUserId] = { completed: false }
+        } else {
+          // ensure removal from legacy array fallback later
+          delete newCompletions[currentUserId]
+        }
+      } else {
+        newCompletions[currentUserId] = { completed: true, completedAt: new Date() }
+      }
+      // Build legacy completedBy array for backward compatibility (only users with completed:true)
+      const updatedCompletedBy = Object.entries(newCompletions)
+        .filter(([_, meta]: any) => meta?.completed)
+        .map(([uid]) => uid)
 
-      const isCompleted = task.completedBy.includes(currentUserId)
-      const updatedCompletedBy = isCompleted
-        ? task.completedBy.filter(id => id !== currentUserId)
-        : [...task.completedBy, currentUserId]
-
-      const updatedTasks = challenge.tasks.map(t => 
-        t.id === taskId 
-          ? { ...t, completedBy: updatedCompletedBy }
+      const updatedTasks = challenge.tasks.map(t =>
+        t.id === taskId
+          ? { ...t, completedBy: updatedCompletedBy, completions: newCompletions }
           : t
       )
 
@@ -916,10 +931,21 @@ function AppContent() {
 
   const handleEndChallenge = async (challengeId: string, winnerId: string) => {
     try {
+      // Determine winners (tie support) from pointsSummary if available
+      const endingChallenge = challenges.find(c => c.id === challengeId)
+      let winnerIds: string[] | undefined = undefined
+      if (endingChallenge?.pointsSummary) {
+        const entries = Object.entries(endingChallenge.pointsSummary.pointsByUser)
+        if (entries.length) {
+          const max = Math.max(...entries.map(([_, pts]) => pts))
+            winnerIds = entries.filter(([_, pts]) => pts === max).map(([uid]) => uid)
+        }
+      }
       // Update shared challenge in Firestore
       const result = await firestoreService.updateSharedChallenge(challengeId, {
         isActive: false,
-        winnerId,
+        winnerId, // legacy single winner
+        winnerIds: winnerIds || [winnerId],
         endDate: new Date()
       }, currentUserId)
 
@@ -930,10 +956,10 @@ function AppContent() {
 
       // Update local state
       setChallenges(current => 
-        current.map(challenge => 
-          challenge.id === challengeId 
-            ? { ...challenge, isActive: false, winnerId, endDate: new Date() }
-            : challenge
+        current.map(ch => 
+          ch.id === challengeId 
+            ? { ...ch, isActive: false, winnerId, winnerIds: (ch.pointsSummary ? (winnerIds || [winnerId]) : [winnerId]), endDate: new Date() }
+            : ch
         )
       )
       
@@ -945,7 +971,7 @@ function AppContent() {
       
       // Calculate winner's points
       const winnerPoints = challenge?.tasks
-        .filter(task => task.completedBy.includes(winnerId))
+  .filter(task => (task.completions?.[winnerId]?.completed) || task.completedBy.includes(winnerId))
         .reduce((total, task) => total + task.points, 0) || 0
       
       // Show in-app toast
