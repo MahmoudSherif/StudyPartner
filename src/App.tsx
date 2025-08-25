@@ -99,7 +99,7 @@ function AppContent() {
   const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
 
   // Mobile and PWA hooks
-  const { isStandalone } = usePWA()
+  const { isStandalone, isInstallable, installApp } = usePWA()
   const deviceInfo = useMobileBehavior()
 
   // Touch gestures for tab navigation
@@ -195,9 +195,29 @@ function AppContent() {
     window.addEventListener('error', handleError)
     window.addEventListener('unhandledrejection', handleRejection)
 
+    // Debounce for repetitive Firestore terminate errors caused by blockers
+    const seenErrors: Record<string, number> = {}
+    const originalConsoleError = console.error
+    console.error = function (...args) {
+      try {
+        const msg = args.join(' ') || ''
+        if (/Firestore.*(terminate|ERR_BLOCKED_BY_CLIENT)/i.test(msg)) {
+          const key = msg.replace(/gsessionid=[^&]+/,'gsessionid=*')
+          const now = Date.now()
+            if (seenErrors[key] && now - seenErrors[key] < 10000) {
+              // Suppress duplicate within 10s
+              return
+            }
+          seenErrors[key] = now
+        }
+      } catch {}
+      originalConsoleError.apply(console, args as any)
+    }
+
     return () => {
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleRejection)
+      console.error = originalConsoleError
     }
   }, [])
 
@@ -988,7 +1008,15 @@ function AppContent() {
                 </div>
               )}
             </div>
-            <div className="flex-1 flex justify-end">
+            <div className="flex-1 flex justify-end gap-2">
+              {!isStandalone && isInstallable && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => installApp()}
+                  className="text-xs lg:text-sm bg-white/10 text-white hover:bg-white/20 border-white/20"
+                >Install</Button>
+              )}
               {user && (
                 <Button
                   variant="ghost"

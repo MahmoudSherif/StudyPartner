@@ -12,12 +12,14 @@ interface PWAHookReturn {
   isStandalone: boolean
   installApp: () => Promise<boolean>
   isSupported: boolean
+  hasAutoPrompted: boolean
 }
 
 export function usePWA(): PWAHookReturn {
   const [isInstallable, setIsInstallable] = useState(false)
   const [installPrompt, setInstallPrompt] = useState<PWAInstallPrompt | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [hasAutoPrompted, setHasAutoPrompted] = useState(false)
 
   // Check if running in standalone mode (installed PWA)
   const isStandalone = typeof window !== 'undefined' && (() => {
@@ -65,6 +67,17 @@ export function usePWA(): PWAHookReturn {
       setInstallPrompt(e as any)
       setIsInstallable(true)
       console.log('PWA: Install prompt available')
+      // Auto prompt once after small delay to ensure user gesture context not required
+      if (!hasAutoPrompted) {
+        setTimeout(async () => {
+          if ((e as any).prompt) {
+            try {
+              await (e as any).prompt()
+              setHasAutoPrompted(true)
+            } catch {}
+          }
+        }, 1500)
+      }
     }
 
     // Listen for app installed event
@@ -132,6 +145,7 @@ export function usePWA(): PWAHookReturn {
     isInstalled,
     isStandalone,
     installApp,
-    isSupported
+  isSupported,
+  hasAutoPrompted
   }
 }
