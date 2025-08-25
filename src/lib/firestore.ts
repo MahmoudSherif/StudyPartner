@@ -638,15 +638,28 @@ export class FirestoreService {
       const q = query(challengesRef, where('participants', 'array-contains', userId))
       const querySnapshot = await getDocs(q)
       
-      const challenges: Challenge[] = querySnapshot.docs.map(doc => {
-        const data = doc.data()
-        return {
+      const challenges: Challenge[] = []
+      for (const d of querySnapshot.docs) {
+        const data: any = d.data()
+        // Load subcollection tasks (authoritative) if present
+        let tasks: any[] = []
+        try {
+          const tasksSnap = await getDocs(collection(db, 'shared-challenges', d.id, 'tasks'))
+          tasksSnap.forEach(t => {
+            const td: any = t.data()
+            if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate()
+            tasks.push(td)
+          })
+        } catch {}
+        const mergedChallenge: Challenge = {
           ...data,
-          id: doc.id,
+          id: d.id,
+          tasks: tasks.length ? tasks : (data.tasks || []),
           createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
           updatedAt: data.updatedAt?.toDate?.() || new Date()
-        } as unknown as Challenge
-      })
+        } as Challenge
+        challenges.push(mergedChallenge)
+      }
       
       return { data: challenges, error: null }
     } catch (error: any) {

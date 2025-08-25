@@ -723,7 +723,9 @@ function AppContent() {
       }
       
       // Add to local state
-      setChallenges(current => [...current, newChallenge])
+  setChallenges(current => [...current, newChallenge])
+  // Force a one-time fresh fetch (ensures tasks subcollection baseline captured)
+  firestoreService.getUserChallenges(currentUserId).then(r => { if (r.data) setChallenges(r.data) })
   if (newChallenge.code) setActiveChallengeCode(newChallenge.code)
   toast.success(`Challenge created! Code: ${newChallenge.code}`)
       
