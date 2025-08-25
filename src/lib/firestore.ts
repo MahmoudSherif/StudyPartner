@@ -20,6 +20,20 @@ import {
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
 
 export class FirestoreService {
+  // Remove any undefined values (Firestore disallows) – shallow sanitize only for objects we write
+  private sanitize<T extends Record<string, any>>(obj: T): T {
+    if (!obj || typeof obj !== 'object') return obj
+    const clean: any = Array.isArray(obj) ? [] : {}
+    Object.entries(obj).forEach(([k, v]) => {
+      if (v === undefined) return // skip
+      if (v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Date)) {
+        clean[k] = this.sanitize(v)
+      } else {
+        clean[k] = v
+      }
+    })
+    return clean
+  }
   // One-time migration: backfill tasks with structured completions map & multi-winner support
   async migrateChallengeTasksStructure() {
     if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
@@ -381,16 +395,18 @@ export class FirestoreService {
       
       // Save in user's personal challenges collection (authoritative owner copy) but mark as shareable
       const challengeRef = doc(db, 'users', userId, 'shared-challenges', challenge.id)
-      const challengeData = {
+      // Build object without undefined (especially endDate)
+      const baseData: any = {
         ...challenge,
-        code: normalizedCode, // Ensure uppercase storage
+        code: normalizedCode,
         sharingEnabled: true,
         originalOwner: userId,
         createdAt: challenge.createdAt,
         updatedAt: serverTimestamp(),
-        // Make it publicly searchable by code (also uppercase for consistency)
         searchableCode: normalizedCode
       }
+      if (!challenge.endDate) delete baseData.endDate
+      const challengeData = this.sanitize(baseData)
       
       console.log('Alternative challenge data with normalized code:', normalizedCode, challengeData)
       await setDoc(challengeRef, challengeData)
@@ -406,26 +422,26 @@ export class FirestoreService {
       
   // Save in a public index for faster searching (use uppercase as key)
       const indexRef = doc(db, 'public-challenge-index', normalizedCode)
-      await setDoc(indexRef, {
+      await setDoc(indexRef, this.sanitize({
         challengeId: challenge.id,
         ownerId: userId,
-        code: normalizedCode, // Store normalized uppercase
-        originalCode: challenge.code, // Keep original input for display if needed
+        code: normalizedCode,
+        originalCode: challenge.code,
         title: challenge.title,
         isActive: challenge.isActive,
         createdAt: challenge.createdAt,
         updatedAt: serverTimestamp()
-      })
+      }))
 
   // Store direct owner mapping for quick update lookups (id -> owner)
       try {
         const ownerMapRef = doc(db, 'challenge-owners', challenge.id)
-        await setDoc(ownerMapRef, {
+        await setDoc(ownerMapRef, this.sanitize({
           ownerId: userId,
-            code: normalizedCode,
-            createdAt: challenge.createdAt,
-            updatedAt: serverTimestamp()
-        })
+          code: normalizedCode,
+          createdAt: challenge.createdAt,
+          updatedAt: serverTimestamp()
+        }))
         console.log('🗺️ Stored owner mapping for challenge', challenge.id)
       } catch (mapErr) {
         console.warn('⚠️ Failed to store challenge owner mapping (non-fatal):', mapErr)
@@ -854,7 +870,7 @@ export class FirestoreService {
           const incomingMap = new Map<string, any>(incomingTasks.filter(t=>t && t.id).map(t=>[t.id, t]))
 
             // Build merged list: start with all existing tasks preserving order
-          const merged: any[] = authoritativeTasks.map(et => {
+          let merged: any[] = authoritativeTasks.map(et => {
             if (!et || !et.id) return et
             const incoming = incomingMap.get(et.id)
             if (!incoming) return et // not touched in this update
@@ -881,6 +897,10 @@ export class FirestoreService {
             })
           }
 
+          // Fallback: if authoritative set empty (first task insert) accept incoming tasks directly
+          if (merged.length === 0 && incomingTasks.length > 0) {
+            merged = incomingTasks as any
+          }
           updates.tasks = merged as any
           console.log('🔀 Merged challenge tasks update. Incoming:', incomingTasks.length, 'AuthUnion:', authoritativeTasks.length, 'Result:', merged.length)
         } catch (mergeErr) {
