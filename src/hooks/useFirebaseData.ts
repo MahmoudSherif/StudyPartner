@@ -135,7 +135,30 @@ export function useFirebaseAchievements(): [Achievement[], (value: Achievement[]
     const existingIds = new Set(achievements.map(a => a.id))
     const missing = INITIAL_ACHIEVEMENTS.filter(a => !existingIds.has(a.id))
     if (missing.length > 0) {
-      setAchievements(prev => [...prev, ...missing])
+      setAchievements(prev => {
+        const merged = [...prev, ...missing]
+        // Lazy migration: if tasks stats stored locally, pre-unlock new ones
+        try {
+          const raw = localStorage.getItem('cached-user-stats')
+          if (raw) {
+            const parsed = JSON.parse(raw)
+            return merged.map(a => {
+              if (['task-starter','task-grinder'].includes(a.id)) {
+                const c = parsed.tasksCompleted || 0
+                const unlocked = c >= a.requirement
+                return { ...a, progress: Math.min(c, a.requirement), unlocked, unlockedAt: unlocked ? (a.unlockedAt || new Date()) : a.unlockedAt }
+              }
+              if (['challenge-participant','challenge-champion'].includes(a.id)) {
+                const c = parsed.challengeTasksCompleted || 0
+                const unlocked = c >= a.requirement
+                return { ...a, progress: Math.min(c, a.requirement), unlocked, unlockedAt: unlocked ? (a.unlockedAt || new Date()) : a.unlockedAt }
+              }
+              return a
+            })
+          }
+        } catch {}
+        return merged
+      })
     }
   }, [achievements])
   return [achievements, setAchievements]

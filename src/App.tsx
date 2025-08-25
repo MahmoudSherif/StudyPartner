@@ -658,6 +658,16 @@ function AppContent() {
           taskTitle: task.title,
           isChallenge: false
         })
+
+        // Milestone notifications for personal tasks
+        try {
+          const completedCount = (tasks.filter(t => t.completed).length) + 1 // include this one
+          const milestones = [5, 10, 25, 50, 100]
+          const reached = milestones.find(m => completedCount === m)
+          if (reached) {
+            toast.success(`Task Milestone: ${reached} personal tasks completed!`, { description: 'Keep the streak going 💪' })
+          }
+        } catch {}
       }
     } catch (error) {
       toast.error('Failed to update task. Please try again.')
@@ -919,6 +929,18 @@ function AppContent() {
           challengeTitle: challenge.title,
           points: task.points
         })
+
+        // Milestones for challenge task completions
+        try {
+          const totalChallengeCompletions = challenges.reduce((sum, ch) => {
+            return sum + ch.tasks.filter(ct => (ct.completions?.[currentUserId]?.completed) || ct.completedBy.includes(currentUserId)).length
+          }, 0) + 1 // include this one (optimistic)
+          const challengeMilestones = [10, 25, 50, 100, 200]
+          const reached = challengeMilestones.find(m => totalChallengeCompletions === m)
+          if (reached) {
+            toast.success(`Challenge Milestone: ${reached} challenge tasks completed!`, { description: 'Great collaboration!' })
+          }
+        } catch {}
       }
     } catch (error) {
       console.error('Error toggling challenge task:', error)

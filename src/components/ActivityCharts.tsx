@@ -287,16 +287,36 @@ export function ActivityCharts({ sessions, tasks = [], challenges = [], currentU
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-white">Task Completions (Last 7 days)</h4>
               <div className="flex items-end justify-between gap-2 h-32 bg-black/20 rounded-lg p-4">
-                {taskDailyData.map((day, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-2 flex-1">
-                    <div className="relative w-full flex flex-col justify-end h-full">
-                      <div className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t-sm transition-all duration-300 hover:from-primary/80 hover:to-primary/40" style={{ height: `${day.height}%` }} title={`${day.label}: ${day.total} tasks (P:${day.personal} C:${day.challenge})`}>
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 whitespace-nowrap z-10">{day.total} tasks</div>
+                {taskDailyData.map((day, idx) => {
+                  const total = day.total || 0
+                  const personalPct = total ? (day.personal / total) * 100 : 0
+                  const challengePct = total ? (day.challenge / total) * 100 : 0
+                  return (
+                    <div key={idx} className="flex flex-col items-center gap-2 flex-1">
+                      <div className="relative w-full flex flex-col justify-end h-full" title={`${day.label}: ${day.total} tasks (Personal ${day.personal}, Challenge ${day.challenge})`}>
+                        {/* Challenge segment (top) */}
+                        {challengePct > 0 && (
+                          <div className="w-full bg-gradient-to-t from-accent to-accent/60 transition-all duration-300 hover:from-accent/80 hover:to-accent/40" style={{ height: `${(day.height * (challengePct/100)).toFixed(2)}%` }} />
+                        )}
+                        {/* Personal segment (bottom) */}
+                        {personalPct > 0 && (
+                          <div className={`w-full bg-gradient-to-t ${challengePct>0 ? 'rounded-b-sm' : 'rounded-t-sm rounded-b-sm'} from-primary to-primary/60 transition-all duration-300 hover:from-primary/80 hover:to-primary/40`} style={{ height: `${(day.height * (personalPct/100)).toFixed(2)}%` }} />
+                        )}
+                        {total === 0 && (
+                          <div className="w-full h-[6px] bg-white/10 rounded-sm" />
+                        )}
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 hover:opacity-100 whitespace-nowrap z-10">
+                          {day.total} ({day.personal}/{day.challenge})
+                        </div>
                       </div>
+                      <div className={`text-xs text-center ${day.isToday ? 'text-accent font-medium' : 'text-white/70'}`}>{day.shortLabel}</div>
                     </div>
-                    <div className={`text-xs text-center ${day.isToday ? 'text-accent font-medium' : 'text-white/70'}`}>{day.shortLabel}</div>
-                  </div>
-                ))}
+                  )
+                })}
+              </div>
+              <div className="flex items-center gap-4 text-[10px] text-white/60">
+                <div className="flex items-center gap-1"><span className="w-3 h-3 inline-block bg-primary rounded-sm" /> Personal</div>
+                <div className="flex items-center gap-1"><span className="w-3 h-3 inline-block bg-accent rounded-sm" /> Challenge</div>
               </div>
               <div className="grid grid-cols-3 gap-3 text-xs">
                 <div className="bg-black/20 rounded-lg p-3">
