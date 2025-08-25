@@ -102,6 +102,47 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     progress: 0,
     category: 'streaks'
   }
+  ,
+  {
+    id: 'task-starter',
+    title: 'Task Starter',
+    description: 'Complete 5 personal tasks',
+    icon: '🗒️',
+    unlocked: false,
+    requirement: 5,
+    progress: 0,
+    category: 'tasks'
+  },
+  {
+    id: 'task-grinder',
+    title: 'Task Grinder',
+    description: 'Complete 50 personal tasks',
+    icon: '⚙️',
+    unlocked: false,
+    requirement: 50,
+    progress: 0,
+    category: 'tasks'
+  },
+  {
+    id: 'challenge-participant',
+    title: 'Challenge Participant',
+    description: 'Complete 10 challenge tasks',
+    icon: '🤝',
+    unlocked: false,
+    requirement: 10,
+    progress: 0,
+    category: 'tasks'
+  },
+  {
+    id: 'challenge-champion',
+    title: 'Challenge Champion',
+    description: 'Complete 100 challenge tasks',
+    icon: '🏅',
+    unlocked: false,
+    requirement: 100,
+    progress: 0,
+    category: 'tasks'
+  }
 ]
 
 export const SUBJECT_COLORS = [

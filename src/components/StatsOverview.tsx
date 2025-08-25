@@ -62,6 +62,24 @@ export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverv
             <div className="text-sm text-muted-foreground">Achievements</div>
           </CardContent>
         </Card>
+        {typeof stats.tasksCompleted === 'number' && (
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Target size={24} className="mx-auto text-primary mb-2" />
+              <div className="text-2xl font-bold">{stats.tasksCompleted}</div>
+              <div className="text-sm text-muted-foreground">Tasks Done</div>
+            </CardContent>
+          </Card>
+        )}
+        {typeof stats.challengeTasksCompleted === 'number' && (
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Trophy size={24} className="mx-auto text-accent mb-2" />
+              <div className="text-2xl font-bold">{stats.challengeTasksCompleted}</div>
+              <div className="text-sm text-muted-foreground">Challenge Tasks</div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Weekly Progress and Best Time */}

@@ -38,6 +38,8 @@ export interface UserStats {
   longestStreak: number
   sessionsCompleted: number
   averageSessionLength: number
+  tasksCompleted?: number // individual (non-challenge) tasks
+  challengeTasksCompleted?: number // challenge task completions by user
 }
 
 export interface SubjectProgress {

@@ -393,7 +393,8 @@ function AppContent() {
     if (!user) return
     
     try {
-      const stats = calculateUserStats(sessions || [], focusSessions || [])
+  const currentUserId = user.uid
+  const stats = calculateUserStats(sessions || [], focusSessions || [], tasks || [], challenges || [], currentUserId)
       const updatedAchievements = updateAchievements(achievements || [], stats, sessions || [], focusSessions || [], goals || [])
       
       // Check for newly unlocked achievements
@@ -429,7 +430,7 @@ function AppContent() {
     } catch (error) {
       // Silent error handling for achievements update
     }
-  }, [user, sessions, focusSessions, goals]) // Removed 'achievements' from dependencies
+  }, [user, sessions, focusSessions, goals, tasks, challenges]) // include tasks & challenges for task-based achievements
 
   // Show loading screen while checking authentication
   if (loading) {
@@ -453,7 +454,7 @@ function AppContent() {
   const currentUserId = user?.uid || 'anonymous'
 
   // Combine regular study sessions and focus sessions for stats calculation
-  const stats = calculateUserStats(sessions || [], focusSessions || [])
+  const stats = calculateUserStats(sessions || [], focusSessions || [], tasks || [], challenges || [], currentUserId)
   
   // Combine regular study sessions and focus sessions for activity tracking
   const allSessions = [

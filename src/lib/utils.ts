@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification, FocusSession, Goal } from './types'
+import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification, FocusSession, Goal, Task, Challenge } from './types'
 import { INITIAL_ACHIEVEMENTS } from './constants'
 import { calculateStudyStreak } from './chartUtils'
 
@@ -8,7 +8,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function calculateUserStats(sessions: StudySession[], focusSessions: FocusSession[] = []): UserStats {
+export function calculateUserStats(
+  sessions: StudySession[],
+  focusSessions: FocusSession[] = [],
+  tasks: Task[] = [],
+  challenges: Challenge[] = [],
+  currentUserId?: string
+): UserStats {
   const completedSessions = sessions.filter(s => s.completed)
   const completedFocusSessions = focusSessions.filter(f => f.completed)
   
@@ -34,12 +40,26 @@ export function calculateUserStats(sessions: StudySession[], focusSessions: Focu
 
   const totalSessions = completedSessions.length + completedFocusSessions.length
 
+  // Count standard completed tasks
+  const tasksCompleted = tasks.filter(t => t.completed).length
+  // Count challenge tasks completed by current user
+  let challengeTasksCompleted = 0
+  if (currentUserId) {
+    challenges.forEach(ch => {
+      ch.tasks.forEach(ct => {
+        const completed = (ct.completions?.[currentUserId]?.completed) || ct.completedBy.includes(currentUserId)
+        if (completed) challengeTasksCompleted++
+      })
+    })
+  }
   return {
     totalStudyTime: totalTime,
     streak,
     longestStreak: streak, // Simplified for now
     sessionsCompleted: totalSessions,
-    averageSessionLength: totalSessions > 0 ? Math.round(totalTime / totalSessions) : 0
+    averageSessionLength: totalSessions > 0 ? Math.round(totalTime / totalSessions) : 0,
+    tasksCompleted,
+    challengeTasksCompleted
   }
 }
 
@@ -95,6 +115,22 @@ export function updateAchievements(
             break
           case 'goal-achiever':
             progress = goals.filter(goal => goal.isCompleted).length
+            break
+        }
+        break
+      case 'tasks':
+        switch (achievement.id) {
+          case 'task-starter':
+            progress = stats.tasksCompleted || 0
+            break
+          case 'task-grinder':
+            progress = stats.tasksCompleted || 0
+            break
+          case 'challenge-participant':
+            progress = stats.challengeTasksCompleted || 0
+            break
+          case 'challenge-champion':
+            progress = stats.challengeTasksCompleted || 0
             break
         }
         break
