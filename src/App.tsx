@@ -867,37 +867,8 @@ function AppContent() {
         toast.error('Failed to update task: ' + result.error)
         return
       }
-
-      // Re-fetch merged version to ensure points/participants/state consistency
-      try {
-        const refreshed = await firestoreService.findSharedChallengeByCode(challenge.code)
-        if (refreshed.data) {
-          setChallenges(current => {
-            const exists = current.some(c => c.id === challengeId)
-            if (exists) {
-              return current.map(c => c.id === challengeId ? refreshed.data! : c)
-            }
-            return [...current, refreshed.data!]
-          })
-        } else {
-          // fallback to optimistic local update
-          setChallenges(current => 
-            current.map(c => 
-              c.id === challengeId 
-                ? { ...c, tasks: updatedTasks }
-                : c
-            )
-          )
-        }
-      } catch {
-        setChallenges(current => 
-          current.map(c => 
-            c.id === challengeId 
-              ? { ...c, tasks: updatedTasks }
-              : c
-          )
-        )
-      }
+  // Optimistic local update (real-time subscription will reconcile)
+  setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
 
       if (!isCompleted) {
         // Trigger special haptic feedback for challenge task completion

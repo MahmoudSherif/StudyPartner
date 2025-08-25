@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useFirebaseFocusSessions, useFirebaseGoals } from '@/hooks/useFirebaseData'
 import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -38,9 +39,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
-  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([])
-  const [goals, setGoals] = useState<Goal[]>([])
+  // Use shared firebase-backed hooks for consistency
+  const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
+  const [goals, setGoals] = useFirebaseGoals()
   // const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
   // const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
   

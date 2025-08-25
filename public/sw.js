@@ -1,37 +1,78 @@
-// Minimal Service Worker for MotivaMate PWA
-// This service worker provides basic PWA functionality without aggressive caching
-// that could cause white screen issues
+// Enhanced Service Worker for MotivaMate PWA
+// Provides lightweight app-shell caching for offline startup plus push + notification handling.
+// Keeps dynamic requests network-first to avoid stale data while enabling install reliability.
+
+const CACHE_VERSION = 'motivamate-v1';
+const CORE_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/favicon.svg'
+  // NOTE: Vite will hash bundle filenames; we rely on runtime network for those.
+];
 
 console.log('Service Worker: Starting...');
 
 // Install event
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  // Activate immediately without waiting
+  console.log('[SW] Installing...');
+  event.waitUntil(
+    caches.open(CACHE_VERSION).then(cache => cache.addAll(CORE_ASSETS).catch(()=>{}))
+  );
   self.skipWaiting();
 });
 
 // Activate event
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-  // Take control of all pages immediately
-  event.waitUntil(self.clients.claim());
+  console.log('[SW] Activating...');
+  event.waitUntil(
+    (async () => {
+      // Clean old caches
+      const keys = await caches.keys();
+      await Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)));
+      await self.clients.claim();
+    })()
+  );
 });
 
 // Fetch event - minimal intervention
 self.addEventListener('fetch', (event) => {
-  // Let all requests pass through to the network
-  // This ensures the app loads normally and prevents white screen issues
-  
-  // Only handle specific cases where we want to intervene
-  if (event.request.url.includes('manifest.json') || 
-      event.request.url.includes('favicon')) {
-    // For manifest and favicon, try network first, no caching for now
-    event.respondWith(fetch(event.request));
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // App shell: try cache, fall back to network
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      (async () => {
+        try {
+          const network = await fetch(request);
+          return network;
+        } catch (e) {
+          const cache = await caches.open(CACHE_VERSION);
+          const cached = await cache.match('/index.html');
+          return cached || Response.error();
+        }
+      })()
+    );
+    return;
   }
-  
-  // For all other requests, let them pass through normally
-  // This prevents service worker from interfering with app loading
+
+  // Static core assets
+  if (CORE_ASSETS.includes(url.pathname)) {
+    event.respondWith(
+      caches.match(request).then(cached => cached || fetch(request).catch(() => cached))
+    );
+    return;
+  }
+
+  // Icons / manifest fallback
+  if (url.pathname.includes('favicon') || url.pathname.endsWith('manifest.json')) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
+    return;
+  }
+  // Otherwise: network first, silent failure fallback to cache (if ever cached indirectly)
 });
 
 // Push event - handle push notifications
