@@ -9,8 +9,6 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Task, Challenge, Subject, TaskProgress } from '@/lib/types'
 import { firestoreService } from '@/lib/firestore'
-import { SimpleChallengeSharing } from '@/lib/simpleChallengeSharing'
-import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { 
   Plus, 
@@ -298,49 +296,22 @@ export function TasksManagement({
     try {
       console.log('🔍 Running debug: List all challenges...')
       
-      // Check Firestore challenges
-      const result = await firestoreService.getAllSharedChallenges(true) // Include inactive
-      
-      // Check local challenges
-      const localChallenges = LocalChallengeStorage.getAllChallenges()
-      
-      console.log('🔍 === CHALLENGE DEBUG REPORT ===')
+      // Fetch all (including inactive) challenges from Firestore
+      const result = await firestoreService.getAllSharedChallenges(true)
+
+      console.log('🔍 === FIRESTORE CHALLENGE REPORT ===')
       console.log('📊 Firestore challenges found:', result.data?.length || 0)
-      console.log('📊 Local challenges found:', localChallenges.length)
-      
-      // Display challenge codes prominently
-      const allCodes: string[] = []
-      
+
       if (result.data && result.data.length > 0) {
-        console.log('\n🔥 FIRESTORE CHALLENGES:')
         result.data.forEach((challenge: Challenge, index: number) => {
           const codeDisplay = `📋 ${challenge.code} - "${challenge.title}" (${challenge.isActive ? 'Active' : 'Inactive'})`
           console.log(`${index + 1}. ${codeDisplay}`)
-          allCodes.push(challenge.code)
         })
-      }
-      
-      if (localChallenges.length > 0) {
-        console.log('\n🏠 LOCAL CHALLENGES:')
-        localChallenges.forEach((challenge: Challenge, index: number) => {
-          const codeDisplay = `📋 ${challenge.code} - "${challenge.title}" (${challenge.isActive ? 'Active' : 'Inactive'})`
-          console.log(`${index + 1}. ${codeDisplay}`)
-          if (!allCodes.includes(challenge.code)) {
-            allCodes.push(challenge.code)
-          }
-        })
-      }
-      
-      if (allCodes.length > 0) {
-        console.log('\n🎯 ALL CHALLENGE CODES:', allCodes.join(', '))
-        toast.success(`Found ${allCodes.length} challenges! Codes: ${allCodes.join(', ')}`, {
-          duration: 8000 // Show longer so user can see codes
-        })
+        toast.success(`Found ${result.data.length} challenges in Firestore`)
       } else {
-        console.log('❌ No challenges found anywhere')
-        toast.info('No challenges found in Firestore or local storage')
+        toast.info('No challenges found in Firestore')
       }
-      
+
       if (result.error) {
         console.error('❌ Debug error:', result.error)
         toast.error('Debug failed: ' + result.error)
@@ -348,325 +319,6 @@ export function TasksManagement({
     } catch (error) {
       console.error('❌ Debug exception:', error)
       toast.error('Debug exception - check console')
-    }
-  }
-
-  // Alternative approach - test saving challenge in user collection
-  const testAlternativeApproach = async () => {
-    try {
-      console.log('🧪 Testing alternative challenge sharing approach...')
-      
-      // Create a test challenge
-      const testChallenge: Challenge = {
-        id: 'test-alt-' + Date.now(),
-        title: 'Test Alternative Challenge',
-        description: 'Testing alternative sharing method',
-        code: 'TEST' + Math.random().toString(36).substr(2, 4).toUpperCase(),
-        createdBy: currentUserId,
-        participants: [currentUserId],
-        tasks: [],
-        isActive: true,
-        createdAt: new Date(),
-        endDate: undefined
-      }
-      
-      // Try saving with alternative method
-      const saveResult = await firestoreService.saveSharedChallengeAlternative(testChallenge, currentUserId)
-      if (saveResult.error) {
-        console.error('❌ Alternative save failed:', saveResult.error)
-        toast.error('Alternative save failed: ' + saveResult.error)
-        return
-      }
-      
-      console.log('✅ Alternative save successful! Code:', testChallenge.code)
-      
-      // Try finding it back
-      const findResult = await firestoreService.findSharedChallengeByCodeAlternative(testChallenge.code)
-      if (findResult.error) {
-        console.error('❌ Alternative find failed:', findResult.error)
-        toast.error('Alternative find failed: ' + findResult.error)
-      } else if (findResult.data) {
-        console.log('✅ Alternative find successful:', findResult.data)
-        toast.success(`Alternative approach works! Found challenge: ${findResult.data.title}`)
-      } else {
-        console.log('❌ Challenge not found')
-        toast.error('Challenge saved but not found')
-      }
-      
-    } catch (error) {
-      console.error('❌ Alternative test failed:', error)
-      toast.error('Alternative test failed - check console')
-    }
-  }
-
-  // Simple challenge sharing - no Firestore dependencies
-  const testSimpleSharing = async () => {
-    try {
-      console.log('🚀 Testing simple challenge sharing approach...')
-      
-      // Create a test challenge
-      const testChallenge: Challenge = {
-        id: 'simple-test-' + Date.now(),
-        title: 'Simple Share Test',
-        description: 'Testing simple local sharing',
-        code: '', // Will be generated by sharing system
-        createdBy: currentUserId,
-        participants: [currentUserId],
-        tasks: [],
-        isActive: true,
-        createdAt: new Date(),
-        endDate: undefined
-      }
-      
-      // Share challenge locally
-      const shareResult = SimpleChallengeSharing.shareChallenge(testChallenge)
-      if (shareResult.error) {
-        console.error('❌ Simple share failed:', shareResult.error)
-        toast.error('Simple share failed: ' + shareResult.error)
-        return
-      }
-      
-      console.log('✅ Simple share successful! Code:', shareResult.code)
-      toast.success(`Challenge shared! Code: ${shareResult.code}`)
-      
-      // Try finding it back
-      const findResult = SimpleChallengeSharing.findSharedChallenge(shareResult.code)
-      if (findResult.error) {
-        console.error('❌ Simple find failed:', findResult.error)
-        toast.error('Simple find failed: ' + findResult.error)
-      } else if (findResult.challenge) {
-        console.log('✅ Simple find successful:', findResult.challenge)
-        toast.success(`Found challenge: ${findResult.challenge.title}`)
-        
-        // Test joining
-        const joinResult = SimpleChallengeSharing.joinChallenge(shareResult.code, 'test-user-123')
-        if (joinResult.success) {
-          console.log('✅ Join test successful')
-          toast.success('Join test successful!')
-        } else {
-          console.error('❌ Join test failed:', joinResult.error)
-        }
-      } else {
-        console.log('❌ Challenge not found')
-        toast.error('Challenge shared but not found')
-      }
-      
-      // Show stats
-      const stats = SimpleChallengeSharing.getStats()
-      console.log('📊 Sharing stats:', stats)
-      
-    } catch (error) {
-      console.error('❌ Simple sharing test failed:', error)
-      toast.error('Simple sharing test failed - check console')
-    }
-  }
-
-  // Simplified challenge creation using local sharing
-  const handleCreateChallengeSimple = async () => {
-    const sanitizedTitle = newChallenge.title.trim()
-    const sanitizedDescription = newChallenge.description?.trim()
-    
-    if (!sanitizedTitle) {
-      toast.error('Please enter a challenge title')
-      return
-    }
-
-    const challenge: Challenge = {
-      id: 'challenge_' + Date.now(),
-      code: '', // Will be generated by sharing system
-      title: sanitizedTitle,
-      description: sanitizedDescription || '',
-      createdBy: currentUserId,
-      participants: [currentUserId],
-      tasks: [],
-      isActive: true,
-      createdAt: new Date(),
-      endDate: newChallenge.endDate ? new Date(newChallenge.endDate) : undefined
-    }
-
-    try {
-      const shareResult = SimpleChallengeSharing.shareChallenge(challenge)
-      if (shareResult.error) {
-        toast.error('Failed to create challenge: ' + shareResult.error)
-        return
-      }
-
-      toast.success(`Challenge created! Share code: ${shareResult.code}`)
-      
-      // Copy code to clipboard
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareResult.code)
-        toast.success('Code copied to clipboard!')
-      }
-
-      setNewChallenge({
-        title: '',
-        description: '',
-        endDate: ''
-      })
-      setIsCreatingChallenge(false)
-    } catch (error) {
-      console.error('❌ Failed to create challenge:', error)
-      toast.error('Failed to create challenge')
-    }
-  }
-
-  // Simplified challenge joining using local sharing
-  const handleJoinChallengeSimple = async () => {
-    if (!joinCode.trim()) {
-      toast.error('Please enter a challenge code')
-      return
-    }
-
-    try {
-      const findResult = SimpleChallengeSharing.findSharedChallenge(joinCode.trim())
-      if (findResult.error) {
-        toast.error('Challenge not found: ' + findResult.error)
-        return
-      }
-
-      if (!findResult.challenge) {
-        toast.error('Challenge not found')
-        return
-      }
-
-      const joinResult = SimpleChallengeSharing.joinChallenge(joinCode.trim(), currentUserId)
-      if (joinResult.error) {
-        toast.error('Failed to join challenge: ' + joinResult.error)
-        return
-      }
-
-      toast.success(`Joined challenge: ${findResult.challenge.title}`)
-      setJoinCode('')
-      setIsJoiningChallenge(false)
-    } catch (error) {
-      console.error('❌ Failed to join challenge:', error)
-      toast.error('Failed to join challenge')
-    }
-  }
-
-  // List local challenges
-  const listLocalChallenges = () => {
-    try {
-      const stats = SimpleChallengeSharing.getStats()
-      console.log('📊 Local challenge stats:', stats)
-      
-      // Get all challenges from localStorage
-      const stored = localStorage.getItem('motivamate_shared_challenges')
-      if (stored) {
-        const challenges = JSON.parse(stored)
-        console.log('📋 Local challenges:', challenges)
-        
-        const challengeList = Object.entries(challenges).map(([code, data]: [string, any]) => ({
-          code,
-          title: data.challenge.title,
-          isActive: data.challenge.isActive,
-          participants: data.challenge.participants?.length || 0,
-          timestamp: new Date(data.timestamp).toLocaleString()
-        }))
-        
-        if (challengeList.length > 0) {
-          console.table(challengeList)
-          toast.success(`Found ${challengeList.length} local challenges - check console for details`)
-        } else {
-          toast.info('No local challenges found')
-        }
-      } else {
-        toast.info('No local challenges found')
-      }
-    } catch (error) {
-      console.error('❌ Failed to list local challenges:', error)
-      toast.error('Failed to list local challenges')
-    }
-  }
-
-  // Migrate visible Firestore challenges to local storage
-  const migrateFirestoreChallenges = async () => {
-    try {
-      console.log('🔄 Starting Firestore to Local migration...')
-      
-      // First, get all challenges from Firestore (including inactive ones)
-      const result = await firestoreService.getAllSharedChallenges(true) // true = include inactive
-      
-      if (result.error) {
-        toast.error('Failed to fetch Firestore challenges: ' + result.error)
-        return
-      }
-
-      if (!result.data || result.data.length === 0) {
-        toast.info('No Firestore challenges found to migrate')
-        return
-      }
-
-      console.log(`📋 Found ${result.data.length} Firestore challenges to migrate`)
-      
-      // Migrate to local storage
-      const migrationResult = SimpleChallengeSharing.migrateFirestoreChallenges(result.data)
-      
-      if (migrationResult.migrated > 0) {
-        toast.success(`✅ Migrated ${migrationResult.migrated} challenges to local storage!`)
-        console.log('🎉 Migration successful:', migrationResult)
-      } else {
-        toast.error('No challenges could be migrated')
-      }
-
-      if (migrationResult.errors > 0) {
-        toast.warning(`⚠️ ${migrationResult.errors} challenges had migration errors`)
-      }
-
-      // Show updated local stats
-      const stats = SimpleChallengeSharing.getStats()
-      console.log('📊 Updated local stats after migration:', stats)
-      
-    } catch (error) {
-      console.error('❌ Migration failed:', error)
-      toast.error('Migration failed - check console for details')
-    }
-  }
-
-  // Comprehensive challenge synchronization
-  const syncAllChallenges = async () => {
-    try {
-      console.log('🔄 Starting comprehensive challenge synchronization...')
-      
-      // Step 1: Get local challenges
-      const localStats = SimpleChallengeSharing.getStats()
-      console.log('📊 Local challenges:', localStats)
-      
-      // Step 2: Try to get Firestore challenges
-      let firestoreChallenges = 0
-      try {
-        const firestoreResult = await firestoreService.getAllSharedChallenges(true)
-        if (firestoreResult.data) {
-          firestoreChallenges = firestoreResult.data.length
-          console.log('📊 Firestore challenges:', firestoreChallenges)
-          
-          // Migrate Firestore challenges to local if any exist
-          if (firestoreChallenges > 0) {
-            const migrationResult = SimpleChallengeSharing.migrateFirestoreChallenges(firestoreResult.data)
-            console.log('🔄 Migration result:', migrationResult)
-          }
-        }
-      } catch (error) {
-        console.log('⚠️ Firestore access failed, using local-only mode')
-      }
-      
-      // Step 3: Show final stats
-      const finalStats = SimpleChallengeSharing.getStats()
-      
-      toast.success(
-        `🔄 Sync complete! Local: ${finalStats.total} challenges (${finalStats.active} active)`
-      )
-      
-      console.log('✅ Synchronization complete:', {
-        before: localStats,
-        after: finalStats,
-        firestoreCount: firestoreChallenges
-      })
-      
-    } catch (error) {
-      console.error('❌ Synchronization failed:', error)
-      toast.error('Synchronization failed - check console')
     }
   }
 
@@ -1004,13 +656,6 @@ export function TasksManagement({
                       Create Challenge
                     </Button>
                     <Button 
-                      onClick={handleCreateChallengeSimple} 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      title="Create using simple local sharing (no Firestore issues)"
-                    >
-                      🚀 Simple Create
-                    </Button>
-                    <Button 
                       variant="outline" 
                       onClick={() => setIsCreatingChallenge(false)}
                       className="border-white/20 text-white hover:bg-white/10"
@@ -1046,13 +691,6 @@ export function TasksManagement({
                   <div className="flex gap-2">
                     <Button onClick={handleJoinChallenge} className="flex-1 bg-primary hover:bg-primary/80">
                       Join Challenge
-                    </Button>
-                    <Button 
-                      onClick={handleJoinChallengeSimple} 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      title="Join using simple local sharing (no Firestore issues)"
-                    >
-                      🚀 Simple Join
                     </Button>
                     <Button 
                       variant="outline" 

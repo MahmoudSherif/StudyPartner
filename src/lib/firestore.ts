@@ -1,7 +1,7 @@
 // Firestore data management for user data
 import { db, isFirebaseAvailable } from '@/lib/firebase'
 import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
-import { SimpleChallengeSharing } from '@/lib/simpleChallengeSharing'
+// SimpleChallengeSharing removed (deprecated local sharing path)
 import { 
   doc, 
   getDoc, 
@@ -153,7 +153,11 @@ export class FirestoreService {
       const tasksColRef = collection(db, 'shared-challenges', indexData.challengeId, 'tasks')
       const unsubTasks = onSnapshot(tasksColRef, snap => {
         const arr: any[] = []
-        snap.forEach(d => arr.push(d.data()))
+        snap.forEach(d => {
+          const data: any = d.data()
+            if (data.createdAt?.toDate) data.createdAt = data.createdAt.toDate()
+          arr.push(data)
+        })
         subcollectionTasks = arr
         mergeAndEmit()
       })
@@ -779,46 +783,14 @@ export class FirestoreService {
     }
   }
 
-  // Original methods for backward compatibility
+  // Simplified: only Firestore path; returns error if Firestore unavailable
   async saveSharedChallenge(challenge: Challenge) {
-    // Try alternative approach first, then fallback to multiple sharing systems
-    console.log('💾 Trying to save challenge with alternative approach')
-    
-    const altResult = await this.saveSharedChallengeAlternative(challenge, challenge.createdBy)
-    if (!altResult.error) {
-      console.log('✅ Saved via alternative approach')
-      
-      // ALSO save to Simple Challenge Sharing for cross-account discovery
-      console.log('🔄 Also saving to Simple Challenge Sharing for cross-account access...')
-      const simpleResult = SimpleChallengeSharing.shareChallenge(challenge)
-      if (!simpleResult.error) {
-        console.log('✅ Also saved to Simple Challenge Sharing with code:', simpleResult.code)
-      } else {
-        console.warn('⚠️ Simple sharing failed but alternative succeeded')
-      }
-      
-      return altResult
+    console.log('💾 Saving challenge (Firestore only)')
+    const res = await this.saveSharedChallengeAlternative(challenge, challenge.createdBy)
+    if (res.error) {
+      console.error('❌ Challenge save failed:', res.error)
+      return res
     }
-    
-    console.log('⚠️ Alternative failed, trying Simple Challenge Sharing:', altResult.error)
-    
-    // Try Simple Challenge Sharing (works across accounts)
-    const simpleResult = SimpleChallengeSharing.shareChallenge(challenge)
-    if (!simpleResult.error) {
-      console.log('✅ Saved via Simple Challenge Sharing with code:', simpleResult.code)
-      return { error: null }
-    }
-    
-    console.log('⚠️ Simple sharing also failed, saving locally:', simpleResult.error)
-    
-    // Final fallback to local storage
-    const localResult = LocalChallengeStorage.saveChallenge(challenge)
-    if (localResult.error) {
-      console.error('❌ All save methods failed - local, alternative, and simple sharing')
-      return { error: 'Failed to save challenge: All storage methods failed' }
-    }
-    
-    console.log('✅ Saved locally as final fallback')
     return { error: null }
   }
 
@@ -1168,6 +1140,28 @@ export class FirestoreService {
       return { error: null }
     } catch (e: any) {
       return { error: e.message || 'Toggle failed' }
+    }
+  }
+
+  async createSubcollectionTask(challengeId: string, task: { title: string; description?: string; points: number }) {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const id = Date.now().toString()
+      const taskRef = doc(db, 'shared-challenges', challengeId, 'tasks', id)
+      const payload = this.sanitize({
+        id,
+        title: task.title,
+        description: task.description || null,
+        points: task.points || 0,
+        completions: {},
+        completedBy: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+      await setDoc(taskRef, payload)
+      return { error: null, id }
+    } catch (e: any) {
+      return { error: e.message || 'Add task failed' }
     }
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { SimpleChallengeSharing } from '@/lib/simpleChallengeSharing'
+// Simple challenge sharing removed
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { ProfileTab } from '@/components/ProfileTab'
@@ -294,36 +294,7 @@ function AppContent() {
     }
   }, [])
 
-  // Handle challenge URL imports
-  useEffect(() => {
-    if (!user) return // Only import challenges when user is logged in
-    
-    const challengeImport = SimpleChallengeSharing.importChallengeFromURL()
-    if (challengeImport.challenge) {
-      console.log('📥 Importing challenge from URL:', challengeImport.challenge.title)
-      
-      // Save the imported challenge locally
-      const shareResult = SimpleChallengeSharing.shareChallenge(challengeImport.challenge)
-      if (shareResult.error) {
-        console.error('❌ Failed to import challenge:', shareResult.error)
-        toast.error('Failed to import challenge from URL')
-      } else {
-        console.log('✅ Challenge imported successfully with code:', shareResult.code)
-        toast.success(`Challenge imported: ${challengeImport.challenge.title} (Code: ${shareResult.code})`)
-        
-        // Switch to tasks tab to show the challenge
-        setCurrentTab('tasks')
-        
-        // Clean URL to remove the challenge parameter
-        const url = new URL(window.location.href)
-        url.searchParams.delete('challenge')
-        window.history.replaceState({}, '', url.toString())
-      }
-    } else if (challengeImport.error) {
-      console.error('❌ Challenge import error:', challengeImport.error)
-      toast.error('Invalid challenge URL: ' + challengeImport.error)
-    }
-  }, [user])
+  // URL import removed
 
   // Handle URL tab parameter for PWA shortcuts
   useEffect(() => {
@@ -797,58 +768,8 @@ function AppContent() {
         }
       }
       
-      // Fallback to local storage (Simple Challenge Sharing)
-      console.log('⚠️ Firestore not available, trying local storage...')
-      const simpleResult = SimpleChallengeSharing.findSharedChallenge(code)
-      
-      if (simpleResult.challenge && !simpleResult.error) {
-        console.log('✅ Found challenge via local storage:', simpleResult.challenge.title)
-        
-        // Join via Simple sharing system
-        const joinResult = SimpleChallengeSharing.joinChallenge(code, currentUserId)
-        if (joinResult.success) {
-          toast.success(`Joined challenge: ${simpleResult.challenge.title}! 🎉`)
-          
-          // Update local challenges state
-          setChallenges(current => {
-            const existingIndex = current.findIndex(c => c.code === code)
-            if (existingIndex >= 0) {
-              // Update existing challenge
-              const updated = [...current]
-              updated[existingIndex] = {
-                ...updated[existingIndex],
-                participants: [...new Set([...updated[existingIndex].participants, currentUserId])]
-              }
-              return updated
-            } else {
-              // Add new challenge to local state with proper type safety
-              const challenge = simpleResult.challenge!
-              const newChallenge: Challenge = {
-                id: challenge.id || `local_${Date.now()}`,
-                code: challenge.code || code,
-                title: challenge.title || 'Shared Challenge',
-                description: challenge.description || '',
-                createdBy: challenge.createdBy || 'unknown',
-                participants: [...new Set([...challenge.participants, currentUserId])],
-                tasks: challenge.tasks || [],
-                isActive: challenge.isActive !== false,
-                createdAt: challenge.createdAt || new Date(),
-                endDate: challenge.endDate
-              }
-              return [...current, newChallenge]
-            }
-          })
-          
-          console.log('✅ Local storage joining successful!')
-          setActiveChallengeCode(code.toUpperCase())
-          return
-        } else {
-          console.error('❌ Local storage join failed:', joinResult.error)
-        }
-      }
-      
-      // No challenge found in either storage
-      toast.error('Challenge not found. The code may be incorrect, or the challenge may have expired or been deleted.')
+  // Not found in Firestore
+  toast.error('Challenge not found or inaccessible.')
     } catch (error) {
       console.error('Error joining challenge:', error)
       toast.error('Failed to join challenge. Please try again.')
@@ -867,35 +788,40 @@ function AppContent() {
         toast.error('Only the challenge creator can add tasks')
         return
       }
-      const newTask: import('@/lib/types').ChallengeTask = {
-        ...taskData,
-        id: Date.now().toString(),
-        createdAt: new Date(),
-  completedBy: [],
-  completions: {}
+      // Prefer subcollection task creation (new model)
+      const subResult = await firestoreService.createSubcollectionTask(challengeId, {
+        title: taskData.title,
+        description: taskData.description,
+        points: taskData.points
+      })
+      if (subResult.error) {
+        console.warn('Subcollection task create failed, falling back to array update:', subResult.error)
+        const newTask: import('@/lib/types').ChallengeTask = {
+          ...taskData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          completedBy: [],
+          completions: {}
+        }
+        const updatedTasks = [...challenge.tasks, newTask]
+        const result = await firestoreService.updateSharedChallenge(challengeId, { tasks: updatedTasks }, currentUserId)
+        if (result.error) {
+          toast.error('Failed to add task: ' + result.error)
+          return
+        }
+        setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
+      } else {
+        // Optimistic append locally (listener will reconcile)
+        setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: [...c.tasks, {
+          id: (subResult.id as string),
+          title: taskData.title,
+          description: taskData.description,
+          points: taskData.points,
+          createdAt: new Date(),
+          completedBy: [],
+          completions: {}
+        } as import('@/lib/types').ChallengeTask] } : c))
       }
-
-      const updatedTasks = [...challenge.tasks, newTask]
-      
-      // Update shared challenge in Firestore (server will merge to avoid dropping other tasks)
-      const result = await firestoreService.updateSharedChallenge(challengeId, {
-        tasks: updatedTasks
-      }, currentUserId)
-
-      if (result.error) {
-        toast.error('Failed to add task: ' + result.error)
-        return
-      }
-
-      // Update local state
-      setChallenges(current => 
-        current.map(c => 
-          c.id === challengeId 
-            ? { ...c, tasks: updatedTasks }
-            : c
-        )
-      )
-      
       toast.success('Task added to challenge!')
     } catch (error) {
       console.error('Error adding challenge task:', error)
