@@ -53,7 +53,7 @@ export class FirestoreService {
         if (Object.keys(updates).length) {
           updates.updatedAt = serverTimestamp()
           await updateDoc(doc(db, 'shared-challenges', docSnap.id), updates).catch(()=>{})
-          try { await this.recomputeChallengePoints(docSnap.id) } catch {}
+          // Points recompute now handled by backend trigger (Cloud Function)
           updated++
         }
       }
@@ -64,82 +64,7 @@ export class FirestoreService {
       return { error: e.message || 'Migration failed' }
     }
   }
-  // Recompute and persist per-user points summary inside both owner and global challenge docs
-  private async recomputeChallengePoints(challengeId: string) {
-    if (!isFirebaseAvailable || !db) return
-    try {
-      // Try owner mapping first
-      let ownerId: string | null = null
-      try {
-        const ownerMapRef = doc(db, 'challenge-owners', challengeId)
-        const ownerMapSnap = await getDoc(ownerMapRef)
-        if (ownerMapSnap.exists()) {
-          ownerId = (ownerMapSnap.data() as any).ownerId || null
-        }
-      } catch {}
-
-      let challengeData: any = null
-      if (ownerId) {
-        const ownerRef = doc(db, 'users', ownerId, 'shared-challenges', challengeId)
-        const ownerSnap = await getDoc(ownerRef)
-        if (ownerSnap.exists()) {
-          challengeData = ownerSnap.data()
-        }
-      }
-      // Fallback global
-      if (!challengeData) {
-        const globalRef = doc(db, 'shared-challenges', challengeId)
-        const globalSnap = await getDoc(globalRef)
-        if (globalSnap.exists()) {
-          challengeData = globalSnap.data()
-        }
-      }
-      if (!challengeData) return
-
-      const tasks: any[] = challengeData.tasks || []
-      const participants: string[] = challengeData.participants || []
-      const points: Record<string, number> = {}
-      participants.forEach(p => { points[p] = 0 })
-      tasks.forEach(t => {
-        const pts = typeof t.points === 'number' ? t.points : 0
-        // Prefer structured completions map; fallback to legacy completedBy array
-        if (t.completions && typeof t.completions === 'object') {
-          Object.entries(t.completions).forEach(([uid, meta]: any) => {
-            if (meta?.completed) {
-              if (points[uid] == null) points[uid] = 0
-              points[uid] += pts
-            }
-          })
-        } else {
-          ;(t.completedBy || []).forEach((uid: string) => {
-            if (points[uid] == null) points[uid] = 0
-            points[uid] += pts
-          })
-        }
-      })
-      const maxPoints = tasks.reduce((sum, t) => sum + (typeof t.points === 'number' ? t.points : 0), 0)
-
-  const summary = { pointsByUser: points, maxPoints }
-
-  // If challenge already has a final snapshot (ended), do not overwrite it
-  const challengeEnded = challengeData.isActive === false || !!challengeData.endDate
-  const finalPointsByUser = challengeData.finalPointsByUser || (challengeEnded ? { ...points } : undefined)
-  const finalMaxPoints = challengeData.finalMaxPoints || (challengeEnded ? maxPoints : undefined)
-
-  const updates: any = { pointsSummary: summary, updatedAt: serverTimestamp() }
-  if (finalPointsByUser) updates.finalPointsByUser = finalPointsByUser
-  if (finalMaxPoints != null) updates.finalMaxPoints = finalMaxPoints
-      const writePromises: Promise<any>[] = []
-      if (ownerId) {
-        writePromises.push(updateDoc(doc(db, 'users', ownerId, 'shared-challenges', challengeId), updates).catch(()=>{}))
-      }
-      writePromises.push(updateDoc(doc(db, 'shared-challenges', challengeId), updates).catch(()=>{}))
-      await Promise.all(writePromises)
-      console.log('🧮 Recomputed points summary for challenge', challengeId, summary)
-    } catch (e) {
-      console.log('Points recomputation failed (non-fatal):', e)
-    }
-  }
+  // Local recompute removed; Cloud Functions now maintain pointsSummary.
 
   // Subscribe to a challenge (merges owner + global copies on each change)
   onChallengeSnapshot(code: string, callback: (challenge: Challenge | null) => void): (() => void) | null {
@@ -155,7 +80,7 @@ export class FirestoreService {
       const indexData: any = indexSnap.data()
       const ownerRef = doc(db, 'users', indexData.ownerId, 'shared-challenges', indexData.challengeId)
       const globalRef = doc(db, 'shared-challenges', indexData.challengeId)
-      // Attach nested listeners (recreated if index changes)
+      let subcollectionTasks: any[] = []
       const mergeAndEmit = async () => {
         const [ownerSnap, globalSnap] = await Promise.all([getDoc(ownerRef), getDoc(globalRef)])
         if (!ownerSnap.exists() && !globalSnap.exists()) { callback(null); return }
@@ -170,26 +95,24 @@ export class FirestoreService {
             if (!existing) {
               byId[t.id] = t
             } else {
-              // Union merge completions & keep highest points/most recent meta
               const mergedCompletions: Record<string, any> = { ...(existing.completions||{}) }
-              if (t.completions) {
-                Object.entries(t.completions).forEach(([uid, meta]: any) => {
-                  mergedCompletions[uid] = meta
-                })
-              }
+              if (t.completions) Object.entries(t.completions).forEach(([uid, meta]: any) => { mergedCompletions[uid] = meta })
               const legacyCompleted = new Set<string>([...(existing.completedBy||[]), ...(t.completedBy||[])])
               byId[t.id] = { ...existing, ...t, completions: mergedCompletions, completedBy: Array.from(legacyCompleted) }
             }
           })
         }
-        ingest(globalData.tasks||[])
-        ingest(ownerData.tasks||[])
+        if (subcollectionTasks.length) {
+          ingest(subcollectionTasks)
+        } else {
+          ingest(globalData.tasks||[])
+          ingest(ownerData.tasks||[])
+        }
         const mergedTasks = Object.values(byId)
-        // Prefer a pointsSummary that has more keys (indicates more complete data)
         let pointsSummary = globalData.pointsSummary || ownerData.pointsSummary
         if (ownerData.pointsSummary && globalData.pointsSummary) {
           const ownerKeys = Object.keys(ownerData.pointsSummary.pointsByUser||{}).length
-            const globalKeys = Object.keys(globalData.pointsSummary.pointsByUser||{}).length
+          const globalKeys = Object.keys(globalData.pointsSummary.pointsByUser||{}).length
           pointsSummary = ownerKeys > globalKeys ? ownerData.pointsSummary : globalData.pointsSummary
         }
         callback({
@@ -210,15 +133,20 @@ export class FirestoreService {
           finalMaxPoints: ownerData.finalMaxPoints || globalData.finalMaxPoints
         } as Challenge)
       }
-      // Initial emit
       mergeAndEmit()
-      // Real-time listeners
       const unsubOwner = onSnapshot(ownerRef, mergeAndEmit)
       const unsubGlobal = onSnapshot(globalRef, mergeAndEmit)
+      const tasksColRef = collection(db, 'shared-challenges', indexData.challengeId, 'tasks')
+      const unsubTasks = onSnapshot(tasksColRef, snap => {
+        const arr: any[] = []
+        snap.forEach(d => arr.push(d.data()))
+        subcollectionTasks = arr
+        mergeAndEmit()
+      })
       // Return composite unsubscribe when outer unsub triggered
       const prevUnsub = (unsub as any)._nested
       if (prevUnsub) prevUnsub()
-      ;(unsub as any)._nested = () => { unsubOwner(); unsubGlobal() }
+      ;(unsub as any)._nested = () => { unsubOwner(); unsubGlobal(); unsubTasks() }
     })
     return () => {
       const nested = (unsub as any)._nested
@@ -972,9 +900,7 @@ export class FirestoreService {
               existingTasks = (ownerSnap.data() as any).tasks || []
             } else {
               const globalSnap = await getDoc(doc(db, 'shared-challenges', challengeId))
-              if (globalSnap.exists()) {
-                existingTasks = (globalSnap.data() as any).tasks || []
-              }
+              if (globalSnap.exists()) existingTasks = (globalSnap.data() as any).tasks || []
             }
           }
           // If we failed to load authoritative tasks, DO NOT enforce stripping (prevents accidental wipe)
@@ -999,16 +925,11 @@ export class FirestoreService {
       // First, check if the document exists in main shared-challenges collection
       const challengeRef = doc(db, 'shared-challenges', challengeId)
       const docSnap = await getDoc(challengeRef)
-      
       if (docSnap.exists()) {
         // Document exists in main collection, proceed with update
         await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
         console.log('✅ Updated challenge in main Firestore collection')
-
-        // Recompute points if tasks updated
-        if (updates.tasks) {
-          try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (main) failed:', e) }
-        }
+        // Backend trigger will recompute pointsSummary
         return { error: null }
       }
       
@@ -1024,7 +945,7 @@ export class FirestoreService {
             console.log('✅ Found challenge in current user\'s collection')
             await updateDoc(userChallengeRef, { ...updates, updatedAt: serverTimestamp() })
             console.log('✅ Updated challenge in user\'s Firestore collection')
-            if (updates.tasks) { try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (user collection) failed:', e) } }
+            // Backend trigger will recompute pointsSummary
             return { error: null }
           }
         } catch (error) {
@@ -1047,7 +968,7 @@ export class FirestoreService {
               if (ownerDocSnap.exists()) {
                 await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
                 console.log('✅ Updated challenge via owner mapping collection')
-                if (updates.tasks) { try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (owner mapping) failed:', e) } }
+                // Backend trigger will recompute pointsSummary
                 return { error: null }
               }
             }
@@ -1068,7 +989,7 @@ export class FirestoreService {
             if (ownerDocSnap.exists()) {
               await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
               console.log('✅ Updated challenge in owner\'s Firestore collection')
-              if (updates.tasks) { try { await this.recomputeChallengePoints(challengeId) } catch (e) { console.log('Points recompute (index scan) failed:', e) } }
+              // Backend trigger will recompute pointsSummary
               return { error: null }
             }
           }
@@ -1148,8 +1069,11 @@ export class FirestoreService {
             })
             const newSummary = { pointsByUser, maxPoints }
             const finalPointsByUser = data.finalPointsByUser || (data.isActive === false ? { ...pointsByUser } : undefined)
-            const finalMaxPoints = data.finalMaxPoints || (data.isActive === false ? maxPoints : undefined)
-            tx.update(challengeRef, { tasks, pointsSummary: newSummary, finalPointsByUser, finalMaxPoints, updatedAt: serverTimestamp() })
+            const finalMaxPoints = data.finalMaxPoints != null ? data.finalMaxPoints : (data.isActive === false ? maxPoints : null)
+            const updatePayload: any = { tasks, pointsSummary: newSummary, updatedAt: serverTimestamp() }
+            if (finalPointsByUser) updatePayload.finalPointsByUser = finalPointsByUser
+            if (finalMaxPoints != null) updatePayload.finalMaxPoints = finalMaxPoints
+            tx.update(challengeRef, updatePayload)
           })
           return { error: null }
         } catch (err: any) {
@@ -1187,13 +1111,41 @@ export class FirestoreService {
           })
         })
         const newSummary = { pointsByUser, maxPoints }
-        const finalPointsByUser = data.finalPointsByUser || (data.isActive === false ? { ...pointsByUser } : undefined)
-        const finalMaxPoints = data.finalMaxPoints || (data.isActive === false ? maxPoints : undefined)
-        await updateDoc(challengeRef, { tasks, pointsSummary: newSummary, finalPointsByUser, finalMaxPoints, updatedAt: serverTimestamp() })
+  const finalPointsByUser = data.finalPointsByUser || (data.isActive === false ? { ...pointsByUser } : undefined)
+  const finalMaxPoints = data.finalMaxPoints != null ? data.finalMaxPoints : (data.isActive === false ? maxPoints : null)
+  const updatePayload: any = { tasks, pointsSummary: newSummary, updatedAt: serverTimestamp() }
+  if (finalPointsByUser) updatePayload.finalPointsByUser = finalPointsByUser
+  if (finalMaxPoints != null) updatePayload.finalMaxPoints = finalMaxPoints
+  await updateDoc(challengeRef, updatePayload)
         return { error: null, fallback: true }
       } catch (fallbackErr: any) {
         return { error: lastErr?.message || fallbackErr?.message || 'Toggle failed' }
       }
+    } catch (e: any) {
+      return { error: e.message || 'Toggle failed' }
+    }
+  }
+
+  // New model: toggle a task stored as its own document in subcollection shared-challenges/{id}/tasks/{taskId}
+  // This simply flips (or sets) the completions[userId].completed flag and lets the Cloud Function recompute points.
+  async toggleSubcollectionTask(challengeId: string, taskId: string, userId: string) {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const taskRef = doc(db, 'shared-challenges', challengeId, 'tasks', taskId)
+      const snap = await getDoc(taskRef)
+      if (!snap.exists()) return { error: 'Task not found' }
+      const data: any = snap.data()
+      const completions = { ...(data.completions || {}) }
+      const currently = completions[userId]?.completed
+      if (currently) {
+        completions[userId] = { completed: false }
+      } else {
+        completions[userId] = { completed: true, completedAt: new Date() }
+      }
+      // Rebuild legacy completedBy for backward UI components still reading array
+      const completedBy = Object.entries(completions).filter(([_, meta]: any) => meta?.completed).map(([uid]) => uid)
+      await updateDoc(taskRef, { completions, completedBy, updatedAt: serverTimestamp() })
+      return { error: null }
     } catch (e: any) {
       return { error: e.message || 'Toggle failed' }
     }

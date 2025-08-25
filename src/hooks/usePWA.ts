@@ -13,6 +13,8 @@ interface PWAHookReturn {
   installApp: () => Promise<boolean>
   isSupported: boolean
   hasAutoPrompted: boolean
+  showInstallPrompt: () => Promise<boolean>
+  dismissedRecently: boolean
 }
 
 export function usePWA(): PWAHookReturn {
@@ -22,6 +24,7 @@ export function usePWA(): PWAHookReturn {
   const [hasAutoPrompted, setHasAutoPrompted] = useState<boolean>(() => {
     try { return localStorage.getItem('pwaAutoPrompted') === '1' } catch { return false }
   })
+  const [dismissedRecently, setDismissedRecently] = useState(false)
   const autoPromptedRef = useRef(hasAutoPrompted)
 
   const DISMISS_KEY = 'pwaInstallDismissedAt'
@@ -67,47 +70,16 @@ export function usePWA(): PWAHookReturn {
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the default mini-infobar from appearing
       e.preventDefault()
-      // Store the event so we can trigger it later
       setInstallPrompt(e as any)
       setIsInstallable(true)
-      console.log('PWA: Install prompt available')
-      // Respect dismissal cooldown
+      console.log('PWA: Install prompt captured for manual trigger')
       const lastDismiss = localStorage.getItem(DISMISS_KEY)
       if (lastDismiss) {
         const ts = parseInt(lastDismiss, 10)
         if (!isNaN(ts) && Date.now() - ts < DISMISS_COOLDOWN_MS) {
-          console.log('PWA: Within dismissal cooldown, skipping auto prompt')
-          return
+          setDismissedRecently(true)
         }
-      }
-      // Auto prompt only once per session (ref based) & not after explicit dismissal
-      if (!autoPromptedRef.current) {
-        autoPromptedRef.current = true
-        setTimeout(async () => {
-          try {
-            if ((e as any).prompt) {
-              ;(e as any).prompt()
-              // Capture user choice
-              if ((e as any).userChoice) {
-                try {
-                  const choice = await (e as any).userChoice
-                  if (choice?.outcome === 'dismissed') {
-                    try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
-                    setIsInstallable(false)
-                  }
-                  if (choice?.outcome === 'accepted') {
-                    setIsInstalled(true)
-                    setIsInstallable(false)
-                  }
-                } catch {}
-              }
-              setHasAutoPrompted(true)
-              try { localStorage.setItem('pwaAutoPrompted', '1') } catch {}
-            }
-          } catch {}
-        }, 1500)
       }
     }
 
@@ -141,46 +113,30 @@ export function usePWA(): PWAHookReturn {
     }
   }, [isSupported, isStandalone])
 
-  const installApp = async (): Promise<boolean> => {
-    if (!installPrompt) {
-      console.log('PWA: No install prompt available')
-      return false
-    }
-
+  const performPrompt = async (): Promise<boolean> => {
+    if (!installPrompt) return false
     try {
-      console.log('PWA: Showing install prompt...')
       await installPrompt.prompt()
-      const choiceResult = await installPrompt.userChoice
-      
-      console.log('PWA: User choice:', choiceResult.outcome)
-      
-      if (choiceResult.outcome === 'accepted') {
+      const choice = await installPrompt.userChoice
+      if (choice?.outcome === 'accepted') {
         setIsInstalled(true)
         setIsInstallable(false)
         setInstallPrompt(null)
-        console.log('PWA: Installation accepted')
         return true
-      } else {
-        console.log('PWA: Installation dismissed')
-  // Record dismissal & suppress further prompts for cooldown duration
-  try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
-  setIsInstallable(false)
-  // Keep prompt reference so user can manually trigger later (after cooldown)
+      } else if (choice?.outcome === 'dismissed') {
+        try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
+        setDismissedRecently(true)
+        setIsInstallable(false)
       }
-      
       return false
-    } catch (error) {
-      console.error('PWA: Installation error:', error)
+    } catch (e) {
+      console.error('PWA: prompt failed', e)
       return false
     }
   }
 
-  return {
-    isInstallable,
-    isInstalled,
-    isStandalone,
-    installApp,
-  isSupported,
-  hasAutoPrompted
-  }
+  const installApp = async () => performPrompt()
+  const showInstallPrompt = async () => performPrompt()
+
+  return { isInstallable, isInstalled, isStandalone, installApp, isSupported, hasAutoPrompted, showInstallPrompt, dismissedRecently }
 }
