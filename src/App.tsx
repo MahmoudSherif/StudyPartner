@@ -185,6 +185,14 @@ function AppContent() {
         } else if (result.error) {
           console.warn('Failed to load user challenges:', result.error)
         }
+        // Attempt to push any locally saved (unsynced) challenges created while offline
+        firestoreService.syncLocalChallengesForUser(user.uid).then(syncRes => {
+          if (syncRes.pushed > 0) {
+            toast.success(`Synced ${syncRes.pushed} offline challenge(s)`) 
+            // Reload after sync to show fresh data
+            firestoreService.getUserChallenges(user.uid).then(r => { if (r.data) setChallenges(r.data) })
+          }
+        })
       } catch (error) {
         console.error('Error loading user challenges:', error)
       }
@@ -692,26 +700,32 @@ function AppContent() {
 
       console.log('New challenge object:', newChallenge)
 
-      // Save to shared challenges collection in Firestore
-      const result = await firestoreService.saveSharedChallenge(newChallenge)
+      // Save with verification
+      const result = await firestoreService.saveSharedChallengeVerified(newChallenge)
       if (result.error) {
         console.error('Failed to save challenge:', result.error)
         if (result.error.includes('Permission denied')) {
-          toast.error('Challenge creation requires updated Firebase rules. Check console for instructions.')
-          console.error('🔥 FIREBASE RULES UPDATE NEEDED:')
-          console.error('Run ./firebase-rules-fix.sh for instructions')
+          toast.error('Challenge creation denied by rules.')
           return
         }
         toast.error('Failed to create challenge: ' + result.error)
         return
       }
 
-      console.log('Challenge saved successfully')
+      if (result.error && !result.verified) {
+        toast.error(result.error)
+        return
+      }
+      if (result.verified) {
+        console.log('Challenge saved successfully (verified)')
+      } else {
+        console.warn('Challenge save unverified.')
+      }
       
       // Add to local state
       setChallenges(current => [...current, newChallenge])
   if (newChallenge.code) setActiveChallengeCode(newChallenge.code)
-      toast.success(`Challenge created successfully! Code: ${newChallenge.code} (Cross-account sharing enabled)`)
+  toast.success(`Challenge created! Code: ${newChallenge.code}`)
       
       // Log where the challenge was saved for debugging
       console.log('🎯 Challenge code for sharing:', newChallenge.code)

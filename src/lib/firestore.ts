@@ -1,6 +1,6 @@
 // Firestore data management for user data
 import { db, isFirebaseAvailable } from '@/lib/firebase'
-import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
+import { LocalChallengeStorage } from '@/lib/localChallengeStorage' // retained only for one-time sync; no new local writes
 // SimpleChallengeSharing removed (deprecated local sharing path)
 import { 
   doc, 
@@ -794,12 +794,97 @@ export class FirestoreService {
     return { error: null }
   }
 
+  /**
+   * Save a challenge and verify its persistence in Firestore. Falls back to local storage if blocked/offline.
+   * Returns additional metadata so the UI can reflect whether the save is confirmed remotely or only local.
+   */
+  async saveSharedChallengeVerified(challenge: Challenge): Promise<{ error: string | null; verified?: boolean }> {
+    try {
+      if (!challenge.id) {
+        challenge.id = Date.now().toString() + '_' + Math.random().toString(36).substring(2, 8)
+      }
+      const start = Date.now()
+      const result = await this.saveSharedChallenge(challenge)
+      if (result.error) {
+        return { error: result.error }
+      }
+      // Verification loop (read-after-write) – handles ad blockers closing channels early
+      const maxAttempts = 5
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          if (!isFirebaseAvailable || !db) break
+          const globalRef = doc(db, 'shared-challenges', challenge.id)
+          const snap = await getDoc(globalRef)
+          if (snap.exists()) {
+            return { error: null, verified: true }
+          }
+        } catch (e) {
+          const msg = (e as any)?.message || ''
+          if (this.isNetworkBlocked(e)) {
+            console.warn('⚠️ Network blocked during verification; storing locally')
+            return { error: 'Network blocked while verifying challenge save', verified: false }
+          }
+          if (/permission/i.test(msg)) {
+            return { error: 'Permission denied saving challenge', verified: false }
+          }
+        }
+        // Exponential backoff with jitter
+        const delay = Math.min(1200, 100 * Math.pow(2, attempt)) + Math.random() * 80
+        await new Promise(res => setTimeout(res, delay))
+      }
+  console.warn('⚠️ Challenge not verified after save attempts.')
+  return { error: 'Challenge save not verified', verified: false }
+    } catch (e: any) {
+  console.error('❌ saveSharedChallengeVerified failed:', e)
+  return { error: e.message || 'Save failed', verified: false }
+    } finally {
+        const elapsed = Date.now() - (challenge.createdAt instanceof Date ? challenge.createdAt.getTime() : Date.now())
+        if (elapsed > 5000) {
+          console.log('⏱️ Challenge save+verify elapsed ms:', elapsed)
+        }
+    }
+  }
+
+  /**
+   * Attempt to push any locally stored (unsynced) challenges created by this user to Firestore.
+   * Skips ones already found remotely by id.
+   */
+  async syncLocalChallengesForUser(userId: string): Promise<{ pushed: number; skipped: number; errors: number }> {
+    let pushed = 0, skipped = 0, errors = 0
+    try {
+      const locals = LocalChallengeStorage.getAllChallenges().filter(c => c.createdBy === userId)
+      if (!locals.length) return { pushed: 0, skipped: 0, errors: 0 }
+      if (!isFirebaseAvailable || !db) {
+        console.log('Offline – cannot sync local challenges now.')
+        return { pushed: 0, skipped: locals.length, errors: 0 }
+      }
+      for (const ch of locals) {
+        try {
+          const globalRef = doc(db, 'shared-challenges', ch.id)
+          const snap = await getDoc(globalRef)
+            if (snap.exists()) { skipped++; continue }
+          const saveRes = await this.saveSharedChallengeAlternative(ch, userId)
+          if (saveRes.error) { errors++; continue }
+          // Verify once
+          const verify = await getDoc(globalRef)
+          if (verify.exists()) pushed++
+          else errors++
+        } catch (e) {
+          errors++
+        }
+      }
+      if (pushed>0) console.log(`🔄 Synced ${pushed} local challenge(s) to Firestore (skipped ${skipped}, errors ${errors}).`)
+      return { pushed, skipped, errors }
+    } catch (e) {
+      console.error('syncLocalChallengesForUser failed:', e)
+      return { pushed, skipped, errors: errors + 1 }
+    }
+  }
+
   async updateSharedChallenge(challengeId: string, updates: Partial<Challenge>, currentUserId?: string) {
     try {
       if (!isFirebaseAvailable || !db) {
-        // Try local update
-        const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
-        return localResult
+        return { error: 'Firestore unavailable for challenge update' }
       }
       
       console.log('Updating shared challenge:', challengeId, updates)
@@ -990,38 +1075,11 @@ export class FirestoreService {
         console.log('Could not search public index:', error)
       }
       
-      console.warn('⚠️ Challenge document does not exist in any Firestore location, trying local update instead')
-      
-      // Document doesn't exist anywhere in Firestore, try local storage
-      const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
-      if (!localResult.error) {
-        console.log('✅ Updated challenge locally instead')
-        return { error: null }
-      }
-      
-      // If local also fails, return descriptive error
-      return { error: `Challenge ${challengeId} not found in Firestore or local storage` }
+  console.warn('⚠️ Challenge document does not exist in any Firestore location')
+  return { error: `Challenge ${challengeId} not found in Firestore` }
     } catch (error: any) {
       console.error('Error updating shared challenge:', error)
-      
-      // If it's a "No document to update" error, try local storage
-      if (error.message?.includes('No document to update')) {
-        console.log('🔄 Document missing in Firestore, trying local storage fallback')
-        const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
-        if (!localResult.error) {
-          console.log('✅ Updated challenge locally as fallback')
-          return { error: null }
-        }
-      }
-      
-      // Fallback to local update for any error
-      const localResult = LocalChallengeStorage.updateChallenge(challengeId, updates)
-      if (localResult.error) {
-        return { error: this.handleFirestoreError(error) }
-      }
-      
-      console.log('✅ Updated challenge locally after Firestore error')
-      return { error: null }
+  return { error: this.handleFirestoreError(error) }
     }
   }
 
