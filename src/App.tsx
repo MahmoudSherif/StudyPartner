@@ -32,6 +32,7 @@ import {
 } from '@/hooks/useFirebaseData'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
+import { DevDiagnostics } from '@/components/DevDiagnostics'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -1124,6 +1125,7 @@ function AppContent() {
           }
         }}
       />
+  <DevDiagnostics challenges={challenges} activeCode={activeChallengeCode} />
     </div>
   )
 }
