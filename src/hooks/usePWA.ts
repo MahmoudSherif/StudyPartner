@@ -19,8 +19,10 @@ export function usePWA(): PWAHookReturn {
   const [isInstallable, setIsInstallable] = useState(false)
   const [installPrompt, setInstallPrompt] = useState<PWAInstallPrompt | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
-  const [hasAutoPrompted, setHasAutoPrompted] = useState(false)
-  const autoPromptedRef = useRef(false)
+  const [hasAutoPrompted, setHasAutoPrompted] = useState<boolean>(() => {
+    try { return localStorage.getItem('pwaAutoPrompted') === '1' } catch { return false }
+  })
+  const autoPromptedRef = useRef(hasAutoPrompted)
 
   const DISMISS_KEY = 'pwaInstallDismissedAt'
   const DISMISS_COOLDOWN_MS = 1000 * 60 * 60 * 24 // 24h
@@ -86,8 +88,23 @@ export function usePWA(): PWAHookReturn {
         setTimeout(async () => {
           try {
             if ((e as any).prompt) {
-              await (e as any).prompt()
+              ;(e as any).prompt()
+              // Capture user choice
+              if ((e as any).userChoice) {
+                try {
+                  const choice = await (e as any).userChoice
+                  if (choice?.outcome === 'dismissed') {
+                    try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
+                    setIsInstallable(false)
+                  }
+                  if (choice?.outcome === 'accepted') {
+                    setIsInstalled(true)
+                    setIsInstallable(false)
+                  }
+                } catch {}
+              }
               setHasAutoPrompted(true)
+              try { localStorage.setItem('pwaAutoPrompted', '1') } catch {}
             }
           } catch {}
         }, 1500)
@@ -147,8 +164,8 @@ export function usePWA(): PWAHookReturn {
         console.log('PWA: Installation dismissed')
   // Record dismissal & suppress further prompts for cooldown duration
   try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
-  // Keep the event for manual retry only after cooldown; hide auto UI now
   setIsInstallable(false)
+  // Keep prompt reference so user can manually trigger later (after cooldown)
       }
       
       return false
