@@ -121,6 +121,13 @@ function AppContent() {
     }
   }, [userNames])
 
+  // Preload participant names whenever challenges change
+  useEffect(() => {
+    const participantIds = new Set<string>()
+    challenges.forEach(c => c.participants.forEach(p => participantIds.add(p)))
+    participantIds.forEach(id => { if (!userNames[id]) resolveUserName(id) })
+  }, [challenges, userNames, resolveUserName])
+
   // Mobile and PWA hooks
   const { isStandalone, isInstallable, installApp } = usePWA()
   const deviceInfo = useMobileBehavior()
@@ -1184,6 +1191,7 @@ function AppContent() {
                 onToggleChallengeTask={handleToggleChallengeTask}
                 onSwitchProgressView={handleSwitchProgressView}
                 onEndChallenge={handleEndChallenge}
+                userNames={userNames}
               />
             </div>
           </TabsContent>
