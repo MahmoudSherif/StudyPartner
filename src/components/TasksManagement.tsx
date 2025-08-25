@@ -67,6 +67,7 @@ export function TasksManagement({
   const [isCreatingChallenge, setIsCreatingChallenge] = useState(false)
   const [isJoiningChallenge, setIsJoiningChallenge] = useState(false)
   const [activeTab, setActiveTab] = useState<'tasks' | 'challenges'>('tasks')
+  const [showCompletedChallenges, setShowCompletedChallenges] = useState(false)
   const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null)
   const [joinCode, setJoinCode] = useState('')
   
@@ -1067,13 +1068,33 @@ export function TasksManagement({
 
           {/* Challenges List */}
           <div className="space-y-4">
-            {challenges.length === 0 ? (
-              <div className="text-center py-8 text-white/60">
-                <Trophy size={48} className="mx-auto mb-4" />
-                <p>No challenges yet. Create or join one to get started!</p>
-              </div>
-            ) : (
-              challenges.map((challenge) => {
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className={`text-xs px-3 py-1 border-white/20 ${showCompletedChallenges ? 'bg-transparent text-white/60' : 'bg-white/20 text-white'}`}
+                onClick={() => setShowCompletedChallenges(false)}
+              >Active</Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`text-xs px-3 py-1 border-white/20 ${showCompletedChallenges ? 'bg-white/20 text-white' : 'bg-transparent text-white/60'}`}
+                onClick={() => setShowCompletedChallenges(true)}
+              >Completed</Button>
+            </div>
+            {(() => {
+              const now = Date.now()
+              const activeList = challenges.filter(c => c.isActive !== false && (!c.endDate || new Date(c.endDate).getTime() > now))
+              const completedList = challenges.filter(c => c.isActive === false || (c.endDate && new Date(c.endDate).getTime() <= now))
+              const list = showCompletedChallenges ? completedList : activeList
+              if (list.length === 0) {
+                return (
+                  <div className="text-center py-6 text-white/60 border border-dashed border-white/20 rounded-lg">
+                    {showCompletedChallenges ? 'No completed challenges yet.' : 'No active challenges. Create or join one!'}
+                  </div>
+                )
+              }
+              return list.map((challenge) => {
                 // Calculate challenge stats
                 const totalPoints = challenge.tasks.reduce((sum, task) => sum + task.points, 0)
                 const leaderboard = challenge.participants.map(participantId => {
@@ -1279,7 +1300,7 @@ export function TasksManagement({
                 </div>
                 )
               })
-            )}
+            })()}
           </div>
         </TabsContent>
       </Tabs>
