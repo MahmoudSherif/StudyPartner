@@ -638,34 +638,59 @@ export class FirestoreService {
       const q = query(challengesRef, where('participants', 'array-contains', userId))
       const querySnapshot = await getDocs(q)
       
-      const challenges: Challenge[] = []
-      for (const d of querySnapshot.docs) {
+      // Fetch all task subcollections concurrently for performance
+      const docs = querySnapshot.docs
+      const taskPromises = docs.map(d => getDocs(collection(db, 'shared-challenges', d.id, 'tasks'))
+        .then(snap => snap.docs.map(t => {
+          const td: any = t.data(); if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate(); return td
+        }))
+        .catch(() => [] as any[]))
+      const taskResults = await Promise.all(taskPromises)
+
+      const challenges: Challenge[] = docs.map((d, idx) => {
         const data: any = d.data()
-        // Load subcollection tasks (authoritative) if present
-        let tasks: any[] = []
-        try {
-          const tasksSnap = await getDocs(collection(db, 'shared-challenges', d.id, 'tasks'))
-          tasksSnap.forEach(t => {
-            const td: any = t.data()
-            if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate()
-            tasks.push(td)
-          })
-        } catch {}
-        const mergedChallenge: Challenge = {
+        const tasks = taskResults[idx]
+        return {
           ...data,
           id: d.id,
-          tasks: tasks.length ? tasks : (data.tasks || []),
+            tasks: tasks.length ? tasks : (data.tasks || []),
           createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
           updatedAt: data.updatedAt?.toDate?.() || new Date()
         } as Challenge
-        challenges.push(mergedChallenge)
-      }
+      })
       
       return { data: challenges, error: null }
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
       console.warn('Firestore getUserChallenges failed:', errorMessage)
       return { data: [], error: errorMessage }
+    }
+  }
+
+  // Lightweight existence & latest data verification for a given challenge id
+  async verifyChallengeExists(challengeId: string): Promise<{ exists: boolean; data?: Challenge | null }> {
+    try {
+      if (!isFirebaseAvailable || !db) return { exists: false, data: null }
+      const cRef = doc(db, 'shared-challenges', challengeId)
+      const snap = await getDoc(cRef)
+      if (!snap.exists()) return { exists: false, data: null }
+      const data: any = snap.data()
+      // Pull subcollection tasks (best-effort)
+      let tasks: any[] = []
+      try {
+        const tSnap = await getDocs(collection(db, 'shared-challenges', challengeId, 'tasks'))
+        tSnap.forEach(t => { const td: any = t.data(); if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate(); tasks.push(td) })
+      } catch {}
+      const challenge: Challenge = {
+        ...data,
+        id: snap.id,
+        tasks: tasks.length ? tasks : (data.tasks || []),
+        createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+        updatedAt: data.updatedAt?.toDate?.() || new Date()
+      } as Challenge
+      return { exists: true, data: challenge }
+    } catch {
+      return { exists: false, data: null }
     }
   }
 
