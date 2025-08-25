@@ -232,9 +232,18 @@ export class FirestoreService {
       console.log('💡 Alternative: Saving challenge in user collection with sharing enabled')
       
       // Ensure code consistency - always store in uppercase
-      const normalizedCode = challenge.code.trim().toUpperCase()
+      const normalizedCode = (challenge.code || '').trim().toUpperCase()
+      if (!normalizedCode) {
+        console.warn('⚠️ Challenge missing code, generating temporary code')
+        // Simple fallback code generation (6 chars)
+        const gen = Math.random().toString(36).substring(2, 8).toUpperCase()
+        challenge.code = gen
+      } else {
+        // Mutate original object so subsequent layers (simple sharing) get uppercase
+        challenge.code = normalizedCode
+      }
       
-      // Save in user's personal challenges collection but mark as shareable
+      // Save in user's personal challenges collection (authoritative owner copy) but mark as shareable
       const challengeRef = doc(db, 'users', userId, 'shared-challenges', challenge.id)
       const challengeData = {
         ...challenge,
@@ -249,8 +258,17 @@ export class FirestoreService {
       
       console.log('Alternative challenge data with normalized code:', normalizedCode, challengeData)
       await setDoc(challengeRef, challengeData)
+
+      // Additionally store a copy in global collection for backward compatibility/listing
+      try {
+        const globalRef = doc(db, 'shared-challenges', challenge.id)
+        await setDoc(globalRef, challengeData)
+        console.log('🌍 Stored global copy in shared-challenges collection')
+      } catch (globalErr) {
+        console.warn('⚠️ Failed to write global copy (non-fatal):', globalErr)
+      }
       
-      // Also save in a public index for faster searching (use uppercase as key)
+  // Save in a public index for faster searching (use uppercase as key)
       const indexRef = doc(db, 'public-challenge-index', normalizedCode)
       await setDoc(indexRef, {
         challengeId: challenge.id,
@@ -262,6 +280,20 @@ export class FirestoreService {
         createdAt: challenge.createdAt,
         updatedAt: serverTimestamp()
       })
+
+  // Store direct owner mapping for quick update lookups (id -> owner)
+      try {
+        const ownerMapRef = doc(db, 'challenge-owners', challenge.id)
+        await setDoc(ownerMapRef, {
+          ownerId: userId,
+            code: normalizedCode,
+            createdAt: challenge.createdAt,
+            updatedAt: serverTimestamp()
+        })
+        console.log('🗺️ Stored owner mapping for challenge', challenge.id)
+      } catch (mapErr) {
+        console.warn('⚠️ Failed to store challenge owner mapping (non-fatal):', mapErr)
+      }
       
       console.log('✅ Alternative save successful with normalized code:', normalizedCode)
       return { error: null }
@@ -277,16 +309,28 @@ export class FirestoreService {
         return { data: null, error: 'Firestore database not available - offline mode' }
       }
       
-      // NORMALIZE CODE - always search in lowercase but preserve original case in data
-      const normalizedCode = code.toLowerCase()
-      console.log('💡 Alternative: Searching for challenge with code:', code, '(normalized:', normalizedCode + ')')
+      // NORMALIZE CODE - use uppercase (matches save logic) with lowercase legacy fallback
+      const normalizedCode = code.trim().toUpperCase()
+      const legacyLower = code.trim().toLowerCase()
+      console.log('💡 Alternative: Searching for challenge with code:', code, '(primary:', normalizedCode, 'legacy:', legacyLower + ')')
       
-      // First, check the public index
-      const indexRef = doc(db, 'public-challenge-index', normalizedCode)
-      const indexSnap = await getDoc(indexRef)
+      // First, check the public index (uppercase key)
+      let indexRef = doc(db, 'public-challenge-index', normalizedCode)
+      let indexSnap = await getDoc(indexRef)
       
       if (!indexSnap.exists()) {
-        console.log('❌ Challenge code not found in index for normalized code:', normalizedCode)
+        console.log('⚠️ Uppercase index miss, trying legacy lowercase key')
+        const legacyRef = doc(db, 'public-challenge-index', legacyLower)
+        const legacySnap = await getDoc(legacyRef)
+        if (legacySnap.exists()) {
+          indexRef = legacyRef
+          indexSnap = legacySnap
+          console.log('✅ Found legacy lowercase index entry')
+        }
+      }
+      
+      if (!indexSnap.exists()) {
+        console.log('❌ Challenge code not found in index (uppercase or lowercase)')
         return { data: null, error: 'Challenge not found' }
       }
       
@@ -649,6 +693,26 @@ export class FirestoreService {
       
       // Try to search in public challenge index to find the owner
       try {
+        // Fast path: owner mapping doc
+        try {
+          const ownerMapRef = doc(db, 'challenge-owners', challengeId)
+          const ownerMapSnap = await getDoc(ownerMapRef)
+          if (ownerMapSnap.exists()) {
+            const ownerData: any = ownerMapSnap.data()
+            if (ownerData?.ownerId) {
+              console.log('🗺️ Found owner via mapping collection:', ownerData.ownerId)
+              const ownerChallengeRef = doc(db, 'users', ownerData.ownerId, 'shared-challenges', challengeId)
+              const ownerDocSnap = await getDoc(ownerChallengeRef)
+              if (ownerDocSnap.exists()) {
+                await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
+                console.log('✅ Updated challenge via owner mapping collection')
+                return { error: null }
+              }
+            }
+          }
+        } catch (mapErr) {
+          console.log('Owner mapping lookup failed (continuing):', mapErr)
+        }
         const indexQuery = query(collection(db, 'public-challenge-index'))
         const indexSnapshot = await getDocs(indexQuery)
         
