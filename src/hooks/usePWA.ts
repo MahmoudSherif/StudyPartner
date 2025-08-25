@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 interface PWAInstallPrompt {
   prompt: () => Promise<void>
@@ -20,6 +20,10 @@ export function usePWA(): PWAHookReturn {
   const [installPrompt, setInstallPrompt] = useState<PWAInstallPrompt | null>(null)
   const [isInstalled, setIsInstalled] = useState(false)
   const [hasAutoPrompted, setHasAutoPrompted] = useState(false)
+  const autoPromptedRef = useRef(false)
+
+  const DISMISS_KEY = 'pwaInstallDismissedAt'
+  const DISMISS_COOLDOWN_MS = 1000 * 60 * 60 * 24 // 24h
 
   // Check if running in standalone mode (installed PWA)
   const isStandalone = typeof window !== 'undefined' && (() => {
@@ -67,15 +71,25 @@ export function usePWA(): PWAHookReturn {
       setInstallPrompt(e as any)
       setIsInstallable(true)
       console.log('PWA: Install prompt available')
-      // Auto prompt once after small delay to ensure user gesture context not required
-      if (!hasAutoPrompted) {
+      // Respect dismissal cooldown
+      const lastDismiss = localStorage.getItem(DISMISS_KEY)
+      if (lastDismiss) {
+        const ts = parseInt(lastDismiss, 10)
+        if (!isNaN(ts) && Date.now() - ts < DISMISS_COOLDOWN_MS) {
+          console.log('PWA: Within dismissal cooldown, skipping auto prompt')
+          return
+        }
+      }
+      // Auto prompt only once per session (ref based) & not after explicit dismissal
+      if (!autoPromptedRef.current) {
+        autoPromptedRef.current = true
         setTimeout(async () => {
-          if ((e as any).prompt) {
-            try {
+          try {
+            if ((e as any).prompt) {
               await (e as any).prompt()
               setHasAutoPrompted(true)
-            } catch {}
-          }
+            }
+          } catch {}
         }, 1500)
       }
     }
@@ -131,6 +145,10 @@ export function usePWA(): PWAHookReturn {
         return true
       } else {
         console.log('PWA: Installation dismissed')
+  // Record dismissal & suppress further prompts for cooldown duration
+  try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
+  // Keep the event for manual retry only after cooldown; hide auto UI now
+  setIsInstallable(false)
       }
       
       return false
