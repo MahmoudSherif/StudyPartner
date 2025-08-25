@@ -68,6 +68,7 @@ export function TasksManagement({
   const [isJoiningChallenge, setIsJoiningChallenge] = useState(false)
   const [activeTab, setActiveTab] = useState<'tasks' | 'challenges'>('tasks')
   const [showCompletedChallenges, setShowCompletedChallenges] = useState(false)
+  const [pendingTaskToggles, setPendingTaskToggles] = useState<Record<string, boolean>>({})
   const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null)
   const [joinCode, setJoinCode] = useState('')
   
@@ -1262,39 +1263,40 @@ export function TasksManagement({
                         )}
                       </div>
                       
-                      {challenge.tasks.map((task) => (
-                        <div key={task.id} className="bg-white/5 rounded p-3 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onToggleChallengeTask(challenge.id, task.id)}
-                              disabled={isEnded}
-                              className={`p-1 h-6 w-6 rounded-full border-2 ${
-                                isChallengeTaskCompletedForUser(task, currentUserId)
-                                  ? 'bg-green-500 border-green-500 text-white'
-                                  : 'border-white/30 hover:border-white/50'
-                              } ${isEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                              {isChallengeTaskCompletedForUser(task, currentUserId) && <Check size={12} />}
-                            </Button>
-                            <div>
-                              <span className={`text-sm ${isChallengeTaskCompletedForUser(task, currentUserId) ? 'line-through text-white/60' : 'text-white'}`}>
-                                {task.title}
-                              </span>
-                              {task.description && (
-                                <p className="text-xs text-white/60">{task.description}</p>
-                              )}
+                      {challenge.tasks.map(task => {
+                        const key = `${challenge.id}:${task.id}`
+                        const pending = pendingTaskToggles[key]
+                        const completed = isChallengeTaskCompletedForUser(task, currentUserId)
+                        return (
+                          <div key={task.id} className="bg-white/5 rounded p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={async () => {
+                                  if (pending) return
+                                  setPendingTaskToggles(p => ({ ...p, [key]: true }))
+                                  try { await onToggleChallengeTask(challenge.id, task.id) } finally {
+                                    setPendingTaskToggles(p => { const n = { ...p }; delete n[key]; return n })
+                                  }
+                                }}
+                                disabled={isEnded}
+                                className={`relative p-1 h-6 w-6 rounded-full border-2 ${completed ? 'bg-green-500 border-green-500 text-white' : 'border-white/30 hover:border-white/50'} ${isEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              >
+                                {pending ? <span className="animate-spin text-[10px]">⏳</span> : (completed && <Check size={12} />)}
+                              </Button>
+                              <div>
+                                <span className={`text-sm ${completed ? 'line-through text-white/60' : 'text-white'}`}>{task.title}</span>
+                                {task.description && <p className="text-xs text-white/60">{task.description}</p>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-white/60">
+                              <Badge className="bg-accent/20 text-accent border-accent/30">{task.points} pts</Badge>
+                              <span>{countTaskCompletions(task)}/{challenge.participants.length}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-white/60">
-                            <Badge className="bg-accent/20 text-accent border-accent/30">
-                              {task.points} pts
-                            </Badge>
-                            <span>{countTaskCompletions(task)}/{challenge.participants.length}</span>
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 </div>

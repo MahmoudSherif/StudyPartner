@@ -905,49 +905,51 @@ function AppContent() {
 
   const handleToggleChallengeTask = async (challengeId: string, taskId: string) => {
     try {
+      // Debounce rapid taps per task to reduce contention
+      const key = `${challengeId}:${taskId}`
+      ;(window as any)._challengeToggleLocks = (window as any)._challengeToggleLocks || {}
+      const locks = (window as any)._challengeToggleLocks
+      const now = Date.now()
+      const last = locks[key] || 0
+      if (now - last < 250) {
+        clearTimeout(locks[key+':timer'])
+        locks[key+':timer'] = setTimeout(() => handleToggleChallengeTask(challengeId, taskId), 260)
+        return
+      }
+      locks[key] = now
       const challenge = challenges.find(c => c.id === challengeId)
       const task = challenge?.tasks.find(t => t.id === taskId)
       if (!challenge || !task) return
       // Determine current completion via new completions map (fallback to legacy array)
       const existingCompletions = task.completions || {}
       const isCompleted = existingCompletions[currentUserId]?.completed || task.completedBy.includes(currentUserId)
-      const newCompletions = { ...existingCompletions }
-      if (isCompleted) {
-        // Mark as not completed
-        if (newCompletions[currentUserId]) {
-          newCompletions[currentUserId] = { completed: false }
+      // Try new transactional toggle to avoid race overwrites
+      const txResult = await firestoreService.toggleChallengeTaskTransactional(challengeId, taskId, currentUserId)
+      if (txResult.error) {
+        console.warn('Transactional toggle failed, falling back:', txResult.error)
+        // Fallback to legacy client-side merge path
+        const newCompletions = { ...existingCompletions }
+        if (isCompleted) {
+          if (newCompletions[currentUserId]) newCompletions[currentUserId] = { completed: false }
+          else delete newCompletions[currentUserId]
         } else {
-          // ensure removal from legacy array fallback later
-          delete newCompletions[currentUserId]
+          newCompletions[currentUserId] = { completed: true, completedAt: new Date() }
         }
-      } else {
-        newCompletions[currentUserId] = { completed: true, completedAt: new Date() }
-      }
-      // Only mutate current user's completion state; preserve other users untouched (per-user independence)
-      const updatedTasks = challenge.tasks.map(t => {
-        if (t.id !== taskId) return t
-        // Legacy: update completedBy only for current user add/remove
-        let legacyCompletedBy = Array.isArray(t.completedBy) ? [...t.completedBy] : []
-        const currentlyInLegacy = legacyCompletedBy.includes(currentUserId)
-        if (newCompletions[currentUserId]?.completed && !currentlyInLegacy) {
-          legacyCompletedBy.push(currentUserId)
-        } else if (!newCompletions[currentUserId]?.completed && currentlyInLegacy) {
-          legacyCompletedBy = legacyCompletedBy.filter(u => u !== currentUserId)
+        const updatedTasks = challenge.tasks.map(t => {
+          if (t.id !== taskId) return t
+          let legacyCompletedBy = Array.isArray(t.completedBy) ? [...t.completedBy] : []
+          const currentlyInLegacy = legacyCompletedBy.includes(currentUserId)
+            if (newCompletions[currentUserId]?.completed && !currentlyInLegacy) legacyCompletedBy.push(currentUserId)
+            else if (!newCompletions[currentUserId]?.completed && currentlyInLegacy) legacyCompletedBy = legacyCompletedBy.filter(u => u !== currentUserId)
+          return { ...t, completedBy: legacyCompletedBy, completions: newCompletions }
+        })
+        const result = await firestoreService.updateSharedChallenge(challengeId, { tasks: updatedTasks }, currentUserId)
+        if (result.error) {
+          toast.error('Failed to update task: ' + result.error)
+          return
         }
-        return { ...t, completedBy: legacyCompletedBy, completions: newCompletions }
-      })
-
-      // Update shared challenge in Firestore
-      const result = await firestoreService.updateSharedChallenge(challengeId, {
-        tasks: updatedTasks
-      }, currentUserId)
-
-      if (result.error) {
-        toast.error('Failed to update task: ' + result.error)
-        return
+        setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
       }
-      // Optimistic local update (real-time subscription will reconcile)
-      setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
       // Optimistic points tweak for smoother UI
       setChallenges(current => current.map(c => {
         if (c.id !== challengeId) return c
@@ -964,6 +966,9 @@ function AppContent() {
           }
         }
       }))
+
+  // Lightweight telemetry (replace with real analytics if available)
+  try { console.log('📊 toggleChallengeTask', { challengeId, taskId, userId: currentUserId, newState: !isCompleted }) } catch {}
 
       if (!isCompleted) {
         // Trigger special haptic feedback for challenge task completion

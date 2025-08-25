@@ -14,7 +14,8 @@ import {
   getDocs,
   orderBy,
   serverTimestamp,
-  onSnapshot
+  onSnapshot,
+  runTransaction
 } from 'firebase/firestore'
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
 
@@ -902,21 +903,23 @@ export class FirestoreService {
       // drop tasks that exist in the authoritative copy (fixes disappearing tasks for other users)
       if (updates.tasks) {
         try {
-          // Load authoritative task list (prefer owner copy, fallback global)
-          let authoritativeTasks: any[] = []
+          // Load authoritative task list: UNION of owner + global copies to avoid loss from race conditions
+          let ownerTasks: any[] = []
+          let globalTasks: any[] = []
           if (ownerId) {
-            const ownerRef = doc(db, 'users', ownerId, 'shared-challenges', challengeId)
-            const ownerSnap = await getDoc(ownerRef)
-            if (ownerSnap.exists()) {
-              authoritativeTasks = (ownerSnap.data() as any).tasks || []
-            }
+            try {
+              const ownerRef = doc(db, 'users', ownerId, 'shared-challenges', challengeId)
+              const ownerSnap = await getDoc(ownerRef)
+              if (ownerSnap.exists()) ownerTasks = (ownerSnap.data() as any).tasks || []
+            } catch {}
           }
-          if (authoritativeTasks.length === 0) {
+          try {
             const globalSnap = await getDoc(doc(db, 'shared-challenges', challengeId))
-            if (globalSnap.exists()) {
-              authoritativeTasks = (globalSnap.data() as any).tasks || []
-            }
-          }
+            if (globalSnap.exists()) globalTasks = (globalSnap.data() as any).tasks || []
+          } catch {}
+          const unionMap: Record<string, any> = {}
+          ;[...globalTasks, ...ownerTasks].forEach(t => { if (t?.id) unionMap[t.id] = t })
+          let authoritativeTasks: any[] = Object.values(unionMap)
 
           const incomingTasks = updates.tasks || []
           const existingMap = new Map<string, any>(authoritativeTasks.filter(t=>t && t.id).map(t=>[t.id, t]))
@@ -951,7 +954,7 @@ export class FirestoreService {
           }
 
           updates.tasks = merged as any
-          console.log('🔀 Merged challenge tasks update. Incoming:', incomingTasks.length, 'Existing:', authoritativeTasks.length, 'Result:', merged.length)
+          console.log('🔀 Merged challenge tasks update. Incoming:', incomingTasks.length, 'AuthUnion:', authoritativeTasks.length, 'Result:', merged.length)
         } catch (mergeErr) {
           console.warn('Task merge failed (continuing with existing strategy):', mergeErr)
         }
@@ -974,14 +977,19 @@ export class FirestoreService {
               }
             }
           }
-          const incomingTasks = updates.tasks || []
-          const existingIds = new Set(existingTasks.map((t: any) => t.id))
-          const added = incomingTasks.filter((t: any) => t && t.id && !existingIds.has(t.id))
-          if (added.length > 0) {
-            console.warn('🚫 Non-owner attempted to add tasks. Stripping new tasks from update.')
-            // Reduce incomingTasks to only existing ones, merging completion changes
-            const sanitized = incomingTasks.filter((t: any) => t && existingIds.has(t.id))
-            updates.tasks = sanitized as any
+          // If we failed to load authoritative tasks, DO NOT enforce stripping (prevents accidental wipe)
+          if (existingTasks.length === 0) {
+            console.warn('⚠️ Could not load existing tasks for permission check; skipping add-task enforcement to avoid data loss')
+          } else {
+            const incomingTasks = updates.tasks || []
+            const existingIds = new Set(existingTasks.map((t: any) => t.id))
+            const added = incomingTasks.filter((t: any) => t && t.id && !existingIds.has(t.id))
+            if (added.length > 0) {
+              console.warn('🚫 Non-owner attempted to add tasks. Stripping new tasks from update.')
+              // Reduce incomingTasks to only existing ones, merging completion changes
+              const sanitized = incomingTasks.filter((t: any) => t && existingIds.has(t.id))
+              updates.tasks = sanitized as any
+            }
           }
         } catch (permErr) {
           console.log('Task permission check issue (continuing with caution):', permErr)
@@ -1101,6 +1109,93 @@ export class FirestoreService {
       
       console.log('✅ Updated challenge locally after Firestore error')
       return { error: null }
+    }
+  }
+
+  // Dedicated transactional toggle for a single task completion to avoid full-array race overwrites
+  async toggleChallengeTaskTransactional(challengeId: string, taskId: string, userId: string) {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const challengeRef = doc(db, 'shared-challenges', challengeId)
+      const maxAttempts = 5
+      let attempt = 0
+      let lastErr: any = null
+      while (attempt < maxAttempts) {
+        try {
+          await runTransaction(db, async (tx) => {
+            const snap = await tx.get(challengeRef)
+            if (!snap.exists()) throw new Error('Challenge not found')
+            const data: any = snap.data()
+            const tasks: any[] = data.tasks || []
+            const idx = tasks.findIndex(t => t && t.id === taskId)
+            if (idx === -1) throw new Error('Task not found')
+            const task = tasks[idx]
+            const completions = { ...(task.completions || {}) }
+            const current = completions[userId]?.completed
+            if (current) completions[userId] = { completed: false }
+            else completions[userId] = { completed: true, completedAt: new Date() }
+            const completedBy = Object.entries(completions).filter(([_, meta]: any) => meta?.completed).map(([uid]) => uid)
+            tasks[idx] = { ...task, completions, completedBy }
+            // Recompute points
+            const pointsByUser: Record<string, number> = {}
+            let maxPoints = 0
+            tasks.forEach(t => {
+              if (!t) return
+              maxPoints += t.points || 0
+              Object.entries(t.completions || {}).forEach(([uid, meta]: any) => {
+                if (meta?.completed) pointsByUser[uid] = (pointsByUser[uid] || 0) + (t.points || 0)
+              })
+            })
+            const newSummary = { pointsByUser, maxPoints }
+            const finalPointsByUser = data.finalPointsByUser || (data.isActive === false ? { ...pointsByUser } : undefined)
+            const finalMaxPoints = data.finalMaxPoints || (data.isActive === false ? maxPoints : undefined)
+            tx.update(challengeRef, { tasks, pointsSummary: newSummary, finalPointsByUser, finalMaxPoints, updatedAt: serverTimestamp() })
+          })
+          return { error: null }
+        } catch (err: any) {
+          lastErr = err
+          attempt++
+          if (attempt >= maxAttempts) break
+          // Exponential backoff with jitter
+          const delay = Math.min(1000, 50 * Math.pow(2, attempt)) + Math.random() * 40
+          await new Promise(res => setTimeout(res, delay))
+        }
+      }
+      // Granular field-path fallback (best effort) if transaction kept failing (e.g. contention)
+      try {
+        const snap = await getDoc(challengeRef)
+        if (!snap.exists()) throw new Error('Challenge not found')
+        const data: any = snap.data()
+        const tasks: any[] = data.tasks || []
+        const idx = tasks.findIndex(t => t && t.id === taskId)
+        if (idx === -1) throw new Error('Task not found')
+        const task = tasks[idx]
+        const completions = { ...(task.completions || {}) }
+        const current = completions[userId]?.completed
+        if (current) completions[userId] = { completed: false }
+        else completions[userId] = { completed: true, completedAt: new Date() }
+        const completedBy = Object.entries(completions).filter(([_, meta]: any) => meta?.completed).map(([uid]) => uid)
+        tasks[idx] = { ...task, completions, completedBy }
+        // Recompute points (full) to keep consistency
+        const pointsByUser: Record<string, number> = {}
+        let maxPoints = 0
+        tasks.forEach(t => {
+          if (!t) return
+          maxPoints += t.points || 0
+          Object.entries(t.completions || {}).forEach(([uid, meta]: any) => {
+            if (meta?.completed) pointsByUser[uid] = (pointsByUser[uid] || 0) + (t.points || 0)
+          })
+        })
+        const newSummary = { pointsByUser, maxPoints }
+        const finalPointsByUser = data.finalPointsByUser || (data.isActive === false ? { ...pointsByUser } : undefined)
+        const finalMaxPoints = data.finalMaxPoints || (data.isActive === false ? maxPoints : undefined)
+        await updateDoc(challengeRef, { tasks, pointsSummary: newSummary, finalPointsByUser, finalMaxPoints, updatedAt: serverTimestamp() })
+        return { error: null, fallback: true }
+      } catch (fallbackErr: any) {
+        return { error: lastErr?.message || fallbackErr?.message || 'Toggle failed' }
+      }
+    } catch (e: any) {
+      return { error: e.message || 'Toggle failed' }
     }
   }
 }
