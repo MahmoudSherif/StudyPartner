@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useFirebaseFocusSessions, useFirebaseGoals } from '@/hooks/useFirebaseData'
+import { useFirebaseFocusSessions, useFirebaseGoals, useFirebaseActiveFocusSession } from '@/hooks/useFirebaseData'
 import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,8 +42,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   // Use shared firebase-backed hooks for consistency
   const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
   const [goals, setGoals] = useFirebaseGoals()
-  // const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
-  // const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
+  const [activeFocusSession, setActiveFocusSession] = useFirebaseActiveFocusSession()
   
   // Timer state
   const [isRunning, setIsRunning] = useState(false)
@@ -51,7 +50,6 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   const [sessionTitle, setSessionTitle] = useState('')
   const [sessionCategory, setSessionCategory] = useState('')
   const [sessionNotes, setSessionNotes] = useState('')
-  const [currentSession, setCurrentSession] = useState<FocusSession | null>(null)
   
   // UI state
   const [showAddGoal, setShowAddGoal] = useState(false)
@@ -64,20 +62,43 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     deadline: ''
   })
 
+  // Load active session on mount
+  useEffect(() => {
+    if (activeFocusSession && !activeFocusSession.completed) {
+      // Resume active session
+      const elapsed = Math.floor((Date.now() - new Date(activeFocusSession.startTime).getTime()) / 1000)
+      setCurrentTime(elapsed)
+      setSessionTitle(activeFocusSession.title)
+      setSessionCategory(activeFocusSession.category || '')
+      setSessionNotes(activeFocusSession.notes || '')
+      // Don't auto-start, let user decide to resume
+    }
+  }, []) // Only run on mount
+
   // Timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout
     
-    if (isRunning && currentSession) {
+    if (isRunning && activeFocusSession) {
       interval = setInterval(() => {
-        setCurrentTime(prev => prev + 1)
+        setCurrentTime(prev => {
+          const newTime = prev + 1
+          // Update the active session with new elapsed time
+          if (activeFocusSession) {
+            setActiveFocusSession({
+              ...activeFocusSession,
+              duration: Math.floor(newTime / 60) // Update duration in minutes
+            })
+          }
+          return newTime
+        })
       }, 1000)
     }
     
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, currentSession])
+  }, [isRunning, activeFocusSession])
 
   // Format time display
   const formatTime = (seconds: number) => {
@@ -129,7 +150,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       ...(sanitizedNotes && { notes: sanitizedNotes })
     }
 
-    setCurrentSession(newSession)
+    setActiveFocusSession(newSession)
     setCurrentTime(0)
     setIsRunning(true)
     mobileFeedback.buttonPress()
@@ -144,11 +165,11 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
 
   // Stop and save session
   const stopSession = () => {
-    if (!currentSession) return
+    if (!activeFocusSession) return
 
     const sessionMinutes = Math.floor(currentTime / 60)
     const completedSession: FocusSession = {
-      ...currentSession,
+      ...activeFocusSession,
       duration: sessionMinutes, // store in minutes
       endTime: new Date(),
       completed: true
@@ -165,8 +186,8 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       // Silent error handling for goals progress
     });
 
-    // Reset timer state
-    setCurrentSession(null)
+    // Clear active session
+    setActiveFocusSession(null)
     setCurrentTime(0)
     setIsRunning(false)
     setSessionTitle('')
@@ -542,7 +563,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!currentSession ? (
+          {!activeFocusSession ? (
             <div className="space-y-4">
               <Input
                 placeholder="What are you focusing on?"
@@ -573,14 +594,30 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
                 <Play size={16} className="mr-2" />
                 Start Focus Session
               </Button>
+              
+              {/* Show resume button if there's an incomplete session */}
+              {activeFocusSession && !activeFocusSession.completed && !isRunning && (
+                <div className="space-y-2">
+                  <div className="text-sm text-white/70 text-center">
+                    Or resume your previous session:
+                  </div>
+                  <Button 
+                    onClick={() => setIsRunning(true)}
+                    className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30"
+                  >
+                    <Play size={16} className="mr-2" />
+                    Resume: {activeFocusSession.title} ({formatTime(currentTime)})
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center space-y-6">
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-white">{currentSession.title}</h3>
-                {currentSession.category && (
+                <h3 className="text-2xl font-bold text-white">{activeFocusSession.title}</h3>
+                {activeFocusSession.category && (
                   <Badge variant="secondary" className="bg-white/20 text-white">
-                    {currentSession.category}
+                    {activeFocusSession.category}
                   </Badge>
                 )}
               </div>
