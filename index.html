@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>MotivaMate - Your Mobile Study Companion</title>
     
-    <!-- Content Security Policy -->
-    <!-- Primary CSP (relaxed to permit Firestore / Workers). For tightening later once worker-based libs audited. -->
+    <!-- Content Security Policy - Updated v3 to fix blob worker issues -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://apis.google.com https://www.gstatic.com; worker-src 'self' blob: data:; child-src 'self' blob: data:; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.gstatic.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'self';">
-    <!-- Optional Report-Only CSP to monitor tighter rules (no enforcement) -->
-    <meta http-equiv="Content-Security-Policy-Report-Only" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com https://www.gstatic.com; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; report-to csp-endpoint; report-uri /csp-report"> 
+    <!-- Force cache refresh with v3 timestamp -->
+    <meta name="csp-version" content="v3-2025-08-26"> 
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Your mobile study companion with timer, tasks, and progress tracking">
@@ -38,7 +37,7 @@
         if ('serviceWorker' in navigator) {
             // Register service worker in both development and production
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=2')
+                navigator.serviceWorker.register('/sw.js?v=3-csp-fix')
                     .then(registration => {
                         console.log('SW registered: ', registration);
                     })

@@ -865,8 +865,12 @@ function AppContent() {
       // Determine current completion via new completions map (fallback to legacy array)
       const existingCompletions = task.completions || {}
       const isCompleted = existingCompletions[currentUserId]?.completed || task.completedBy.includes(currentUserId)
-      // Try new transactional toggle to avoid race overwrites
-      const txResult = await firestoreService.toggleChallengeTaskTransactional(challengeId, taskId, currentUserId)
+      // First attempt subcollection document toggle (authoritative)
+      let txResult = await firestoreService.toggleSubcollectionTask(challengeId, taskId, currentUserId)
+      if (txResult.error) {
+        // Fallback to transactional array toggle to support legacy tasks
+        txResult = await firestoreService.toggleChallengeTaskTransactional(challengeId, taskId, currentUserId)
+      }
       if (txResult.error) {
         console.warn('Transactional toggle failed, falling back:', txResult.error)
         // Fallback to legacy client-side merge path
@@ -908,6 +912,13 @@ function AppContent() {
           }
         }
       }))
+
+      // Reconcile with fresh read (best-effort) to ensure consistency after concurrency
+      firestoreService.verifyChallengeExists(challengeId).then(v => {
+        if (v.exists && v.data) {
+          setChallenges(cur => cur.map(c => c.id === challengeId ? { ...c, tasks: v.data!.tasks, pointsSummary: v.data!.pointsSummary || c.pointsSummary } : c))
+        }
+      })
 
   // Lightweight telemetry (replace with real analytics if available)
   try { console.log('📊 toggleChallengeTask', { challengeId, taskId, userId: currentUserId, newState: !isCompleted }) } catch {}
