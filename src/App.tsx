@@ -497,9 +497,6 @@ function AppContent() {
     return <AuthScreen />
   }
   
-  // Get current user ID from Firebase Auth
-  const currentUserId = user?.uid || 'anonymous'
-
   // Use real-time stats management
   const { 
     userStats: stats, 
@@ -509,6 +506,9 @@ function AppContent() {
     monthlyProgress,
     isLoading: statsLoading 
   } = useRealTimeStats()
+  
+  // Get current user ID from Firebase Auth
+  const currentUserId = user?.uid || 'anonymous'
   
   // Provide default values to prevent type errors
   const defaultStats: UserStats = {

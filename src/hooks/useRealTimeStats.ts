@@ -23,8 +23,6 @@ export function useRealTimeStats() {
   const [goals] = useFirebaseGoals()
   const [achievements] = useFirebaseAchievements()
   
-  const currentUserId = user?.uid || 'anonymous'
-  
   // Subscribe to stats updates
   useEffect(() => {
     if (!user?.uid) {
@@ -42,6 +40,8 @@ export function useRealTimeStats() {
   // Update stats whenever any data changes
   useEffect(() => {
     if (!user?.uid) return
+    
+    const currentUserId = user.uid || 'anonymous'
     
     const newStats = statsManager.updateStats(
       sessions || [],
@@ -61,8 +61,7 @@ export function useRealTimeStats() {
     tasks,
     challenges,
     goals,
-    achievements,
-    currentUserId
+    achievements
   ])
   
   return {
