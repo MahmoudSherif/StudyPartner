@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDataSync } from '@/lib/sync'
 import { studyPartnerAPI } from '@/lib/api'
+import { useFirebaseStudyPartnerSettings } from '@/hooks/useFirebaseData'
 import { 
   LinkSimple, 
   LinkSimpleBreak, 
@@ -24,20 +25,24 @@ import { toast } from 'sonner'
 export const StudyPartnerIntegration = () => {
   const { user, isConnectedToStudyPartner, checkConnection } = useAuth()
   const { syncStatus, forceSync, clearQueue } = useDataSync()
+  const [settings, setSettings] = useFirebaseStudyPartnerSettings()
   const [isLoading, setIsLoading] = useState(false)
-  const [apiUrl, setApiUrl] = useState(
-    localStorage.getItem('studypartner-api-url') || 'https://api.studypartner.app/v1'
-  )
-  const [autoSync, setAutoSync] = useState(
-    localStorage.getItem('motivamate-auto-sync') === 'true'
-  )
+  const [apiUrl, setApiUrl] = useState(settings.apiUrl)
+  const [autoSync, setAutoSync] = useState(settings.autoSync)
+
+  // Sync local state with Firebase settings when they change
+  useEffect(() => {
+    setApiUrl(settings.apiUrl)
+    setAutoSync(settings.autoSync)
+  }, [settings])
 
   const handleTestConnection = async () => {
     setIsLoading(true)
     try {
       // Update API URL if changed
       studyPartnerAPI.updateConfig({ baseURL: apiUrl })
-      localStorage.setItem('studypartner-api-url', apiUrl)
+      // Save to Firebase instead of localStorage
+      setSettings(prev => ({ ...prev, apiUrl }))
       
       const connected = await checkConnection?.()
       if (connected) {
@@ -70,7 +75,8 @@ export const StudyPartnerIntegration = () => {
 
   const handleAutoSyncToggle = (enabled: boolean) => {
     setAutoSync(enabled)
-    localStorage.setItem('motivamate-auto-sync', enabled.toString())
+    // Save to Firebase instead of localStorage
+    setSettings(prev => ({ ...prev, autoSync: enabled }))
     toast.info(`Auto-sync ${enabled ? 'enabled' : 'disabled'}`)
   }
 

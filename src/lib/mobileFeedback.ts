@@ -219,23 +219,17 @@ export const mobileFeedback = {
   }
 }
 
-// Hook for managing feedback preferences
+// Hook for managing feedback preferences - now without localStorage
 export function useFeedbackPreferences() {
+  // Note: For now we'll use default values. In the future, this could be connected to Firebase
+  // user preferences if needed. Most users will want these enabled by default.
   const getPreference = (key: string, defaultValue: boolean = true): boolean => {
-    try {
-      const stored = localStorage.getItem(`feedback_${key}`)
-      return stored !== null ? JSON.parse(stored) : defaultValue
-    } catch {
-      return defaultValue
-    }
+    return defaultValue // Always use defaults, no local storage
   }
   
   const setPreference = (key: string, value: boolean) => {
-    try {
-      localStorage.setItem(`feedback_${key}`, JSON.stringify(value))
-    } catch {
-      // Ignore localStorage errors
-    }
+    // No-op for now - could be connected to Firebase user preferences in the future
+    console.log(`Feedback preference ${key} set to ${value} (not persisted)`)
   }
   
   return {

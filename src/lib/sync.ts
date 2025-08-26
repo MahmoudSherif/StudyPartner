@@ -37,29 +37,17 @@ class DataSyncService {
     this.setupOnlineListeners()
   }
 
-  // Load sync queue from storage
+  // Load sync queue from storage - now in memory only
   private loadSyncQueue() {
-    try {
-      const stored = localStorage.getItem('motivamate-sync-queue')
-      if (stored) {
-        this.syncQueue = JSON.parse(stored).map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp)
-        }))
-      }
-    } catch (error) {
-      console.warn('Failed to load sync queue:', error)
-      this.syncQueue = []
-    }
+    // No longer persist sync queue to localStorage
+    // Queue exists only in memory during session
+    this.syncQueue = []
   }
 
-  // Save sync queue to storage
+  // Save sync queue to storage - now no-op
   private saveSyncQueue() {
-    try {
-      localStorage.setItem('motivamate-sync-queue', JSON.stringify(this.syncQueue))
-    } catch (error) {
-      console.warn('Failed to save sync queue:', error)
-    }
+    // No longer persist sync queue to localStorage
+    // This reduces privacy concerns and storage usage
   }
 
   // Setup online/offline listeners
@@ -122,8 +110,8 @@ class DataSyncService {
       // 1. Process pending queue items
       await this.processSyncQueue()
 
-      // 2. Get last sync timestamp
-      const lastSyncAt = localStorage.getItem('motivamate-last-sync')
+      // 2. Get last sync timestamp - no longer stored locally
+      const lastSyncAt = null // Always do full sync since we don't store timestamps
 
       // 3. Download updates from server
       const downloadResponse = await studyPartnerAPI.syncDataFromServer(lastSyncAt || undefined)
@@ -136,7 +124,7 @@ class DataSyncService {
       const uploadResponse = await studyPartnerAPI.syncDataToServer(currentData)
 
       if (uploadResponse.success) {
-        localStorage.setItem('motivamate-last-sync', new Date().toISOString())
+        // No longer store last sync time in localStorage
         this.isSyncing = false
         this.notifyStatusChange()
         return true
@@ -238,11 +226,11 @@ class DataSyncService {
 
   // Get current sync status
   getCurrentStatus(): SyncStatus {
-    const lastSyncString = localStorage.getItem('motivamate-last-sync')
+    // No longer store last sync time locally
     return {
       isOnline: navigator.onLine && studyPartnerAPI.isAuthenticated(),
       isSyncing: this.isSyncing,
-      lastSyncAt: lastSyncString ? new Date(lastSyncString) : null,
+      lastSyncAt: null, // Not tracked locally anymore
       pendingChanges: this.syncQueue.length,
       error: null // Would be set from last sync attempt
     }

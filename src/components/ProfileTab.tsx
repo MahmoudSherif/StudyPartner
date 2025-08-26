@@ -20,19 +20,16 @@ interface ProfileTabProps {
   stats: UserStats
   achievements: Achievement[]
   sessions?: StudySession[]
+  focusSessions?: FocusSession[]
   tasks?: Task[]
   challenges?: Challenge[]
 }
 
-export function ProfileTab({ stats, achievements, sessions = [], tasks = [], challenges = [] }: ProfileTabProps) {
+export function ProfileTab({ stats, achievements, sessions = [], focusSessions = [], tasks = [], challenges = [] }: ProfileTabProps) {
   const { user, signOut } = useAuth()
   
-  // Get user-specific focus sessions
+  // Get user-specific data
   const currentUserId = user?.uid || 'anonymous'
-  const userDataKey = (key: string) => `${currentUserId}-${key}`
-  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
-  const [focusSessions] = useState<FocusSession[]>([])
-  // const [focusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
   
   // Development helper for testing charts with sample data
   const [showSampleData, setShowSampleData] = useState(false)

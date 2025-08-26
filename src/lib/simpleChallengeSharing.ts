@@ -1,4 +1,6 @@
-// Simple challenge sharing system that works without complex Firestore rules
+// DEPRECATED: Simple challenge sharing system that works without complex Firestore rules
+// This system is being phased out in favor of Firebase-based sharing
+// New challenge sharing should use the Firebase system in firestore.ts
 import { Challenge } from '@/lib/types'
 
 export interface SharedChallengeData {
@@ -367,6 +369,18 @@ export class SimpleChallengeSharing {
     } catch (error) {
       console.error('❌ Error searching challenges:', error)
       return []
+    }
+  }
+
+  // Clean up all localStorage data from this deprecated system
+  static clearAllLocalData(): void {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(this.STORAGE_KEY)
+        console.log('🗑️ Cleared all deprecated SimpleChallengeSharing localStorage data')
+      }
+    } catch (error) {
+      console.warn('Failed to clear deprecated localStorage data:', error)
     }
   }
 }

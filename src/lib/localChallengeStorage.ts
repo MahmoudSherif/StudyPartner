@@ -1,4 +1,6 @@
-// Local fallback storage for challenges when Firestore is not available
+// DEPRECATED: Local fallback storage for challenges when Firestore is not available
+// This system is being phased out in favor of Firebase-based storage
+// All new data should go directly to Firebase
 import { Challenge } from '@/lib/types'
 
 const CHALLENGES_STORAGE_KEY = 'motivamate_local_challenges'

@@ -40,24 +40,51 @@ export interface SyncData {
 class StudyPartnerAPI {
   private config: APIConfig
   private authToken: string | null = null
+  private tokenCallbacks: {
+    save?: (token: string) => void
+    load?: () => string | null
+    clear?: () => void
+  } = {}
 
   constructor(config: APIConfig) {
     this.config = config
     this.loadAuthToken()
   }
 
+  // Set token management callbacks (for Firebase integration)
+  setTokenCallbacks(callbacks: {
+    save?: (token: string) => void
+    load?: () => string | null
+    clear?: () => void
+  }) {
+    this.tokenCallbacks = callbacks
+    this.loadAuthToken() // Reload using new callbacks
+  }
+
   private loadAuthToken() {
-    this.authToken = localStorage.getItem('studypartner-auth-token')
+    if (this.tokenCallbacks.load) {
+      this.authToken = this.tokenCallbacks.load()
+    } else {
+      // Fallback to memory only (no persistence)
+      // localStorage.getItem('studypartner-auth-token') removed
+      this.authToken = null
+    }
   }
 
   private saveAuthToken(token: string) {
     this.authToken = token
-    localStorage.setItem('studypartner-auth-token', token)
+    if (this.tokenCallbacks.save) {
+      this.tokenCallbacks.save(token)
+    }
+    // localStorage.setItem('studypartner-auth-token', token) removed
   }
 
   private clearAuthToken() {
     this.authToken = null
-    localStorage.removeItem('studypartner-auth-token')
+    if (this.tokenCallbacks.clear) {
+      this.tokenCallbacks.clear()
+    }
+    // localStorage.removeItem('studypartner-auth-token') removed
   }
 
   private async makeRequest<T>(
