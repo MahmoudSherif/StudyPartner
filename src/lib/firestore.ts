@@ -222,10 +222,19 @@ export class FirestoreService {
       return 'Invalid data format - please refresh the page and try again'
     }
     
-    // Handle permission errors specifically for shared challenges
-    if (error.code === 'permission-denied' && error.message?.includes('Missing or insufficient permissions')) {
-      console.warn('Firestore permission denied - likely need to update security rules')
-      return 'Permission denied - Firestore security rules need to be updated for shared challenges'
+    // Handle permission errors - be more specific about the context
+    if (error.code === 'permission-denied') {
+      // Don't show permission errors for userData operations as they should work
+      if (error.message?.includes('userData')) {
+        console.warn('Firestore permission denied for userData - this should not happen with proper rules')
+        return 'Permission denied - please refresh the page and try again'
+      }
+      // For other operations, provide more helpful error messages
+      if (error.message?.includes('Missing or insufficient permissions')) {
+        console.warn('Firestore permission denied - likely need to update security rules')
+        return 'Permission denied - Firestore security rules need to be updated'
+      }
+      return 'Permission denied - please check your authentication status'
     }
     
     return error.message || 'Unknown error occurred'
@@ -835,35 +844,67 @@ export class FirestoreService {
       }
       
       console.log('🔍 Fetching discoverable active challenges...')
-      const challengesRef = collection(db, 'shared-challenges')
-      const q = query(challengesRef, where('isActive', '==', true), orderBy('createdAt', 'desc'))
       
-      const querySnapshot = await getDocs(q)
-      
-      console.log('📊 Total discoverable challenges found:', querySnapshot.size)
-      
-      // Fetch all task subcollections concurrently for performance
-      const docs = querySnapshot.docs
-      const taskPromises = docs.map(d => getDocs(collection(db, 'shared-challenges', d.id, 'tasks'))
-        .then(snap => snap.docs.map(t => {
-          const td: any = t.data(); if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate(); return td
-        }))
-        .catch(() => [] as any[]))
-      const taskResults = await Promise.all(taskPromises)
+      // Try the optimized query first (requires index)
+      try {
+        const challengesRef = collection(db, 'shared-challenges')
+        const q = query(challengesRef, where('isActive', '==', true), orderBy('createdAt', 'desc'))
+        
+        const querySnapshot = await getDocs(q)
+        
+        console.log('📊 Total discoverable challenges found:', querySnapshot.size)
+        
+        // Fetch all task subcollections concurrently for performance
+        const docs = querySnapshot.docs
+        const taskPromises = docs.map(d => getDocs(collection(db, 'shared-challenges', d.id, 'tasks'))
+          .then(snap => snap.docs.map(t => {
+            const td: any = t.data(); if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate(); return td
+          }))
+          .catch(() => [] as any[]))
+        const taskResults = await Promise.all(taskPromises)
 
-      const challenges: Challenge[] = docs.map((d, idx) => {
-        const data: any = d.data()
-        const tasks = taskResults[idx]
-        return {
-          ...data,
-          id: d.id,
-          tasks: tasks.length ? tasks : (data.tasks || []),
-          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
-          updatedAt: data.updatedAt?.toDate?.() || new Date()
-        } as Challenge
-      })
-      
-      return { data: challenges, error: null }
+        const challenges: Challenge[] = docs.map((d, idx) => {
+          const data: any = d.data()
+          const tasks = taskResults[idx]
+          return {
+            ...data,
+            id: d.id,
+            tasks: tasks.length ? tasks : (data.tasks || []),
+            createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+            updatedAt: data.updatedAt?.toDate?.() || new Date()
+          } as Challenge
+        })
+        
+        return { data: challenges, error: null }
+      } catch (indexError: any) {
+        // If the index doesn't exist, fall back to a simpler query
+        if (indexError.message?.includes('requires an index') || indexError.code === 'failed-precondition') {
+          console.warn('⚠️ Firestore index missing for discoverable challenges, using fallback query')
+          
+          // Fallback: get all challenges and filter client-side
+          const challengesRef = collection(db, 'shared-challenges')
+          const querySnapshot = await getDocs(challengesRef)
+          
+          const activeChallenges = querySnapshot.docs
+            .map(d => {
+              const data: any = d.data()
+              return {
+                ...data,
+                id: d.id,
+                createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+                updatedAt: data.updatedAt?.toDate?.() || new Date()
+              } as Challenge
+            })
+            .filter(challenge => challenge.isActive === true)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          
+          console.log('📊 Total discoverable challenges found (fallback):', activeChallenges.length)
+          return { data: activeChallenges, error: null }
+        }
+        
+        // Re-throw other errors
+        throw indexError
+      }
     } catch (error: any) {
       console.error('Error fetching discoverable challenges:', error)
       const errorMessage = this.handleFirestoreError(error)

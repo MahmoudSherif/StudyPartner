@@ -131,6 +131,14 @@ function useFirebaseData<T>(
     }
   }, [data, user?.uid])
 
+  // Prevent sync attempts when user is signing out
+  useEffect(() => {
+    if (!user?.uid) {
+      // User is signing out, stop any ongoing sync operations
+      isSyncingRef.current = false
+    }
+  }, [user?.uid])
+
   // Reset hasLoaded when user changes but preserve during tab switches
   useEffect(() => {
     if (!user?.uid) {
@@ -160,12 +168,17 @@ function useFirebaseData<T>(
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
-      // Sync on component unmount if needed
+      // Only sync on component unmount if user is still authenticated and data has changed
       if (user?.uid && hasLoadedRef.current && !isSyncingRef.current) {
         const hasChanged = JSON.stringify(data) !== JSON.stringify(lastSyncedDataRef.current)
         if (hasChanged) {
           console.log(`🔄 Syncing ${key} on component unmount`)
-          syncDataToFirestore()
+          // Use a timeout to avoid blocking the unmount process
+          setTimeout(() => {
+            if (user?.uid) { // Double-check user is still authenticated
+              syncDataToFirestore()
+            }
+          }, 0)
         }
       }
       // Clean up listener
@@ -178,6 +191,12 @@ function useFirebaseData<T>(
 
   const syncDataToFirestore = async () => {
     if (!user?.uid || isSyncingRef.current) return
+    
+    // Double-check authentication status before syncing
+    if (!user?.uid) {
+      console.log(`⚠️ Skipping sync for ${key} - user not authenticated`)
+      return
+    }
     
     isSyncingRef.current = true
     try {
