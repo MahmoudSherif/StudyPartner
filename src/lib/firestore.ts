@@ -66,7 +66,7 @@ export class FirestoreService {
         }
         if (Object.keys(updates).length) {
           updates.updatedAt = serverTimestamp()
-          await updateDoc(doc(db, 'shared-challenges', docSnap.id), updates).catch(()=>{})
+          await updateDoc(doc(db, 'shared-challenges', docSnap.id), this.sanitize(updates)).catch(()=>{})
           // Points recompute now handled by backend trigger (Cloud Function)
           updated++
         }
@@ -242,7 +242,7 @@ export class FirestoreService {
       }
       
       const docRef = this.getUserDocRef(userId)
-      await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() })
+      await updateDoc(docRef, this.sanitize({ ...data, updatedAt: serverTimestamp() }))
       return { error: null }
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
@@ -1042,7 +1042,7 @@ export class FirestoreService {
       const docSnap = await getDoc(challengeRef)
       if (docSnap.exists()) {
         // Document exists in main collection, proceed with update
-        await updateDoc(challengeRef, { ...updates, updatedAt: serverTimestamp() })
+        await updateDoc(challengeRef, this.sanitize({ ...updates, updatedAt: serverTimestamp() }))
         console.log('✅ Updated challenge in main Firestore collection')
         // Backend trigger will recompute pointsSummary
         return { error: null }
@@ -1058,7 +1058,7 @@ export class FirestoreService {
           
           if (userDocSnap.exists()) {
             console.log('✅ Found challenge in current user\'s collection')
-            await updateDoc(userChallengeRef, { ...updates, updatedAt: serverTimestamp() })
+            await updateDoc(userChallengeRef, this.sanitize({ ...updates, updatedAt: serverTimestamp() }))
             console.log('✅ Updated challenge in user\'s Firestore collection')
             // Backend trigger will recompute pointsSummary
             return { error: null }
@@ -1081,7 +1081,7 @@ export class FirestoreService {
               const ownerChallengeRef = doc(db, 'users', ownerData.ownerId, 'shared-challenges', challengeId)
               const ownerDocSnap = await getDoc(ownerChallengeRef)
               if (ownerDocSnap.exists()) {
-                await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
+                await updateDoc(ownerChallengeRef, this.sanitize({ ...updates, updatedAt: serverTimestamp() }))
                 console.log('✅ Updated challenge via owner mapping collection')
                 // Backend trigger will recompute pointsSummary
                 return { error: null }
@@ -1102,7 +1102,7 @@ export class FirestoreService {
             const ownerDocSnap = await getDoc(ownerChallengeRef)
             
             if (ownerDocSnap.exists()) {
-              await updateDoc(ownerChallengeRef, { ...updates, updatedAt: serverTimestamp() })
+              await updateDoc(ownerChallengeRef, this.sanitize({ ...updates, updatedAt: serverTimestamp() }))
               console.log('✅ Updated challenge in owner\'s Firestore collection')
               // Backend trigger will recompute pointsSummary
               return { error: null }
@@ -1161,7 +1161,7 @@ export class FirestoreService {
             const updatePayload: any = { tasks, pointsSummary: newSummary, updatedAt: serverTimestamp() }
             if (finalPointsByUser) updatePayload.finalPointsByUser = finalPointsByUser
             if (finalMaxPoints != null) updatePayload.finalMaxPoints = finalMaxPoints
-            tx.update(challengeRef, updatePayload)
+            tx.update(challengeRef, this.sanitize(updatePayload))
           })
           return { error: null }
         } catch (err: any) {
@@ -1204,7 +1204,7 @@ export class FirestoreService {
   const updatePayload: any = { tasks, pointsSummary: newSummary, updatedAt: serverTimestamp() }
   if (finalPointsByUser) updatePayload.finalPointsByUser = finalPointsByUser
   if (finalMaxPoints != null) updatePayload.finalMaxPoints = finalMaxPoints
-  await updateDoc(challengeRef, updatePayload)
+  await updateDoc(challengeRef, this.sanitize(updatePayload))
         return { error: null, fallback: true }
       } catch (fallbackErr: any) {
         return { error: lastErr?.message || fallbackErr?.message || 'Toggle failed' }
