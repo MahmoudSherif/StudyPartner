@@ -69,9 +69,12 @@ function useFirebaseData<T>(
         lastSyncedDataRef.current = newData
         hasLoadedRef.current = true
       } else {
-        console.log(`📭 No real-time data found for ${key}, using defaults`)
-        hasLoadedRef.current = true
-        lastSyncedDataRef.current = defaultValue
+        console.log(`📭 No real-time data found for ${key}, keeping current state`)
+        // Don't reset to defaults if we already have data
+        if (!hasLoadedRef.current) {
+          hasLoadedRef.current = true
+          lastSyncedDataRef.current = defaultValue
+        }
       }
     }, (error) => {
       console.warn(`Real-time listener error for ${key}:`, error)
@@ -104,15 +107,22 @@ function useFirebaseData<T>(
         lastSyncedDataRef.current = result.data
         hasLoadedRef.current = true
       } else {
-        console.log(`📭 No ${key} data found, using defaults`)
+        console.log(`📭 No ${key} data found, keeping current state or using defaults`)
+        // Only use defaults if we don't have any data yet
+        if (!hasLoadedRef.current) {
+          setData(defaultValue)
+          lastSyncedDataRef.current = defaultValue
+        }
         hasLoadedRef.current = true
-        lastSyncedDataRef.current = defaultValue
       }
     } catch (error) {
       const errorMessage = handleFirebaseError(error, 'data loading')
       console.warn(`Firestore ${key} loading failed:`, errorMessage)
       hasLoadedRef.current = true // Still mark as loaded to prevent infinite retries
-      lastSyncedDataRef.current = defaultValue
+      // Keep existing data if we have it
+      if (!lastSyncedDataRef.current) {
+        lastSyncedDataRef.current = defaultValue
+      }
     } finally {
       isLoadingRef.current = false
     }
@@ -125,7 +135,7 @@ function useFirebaseData<T>(
       const hasChanged = JSON.stringify(data) !== JSON.stringify(lastSyncedDataRef.current)
       if (hasChanged) {
         console.log(`🔄 Data changed for ${key}, syncing to Firestore`)
-        // Immediate sync for goals and other critical data
+        // Immediate sync for all data types to ensure persistence
         syncDataToFirestore()
       }
     }

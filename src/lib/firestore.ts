@@ -462,11 +462,28 @@ export class FirestoreService {
   }
 
   async saveGoals(userId: string, goals: Goal[]) {
-    return this.saveUserData(userId, 'goals', goals)
+    // Ensure goals are properly formatted before saving
+    const sanitizedGoals = goals.map(goal => ({
+      id: goal.id,
+      title: goal.title,
+      description: goal.description || null,
+      target: goal.target,
+      current: goal.current || 0,
+      deadline: goal.deadline || null,
+      category: goal.category,
+      isCompleted: goal.isCompleted || false,
+      createdAt: goal.createdAt || new Date()
+    }))
+    console.log(`💾 Saving ${sanitizedGoals.length} goals for user ${userId}`)
+    return this.saveUserData(userId, 'goals', sanitizedGoals)
   }
 
   async getGoals(userId: string) {
-    return this.getUserData<Goal[]>(userId, 'goals')
+    const result = await this.getUserData<Goal[]>(userId, 'goals')
+    if (result.data) {
+      console.log(`📚 Retrieved ${result.data.length} goals for user ${userId}`)
+    }
+    return result
   }
 
   // ALTERNATIVE APPROACH: Save challenges in user's personal collection with sharing enabled

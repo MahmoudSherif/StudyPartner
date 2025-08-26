@@ -379,7 +379,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       createdAt: new Date()
     }
 
-    setGoals(current => [...current, goal])
+    // Add goal and ensure immediate sync
+    const updatedGoals = [...goals, goal]
+    setGoals(updatedGoals)
     
     // Trigger achievement check for goal creation
     let unlockedAchievement: Achievement | null = null
