@@ -729,12 +729,14 @@ function AppContent() {
   const reloadWithRetry = async (attempt = 1) => {
     const r = await firestoreService.getUserChallenges(currentUserId)
     console.log('🔄 Fresh reload result (attempt', attempt + '):', r.data?.length || 0, 'challenges')
+    console.log('🔄 App component challenges state before update:', challenges.length)
     if (r.data) {
       const foundNewChallenge = r.data.find(c => c.code === newChallenge.code)
       if (foundNewChallenge) {
         setChallenges(r.data)
         console.log('✅ Challenge found in reload, updated state')
         console.log('🔄 Updated challenges state:', r.data.map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive })))
+        console.log('🔄 App challenges state after setChallenges called')
       } else if (attempt <= 3) {
         console.log('⏳ Challenge not found in reload, retrying in 1s...')
         setTimeout(() => reloadWithRetry(attempt + 1), 1000)

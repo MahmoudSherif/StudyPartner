@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -69,6 +69,14 @@ export function TasksManagement({
   const [pendingTaskToggles, setPendingTaskToggles] = useState<Record<string, boolean>>({})
   const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null)
   const [joinCode, setJoinCode] = useState('')
+  
+  // Debug: Log when challenges prop changes
+  useEffect(() => {
+    console.log('🔍 TasksManagement challenges prop updated:', challenges.length, 'challenges')
+    if (challenges.length > 0) {
+      console.log('🔍 Recent challenges:', challenges.slice(-3).map(c => ({ code: c.code, title: c.title, isActive: c.isActive })))
+    }
+  }, [challenges])
   
   const [newTask, setNewTask] = useState({
     title: '',
@@ -722,9 +730,27 @@ export function TasksManagement({
               >Completed</Button>
             </div>
             {(() => {
+              console.log('🔍 TasksManagement challenges debug:', challenges.length, 'total challenges')
+              console.log('🔍 First few challenges:', challenges.slice(0, 3).map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive, endDate: c.endDate })))
               const now = Date.now()
-              const activeList = challenges.filter(c => c.isActive !== false && (!c.endDate || new Date(c.endDate).getTime() > now))
-              const completedList = challenges.filter(c => c.isActive === false || (c.endDate && new Date(c.endDate).getTime() <= now))
+              const activeList = challenges.filter(c => {
+                const isActive = c.isActive !== false
+                const hasValidEndDate = c.endDate && !isNaN(new Date(c.endDate).getTime())
+                const isNotExpired = !hasValidEndDate || (c.endDate && new Date(c.endDate).getTime() > now)
+                const result = isActive && isNotExpired
+                if (!result) {
+                  console.log('🔍 Challenge filtered out:', { code: c.code, isActive: c.isActive, endDate: c.endDate, hasValidEndDate, isNotExpired })
+                }
+                return result
+              })
+              const completedList = challenges.filter(c => {
+                const isInactive = c.isActive === false
+                const hasValidEndDate = c.endDate && !isNaN(new Date(c.endDate).getTime())
+                const isExpired = hasValidEndDate && c.endDate && new Date(c.endDate).getTime() <= now
+                return isInactive || isExpired
+              })
+              console.log('🔍 Active challenges filtered:', activeList.length, activeList.map(c => ({ code: c.code, isActive: c.isActive, endDate: c.endDate })))
+              console.log('🔍 Showing completed challenges?', showCompletedChallenges)
               const list = showCompletedChallenges ? completedList : activeList
               if (list.length === 0) {
                 return (
