@@ -348,10 +348,10 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     const goal: Goal = {
       id: Date.now().toString(),
       title: sanitizedTitle,
-      description: sanitizedDescription || undefined,
+      ...(sanitizedDescription && { description: sanitizedDescription }),
       target: newGoal.target,
       current: 0,
-      deadline: deadlineValid,
+      ...(deadlineValid && { deadline: deadlineValid }),
       category: newGoal.category,
       isCompleted: false,
       createdAt: new Date()

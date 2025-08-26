@@ -279,12 +279,13 @@ export class FirestoreService {
       }
       
       const docRef = this.getUserDataRef(userId, dataType)
-      await setDoc(docRef, {
+      const docData = this.sanitize({
         data,
         userId,
         dataType,
         updatedAt: serverTimestamp()
       })
+      await setDoc(docRef, docData)
       return { error: null }
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
@@ -738,6 +739,50 @@ export class FirestoreService {
       return { data: challenges, error: null }
     } catch (error: any) {
       console.error('Error fetching all challenges:', error)
+      const errorMessage = this.handleFirestoreError(error)
+      return { data: [], error: errorMessage }
+    }
+  }
+
+  // Get all discoverable active challenges (for browsing before joining)
+  async getDiscoverableChallenges() {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: [], error: 'Firestore database not available - offline mode' }
+      }
+      
+      console.log('🔍 Fetching discoverable active challenges...')
+      const challengesRef = collection(db, 'shared-challenges')
+      const q = query(challengesRef, where('isActive', '==', true), orderBy('createdAt', 'desc'))
+      
+      const querySnapshot = await getDocs(q)
+      
+      console.log('📊 Total discoverable challenges found:', querySnapshot.size)
+      
+      // Fetch all task subcollections concurrently for performance
+      const docs = querySnapshot.docs
+      const taskPromises = docs.map(d => getDocs(collection(db, 'shared-challenges', d.id, 'tasks'))
+        .then(snap => snap.docs.map(t => {
+          const td: any = t.data(); if (td.createdAt?.toDate) td.createdAt = td.createdAt.toDate(); return td
+        }))
+        .catch(() => [] as any[]))
+      const taskResults = await Promise.all(taskPromises)
+
+      const challenges: Challenge[] = docs.map((d, idx) => {
+        const data: any = d.data()
+        const tasks = taskResults[idx]
+        return {
+          ...data,
+          id: d.id,
+          tasks: tasks.length ? tasks : (data.tasks || []),
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date()
+        } as Challenge
+      })
+      
+      return { data: challenges, error: null }
+    } catch (error: any) {
+      console.error('Error fetching discoverable challenges:', error)
       const errorMessage = this.handleFirestoreError(error)
       return { data: [], error: errorMessage }
     }

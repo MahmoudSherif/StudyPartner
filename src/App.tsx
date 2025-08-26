@@ -174,27 +174,59 @@ function AppContent() {
       }
 
       try {
-        const result = await firestoreService.getUserChallenges(user.uid)
-        if (result.data) {
-          setChallenges(result.data)
-          // Auto-subscribe to first active challenge if none selected
-          if (!activeChallengeCode) {
-            const firstActive = result.data.find(c => c.isActive)
-            if (firstActive) setActiveChallengeCode(firstActive.code)
-          }
-        } else if (result.error) {
-          console.warn('Failed to load user challenges:', result.error)
+        // Load both user challenges (ones you've joined) AND discoverable challenges (all active)
+        const [userResult, discoverableResult] = await Promise.all([
+          firestoreService.getUserChallenges(user.uid),
+          firestoreService.getDiscoverableChallenges()
+        ])
+
+        // Merge and deduplicate challenges
+        const allChallenges = new Map<string, Challenge>()
+        
+        // Add user challenges first (these are authoritative for ones you've joined)
+        if (userResult.data) {
+          userResult.data.forEach((challenge: Challenge) => {
+            allChallenges.set(challenge.id, challenge)
+          })
         }
+
+        // Add discoverable challenges (but don't overwrite ones you've already joined)
+        if (discoverableResult.data) {
+          discoverableResult.data.forEach((challenge: Challenge) => {
+            if (!allChallenges.has(challenge.id)) {
+              allChallenges.set(challenge.id, challenge)
+            }
+          })
+        }
+
+        const mergedChallenges = Array.from(allChallenges.values())
+        setChallenges(mergedChallenges)
+        
+        console.log(`📊 Loaded challenges: ${userResult.data?.length || 0} joined + ${discoverableResult.data?.length || 0} discoverable = ${mergedChallenges.length} total`)
+
+        // Auto-subscribe to first active challenge if none selected
+        if (!activeChallengeCode) {
+          const firstActive = mergedChallenges.find(c => c.isActive)
+          if (firstActive) setActiveChallengeCode(firstActive.code)
+        }
+
+        if (userResult.error) {
+          console.warn('Failed to load user challenges:', userResult.error)
+        }
+        if (discoverableResult.error) {
+          console.warn('Failed to load discoverable challenges:', discoverableResult.error)
+        }
+
         // Attempt to push any locally saved (unsynced) challenges created while offline
         firestoreService.syncLocalChallengesForUser(user.uid).then(syncRes => {
           if (syncRes.pushed > 0) {
             toast.success(`Synced ${syncRes.pushed} offline challenge(s)`) 
             // Reload after sync to show fresh data
-            firestoreService.getUserChallenges(user.uid).then(r => { if (r.data) setChallenges(r.data) })
+            loadUserChallenges() // Recursively reload to get fresh data
           }
         })
       } catch (error) {
-        console.error('Error loading user challenges:', error)
+        console.error('Error loading challenges:', error)
       }
     }
 
@@ -238,7 +270,11 @@ function AppContent() {
     console.error = function (...args) {
       try {
         const msg = args.join(' ') || ''
-        if (/Firestore.*(terminate|ERR_BLOCKED_BY_CLIENT)/i.test(msg)) {
+        // Completely suppress common Firestore blocking errors (expected with ad blockers)
+        if (/ERR_BLOCKED_BY_CLIENT|net::ERR_BLOCKED_BY_CLIENT/i.test(msg)) {
+          return // Silently ignore blocked by client errors
+        }
+        if (/Firestore.*(terminate|connection.*closed)/i.test(msg)) {
           const key = msg.replace(/gsessionid=[^&]+/,'gsessionid=*')
           const now = Date.now()
             if (seenErrors[key] && now - seenErrors[key] < 10000) {
@@ -727,23 +763,45 @@ function AppContent() {
   // Force a one-time fresh fetch (ensures tasks subcollection baseline captured)
   console.log('🔄 Forcing fresh challenge reload after creation...')
   const reloadWithRetry = async (attempt = 1) => {
-    const r = await firestoreService.getUserChallenges(currentUserId)
-    console.log('🔄 Fresh reload result (attempt', attempt + '):', r.data?.length || 0, 'challenges')
+    // Use the same loading pattern as the main effect
+    const [userResult, discoverableResult] = await Promise.all([
+      firestoreService.getUserChallenges(currentUserId),
+      firestoreService.getDiscoverableChallenges()
+    ])
+
+    // Merge and deduplicate challenges
+    const allChallenges = new Map<string, Challenge>()
+    
+    if (userResult.data) {
+      userResult.data.forEach(challenge => {
+        allChallenges.set(challenge.id, challenge)
+      })
+    }
+
+    if (discoverableResult.data) {
+      discoverableResult.data.forEach(challenge => {
+        if (!allChallenges.has(challenge.id)) {
+          allChallenges.set(challenge.id, challenge)
+        }
+      })
+    }
+
+    const mergedChallenges = Array.from(allChallenges.values())
+    
+    console.log('🔄 Fresh reload result (attempt', attempt + '):', mergedChallenges.length, 'total challenges')
     console.log('🔄 App component challenges state before update:', challenges.length)
-    if (r.data) {
-      const foundNewChallenge = r.data.find(c => c.code === newChallenge.code)
-      if (foundNewChallenge) {
-        setChallenges(r.data)
-        console.log('✅ Challenge found in reload, updated state')
-        console.log('🔄 Updated challenges state:', r.data.map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive })))
-        console.log('🔄 App challenges state after setChallenges called')
-      } else if (attempt <= 3) {
-        console.log('⏳ Challenge not found in reload, retrying in 1s...')
-        setTimeout(() => reloadWithRetry(attempt + 1), 1000)
-      } else {
-        console.warn('⚠️ Challenge still not found after retries, using optimistic state')
-        setChallenges(r.data)
-      }
+    
+    const foundNewChallenge = mergedChallenges.find(c => c.code === newChallenge.code)
+    if (foundNewChallenge) {
+      setChallenges(mergedChallenges)
+      console.log('✅ Challenge found in reload, updated state')
+      console.log('🔄 Updated challenges state:', mergedChallenges.map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive })))
+    } else if (attempt <= 3) {
+      console.log('⏳ Challenge not found in reload, retrying in 1s...')
+      setTimeout(() => reloadWithRetry(attempt + 1), 1000)
+    } else {
+      console.warn('⚠️ Challenge still not found after retries, using optimistic state')
+      setChallenges(mergedChallenges)
     }
   }
   reloadWithRetry()

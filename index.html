@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>MotivaMate - Your Mobile Study Companion</title>
     
-    <!-- Content Security Policy - Updated v3 to fix blob worker issues -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://apis.google.com https://www.gstatic.com; worker-src 'self' blob: data:; child-src 'self' blob: data:; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.gstatic.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'self';">
-    <!-- Force cache refresh with v3 timestamp -->
-    <meta name="csp-version" content="v3-2025-08-26"> 
+    <!-- Content Security Policy - Updated v4 to remove frame-ancestors (HTTP header only) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://apis.google.com https://www.gstatic.com; worker-src 'self' blob: data:; child-src 'self' blob: data:; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.gstatic.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
+    <!-- Force cache refresh with v4 timestamp -->
+    <meta name="csp-version" content="v4-2025-08-26"> 
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Your mobile study companion with timer, tasks, and progress tracking">
