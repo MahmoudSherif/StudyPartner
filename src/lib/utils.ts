@@ -18,8 +18,8 @@ export function calculateUserStats(
   const completedSessions = sessions.filter(s => s.completed)
   const completedFocusSessions = focusSessions.filter(f => f.completed)
   
-  const sessionTime = completedSessions.reduce((total, session) => total + session.duration, 0)
-  const focusTime = completedFocusSessions.reduce((total, session) => total + session.duration, 0)
+  const sessionTime = completedSessions.reduce((total, session) => total + session.duration, 0) // seconds
+  const focusTime = completedFocusSessions.reduce((total, session) => total + session.duration * 60, 0) // convert minutes to seconds
   const totalTime = sessionTime + focusTime
   
   // Combine sessions for streak calculation
@@ -53,7 +53,7 @@ export function calculateUserStats(
     })
   }
   return {
-    totalStudyTime: totalTime,
+    totalStudyTime: Math.round(totalTime / 60), // Convert seconds to minutes
     streak,
     longestStreak: streak, // Simplified for now
     sessionsCompleted: totalSessions,
@@ -157,7 +157,7 @@ export function updateAchievements(
         break
     }
     
-    const unlocked = progress >= achievement.requirement
+    const unlocked = achievement.unlocked || progress >= achievement.requirement
     
     return {
       ...achievement,
