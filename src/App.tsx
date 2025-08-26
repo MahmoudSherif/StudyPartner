@@ -187,39 +187,19 @@ function AppContent() {
       }
 
       try {
-        // Load both user challenges (ones you've joined) AND discoverable challenges (all active)
-        const [userResult, discoverableResult] = await Promise.all([
-          firestoreService.getUserChallenges(user.uid),
-          firestoreService.getDiscoverableChallenges()
-        ])
+        // Load only user's joined challenges
+        const userResult = await firestoreService.getUserChallenges(user.uid)
 
-        // Merge and deduplicate challenges
-        const allChallenges = new Map<string, Challenge>()
-        
-        // Add user challenges first (these are authoritative for ones you've joined)
         if (userResult.data) {
-          userResult.data.forEach((challenge: Challenge) => {
-            allChallenges.set(challenge.id, challenge)
-          })
+          setChallenges(userResult.data)
+          console.log(`📊 Loaded ${userResult.data.length} user challenges`)
+        } else {
+          setChallenges([])
         }
-
-        // Add discoverable challenges (but don't overwrite ones you've already joined)
-        if (discoverableResult.data) {
-          discoverableResult.data.forEach((challenge: Challenge) => {
-            if (!allChallenges.has(challenge.id)) {
-              allChallenges.set(challenge.id, challenge)
-            }
-          })
-        }
-
-        const mergedChallenges = Array.from(allChallenges.values())
-        setChallenges(mergedChallenges)
-        
-        console.log(`📊 Loaded challenges: ${userResult.data?.length || 0} joined + ${discoverableResult.data?.length || 0} discoverable = ${mergedChallenges.length} total`)
 
         // Auto-subscribe to first active challenge if none selected
-        if (!activeChallengeCode) {
-          const firstActive = mergedChallenges.find(c => c.isActive)
+        if (!activeChallengeCode && userResult.data) {
+          const firstActive = userResult.data.find(c => c.isActive)
           if (firstActive) setActiveChallengeCode(firstActive.code)
         }
 
@@ -858,16 +838,8 @@ function AppContent() {
         }
         setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
       } else {
-        // Optimistic append locally (listener will reconcile)
-        setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: [...c.tasks, {
-          id: (subResult.id as string),
-          title: taskData.title,
-          description: taskData.description,
-          points: taskData.points,
-          createdAt: new Date(),
-          completedBy: [],
-          completions: {}
-        } as import('@/lib/types').ChallengeTask] } : c))
+        // Don't update locally - the real-time listener will handle it
+        console.log('Task added to subcollection, waiting for real-time update')
       }
       toast.success('Task added to challenge!')
     } catch (error) {
