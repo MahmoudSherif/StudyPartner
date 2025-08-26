@@ -7,7 +7,10 @@
     <title>MotivaMate - Your Mobile Study Companion</title>
     
     <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com https://www.gstatic.com; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
+    <!-- Primary CSP (relaxed to permit Firestore / Workers). For tightening later once worker-based libs audited. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://apis.google.com https://www.gstatic.com; worker-src 'self' blob: data:; child-src 'self' blob: data:; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.gstatic.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'self';">
+    <!-- Optional Report-Only CSP to monitor tighter rules (no enforcement) -->
+    <meta http-equiv="Content-Security-Policy-Report-Only" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com https://www.gstatic.com; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; report-to csp-endpoint; report-uri /csp-report"> 
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Your mobile study companion with timer, tasks, and progress tracking">
@@ -35,7 +38,7 @@
         if ('serviceWorker' in navigator) {
             // Register service worker in both development and production
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/sw.js?v=2')
                     .then(registration => {
                         console.log('SW registered: ', registration);
                     })
