@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useFirebaseFocusSessions, useFirebaseGoals, useFirebaseActiveFocusSession } from '@/hooks/useFirebaseData'
+import { useFirebaseActiveFocusSession } from '@/hooks/useFirebaseData'
 import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,18 +30,20 @@ import { notificationManager } from '@/lib/notifications'
 interface AchieveTabProps {
   achievements: Achievement[]
   onUpdateAchievements: (achievements: Achievement[]) => void
+  goals: Goal[]
+  setGoals: (goals: Goal[] | ((prev: Goal[]) => Goal[])) => void
+  focusSessions: FocusSession[]
+  setFocusSessions: (sessions: FocusSession[] | ((prev: FocusSession[]) => FocusSession[])) => void
 }
 
-export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabProps) {
+export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals, focusSessions, setFocusSessions }: AchieveTabProps) {
   const { user } = useAuth()
   
   // Get user-specific data
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  // Use shared firebase-backed hooks for consistency
-  const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
-  const [goals, setGoals] = useFirebaseGoals()
+  // Use shared firebase-backed hook for active session only
   const [activeFocusSession, setActiveFocusSession] = useFirebaseActiveFocusSession()
   
   // Timer state

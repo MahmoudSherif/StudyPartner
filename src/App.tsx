@@ -206,9 +206,6 @@ function AppContent() {
         if (userResult.error) {
           console.warn('Failed to load user challenges:', userResult.error)
         }
-        if (discoverableResult.error) {
-          console.warn('Failed to load discoverable challenges:', discoverableResult.error)
-        }
 
         // Attempt to push any locally saved (unsynced) challenges created while offline
         firestoreService.syncLocalChallengesForUser(user.uid).then(syncRes => {
@@ -1143,6 +1140,10 @@ function AppContent() {
               <AchieveTab 
                 achievements={realTimeAchievements}
                 onUpdateAchievements={handleUpdateAchievements}
+                goals={goals}
+                setGoals={setGoals}
+                focusSessions={focusSessions}
+                setFocusSessions={setFocusSessions}
               />
             </div>
           </TabsContent>
