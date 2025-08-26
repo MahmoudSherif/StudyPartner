@@ -257,7 +257,8 @@ export function NotesTab() {
           onClick={() => setShowAddNote(true)}
           className="bg-accent hover:bg-accent/80 text-accent-foreground"
         >
-          <Plus size={16} />
+          <Plus size={16} className="mr-2" />
+          Create Note
         </Button>
       </div>
 

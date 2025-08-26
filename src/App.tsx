@@ -1138,7 +1138,7 @@ function AppContent() {
           <div className="flex items-center justify-between">
             <div className="flex-1"></div>
             <div className="flex-1">
-              <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
+              <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg" data-testid="main-title">MotivaMate</h1>
               <p className="text-white/80 text-sm lg:text-base drop-shadow">Your mobile study companion</p>
               {user && (
                 <div className="mt-2 text-xs lg:text-sm text-white/60">
@@ -1181,7 +1181,7 @@ function AppContent() {
                 <Target size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Achieve</span>
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
+              <TabsTrigger value="tasks" data-testid="tasks-tab" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
                 <CheckSquare size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Tasks</span>
               </TabsTrigger>
@@ -1189,11 +1189,11 @@ function AppContent() {
                 <CalendarIcon size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="notes" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
+              <TabsTrigger value="notes" data-testid="notes-tab" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
                 <Note size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Notes</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
+              <TabsTrigger value="profile" data-testid="profile-tab" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
                 <User size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Profile</span>
               </TabsTrigger>

@@ -345,6 +345,12 @@ export function TasksManagement({
 
   return (
     <div className="space-y-4">
+      {/* Main Header */}
+      <div className="mb-6">
+        <h2 className="text-xl lg:text-2xl font-bold text-white mb-2" data-testid="task-management-header">Task Management</h2>
+        <p className="text-white/70 text-sm">Organize your tasks and collaborate on challenges</p>
+      </div>
+
       {/* Progress Overview */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
