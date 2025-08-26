@@ -246,13 +246,13 @@ export function useFirebaseSessions(): [StudySession[], (value: StudySession[] |
 }
 
 export function useFirebaseAchievements(): [Achievement[], (value: Achievement[] | ((prev: Achievement[]) => Achievement[])) => void] {
-  const hook = useFirebaseData<Achievement[]>(
+  const [achievements, setAchievements] = useFirebaseData<Achievement[]>(
     'achievements',
     [] as Achievement[],
     (userId, data) => firestoreService.saveAchievements(userId, data),
     (userId) => firestoreService.getAchievements(userId)
   )
-  const [achievements, setAchievements] = hook
+  
   // After load, ensure all INITIAL_ACHIEVEMENTS IDs exist
   useEffect(() => {
     if (!achievements) return
@@ -266,7 +266,8 @@ export function useFirebaseAchievements(): [Achievement[], (value: Achievement[]
         return merged
       })
     }
-  }, [achievements])
+  }, [achievements, setAchievements])
+  
   return [achievements, setAchievements]
 }
 

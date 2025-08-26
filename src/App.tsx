@@ -1157,10 +1157,12 @@ function AppContent() {
                 <Lightbulb size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Inspire</span>
               </TabsTrigger>
+              {/* Temporarily disabled debug tab to fix React hooks error
               <TabsTrigger value="debug" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
                 <ChartBar size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Debug</span>
               </TabsTrigger>
+              */}
             </TabsList>
           </div>
 
@@ -1225,11 +1227,13 @@ function AppContent() {
             </div>
           </TabsContent>
 
+          {/* Temporarily disabled debug tab to fix React hooks error
           <TabsContent value="debug" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <StatsDebugger />
             </div>
           </TabsContent>
+          */}
         </Tabs>
       </div>
 
