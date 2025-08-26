@@ -128,7 +128,17 @@ function useFirebaseData<T>(
       console.log(`💾 Syncing ${key} to Firestore:`, data)
       const result = await syncToFirestore(user.uid, data)
       if (result.error) {
-        console.error(`❌ Failed to sync ${key}:`, result.error)
+        // Check if it's a network/blocking issue
+        if (result.error.includes('blocked') || result.error.includes('network') || result.error.includes('ERR_BLOCKED_BY_CLIENT')) {
+          console.warn(`🚫 Network issue syncing ${key}:`, result.error)
+          // Don't show error toast for network issues, data is still saved locally
+        } else if (result.error.includes('invalid data') || result.error.includes('Unsupported field value')) {
+          console.error(`❌ Data validation error for ${key}:`, result.error)
+          // This is a serious error that needs attention
+          console.error('Problematic data:', data)
+        } else {
+          console.error(`❌ Failed to sync ${key}:`, result.error)
+        }
       } else {
         console.log(`✅ Successfully synced ${key}`)
         lastSyncedDataRef.current = data // Update synced reference

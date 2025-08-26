@@ -124,8 +124,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       duration: 0,
       startTime: new Date(),
       completed: false,
-      category: sanitizedCategory || undefined,
-      notes: sanitizedNotes || undefined
+      // Only include optional fields if they have actual values
+      ...(sanitizedCategory && { category: sanitizedCategory }),
+      ...(sanitizedNotes && { notes: sanitizedNotes })
     }
 
     setCurrentSession(newSession)

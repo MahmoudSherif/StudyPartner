@@ -20,18 +20,36 @@ import {
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
 
 export class FirestoreService {
-  // Remove any undefined values (Firestore disallows) – shallow sanitize only for objects we write
+  // Remove any undefined values (Firestore disallows) – deep sanitize for nested objects
   private sanitize<T extends Record<string, any>>(obj: T): T {
     if (!obj || typeof obj !== 'object') return obj
+    
     const clean: any = Array.isArray(obj) ? [] : {}
+    
     Object.entries(obj).forEach(([k, v]) => {
-      if (v === undefined) return // skip
-      if (v && typeof v === 'object' && !Array.isArray(v) && !(v instanceof Date)) {
-        clean[k] = this.sanitize(v)
+      if (v === undefined || v === null) return // skip undefined and null
+      
+      if (Array.isArray(v)) {
+        // Handle arrays - recursively sanitize each item
+        clean[k] = v.map(item => {
+          if (item && typeof item === 'object' && !(item instanceof Date)) {
+            return this.sanitize(item)
+          }
+          return item === undefined ? null : item
+        }).filter(item => item !== undefined) // Remove undefined items from arrays
+      } else if (v && typeof v === 'object' && !(v instanceof Date)) {
+        // Handle objects - recursively sanitize
+        const sanitized = this.sanitize(v)
+        // Only add if the sanitized object has properties
+        if (Object.keys(sanitized).length > 0) {
+          clean[k] = sanitized
+        }
       } else {
+        // Handle primitives
         clean[k] = v
       }
     })
+    
     return clean
   }
   // One-time migration: backfill tasks with structured completions map & multi-winner support
@@ -190,6 +208,20 @@ export class FirestoreService {
       return 'Network requests blocked (possibly by ad blocker) - data saved locally'
     }
     
+    // Handle specific network errors
+    if (error.message?.includes('ERR_BLOCKED_BY_CLIENT')) {
+      return 'Connection blocked by browser (ad blocker or extension) - please disable ad blockers for this site'
+    }
+    
+    if (error.message?.includes('network') || error.code === 'unavailable') {
+      return 'Network connection issue - please check your internet connection'
+    }
+    
+    // Handle data validation errors
+    if (error.message?.includes('invalid data') || error.message?.includes('Unsupported field value')) {
+      return 'Invalid data format - please refresh the page and try again'
+    }
+    
     // Handle permission errors specifically for shared challenges
     if (error.code === 'permission-denied' && error.message?.includes('Missing or insufficient permissions')) {
       console.warn('Firestore permission denied - likely need to update security rules')
@@ -271,6 +303,40 @@ export class FirestoreService {
     }
   }
 
+  // Helper method for retrying operations that might fail due to network issues
+  private async retryOperation<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 2,
+    delay: number = 1000
+  ): Promise<T> {
+    let lastError: any
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation()
+      } catch (error: any) {
+        lastError = error
+        
+        // Don't retry for certain error types
+        if (error.code === 'permission-denied' || 
+            error.code === 'invalid-argument' ||
+            error.message?.includes('invalid data')) {
+          throw error
+        }
+        
+        // If this is the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw error
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)))
+      }
+    }
+    
+    throw lastError
+  }
+
   // Generic data management
   async saveUserData<T>(userId: string, dataType: string, data: T) {
     try {
@@ -278,14 +344,18 @@ export class FirestoreService {
         return { error: 'Firestore database not available - offline mode' }
       }
       
-      const docRef = this.getUserDataRef(userId, dataType)
-      const docData = this.sanitize({
-        data,
-        userId,
-        dataType,
-        updatedAt: serverTimestamp()
-      })
-      await setDoc(docRef, docData)
+      const operation = async () => {
+        const docRef = this.getUserDataRef(userId, dataType)
+        const docData = this.sanitize({
+          data,
+          userId,
+          dataType,
+          updatedAt: serverTimestamp()
+        })
+        await setDoc(docRef, docData)
+      }
+      
+      await this.retryOperation(operation)
       return { error: null }
     } catch (error: any) {
       const errorMessage = this.handleFirestoreError(error)
@@ -362,7 +432,20 @@ export class FirestoreService {
   }
 
   async saveFocusSessions(userId: string, focusSessions: FocusSession[]) {
-    return this.saveUserData(userId, 'focusSessions', focusSessions)
+    // Additional sanitization for focus sessions to ensure clean data
+    const sanitizedFocusSessions = focusSessions.map(session => ({
+      id: session.id,
+      title: session.title,
+      duration: session.duration,
+      startTime: session.startTime,
+      completed: session.completed,
+      // Only include optional fields if they have valid values
+      ...(session.endTime && { endTime: session.endTime }),
+      ...(session.category && { category: session.category }),
+      ...(session.notes && { notes: session.notes })
+    }))
+    
+    return this.saveUserData(userId, 'focusSessions', sanitizedFocusSessions)
   }
 
   async getFocusSessions(userId: string) {
