@@ -103,6 +103,16 @@ function AppContent() {
   const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
   // Cache mapping userId -> display name
   const [userNames, setUserNames] = useState<Record<string,string>>({})
+  
+  // Use real-time stats management - MUST be called before any conditional returns
+  const { 
+    userStats: stats, 
+    achievements: realTimeAchievements, 
+    taskProgress, 
+    weeklyProgress, 
+    monthlyProgress,
+    isLoading: statsLoading 
+  } = useRealTimeStats()
 
   const resolveUserName = useCallback(async (uid: string) => {
     if (!uid) return ''
@@ -496,16 +506,6 @@ function AppContent() {
   if (!user) {
     return <AuthScreen />
   }
-  
-  // Use real-time stats management
-  const { 
-    userStats: stats, 
-    achievements: realTimeAchievements, 
-    taskProgress, 
-    weeklyProgress, 
-    monthlyProgress,
-    isLoading: statsLoading 
-  } = useRealTimeStats()
   
   // Get current user ID from Firebase Auth
   const currentUserId = user?.uid || 'anonymous'
