@@ -1388,6 +1388,51 @@ export class FirestoreService {
       return { error: e.message || 'Add task failed' }
     }
   }
+
+  // Notes Management
+  async saveNotes(userId: string, notes: any[]): Promise<{ error: string | null }> {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const sanitizedNotes = notes.map(note => this.sanitize({
+        ...note,
+        createdAt: note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt,
+        updatedAt: note.updatedAt instanceof Date ? note.updatedAt.toISOString() : note.updatedAt
+      }))
+      
+      const userRef = doc(db, 'users', userId)
+      await setDoc(userRef, { 
+        notes: sanitizedNotes,
+        updatedAt: serverTimestamp()
+      }, { merge: true })
+      return { error: null }
+    } catch (error: any) {
+      console.error('Failed to save notes:', error)
+      return { error: error.message || 'Failed to save notes' }
+    }
+  }
+
+  async getNotes(userId: string): Promise<{ data: any[] | null; error: string | null }> {
+    if (!isFirebaseAvailable || !db) return { data: null, error: 'Firestore unavailable' }
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId))
+      if (userDoc.exists()) {
+        const data = userDoc.data()
+        if (data.notes) {
+          // Convert date strings back to Date objects
+          const notes = data.notes.map((note: any) => ({
+            ...note,
+            createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
+            updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
+          }))
+          return { data: notes, error: null }
+        }
+      }
+      return { data: null, error: null }
+    } catch (error: any) {
+      console.error('Failed to get notes:', error)
+      return { data: null, error: error.message || 'Failed to get notes' }
+    }
+  }
 }
 
 export const firestoreService = new FirestoreService()

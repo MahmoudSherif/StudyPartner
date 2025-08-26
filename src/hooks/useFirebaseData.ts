@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { firestoreService } from '@/lib/firestore'
-import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal } from '@/lib/types'
+import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal, StickyNote } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 
 // Enhanced error handling for Firebase operations
@@ -237,5 +237,23 @@ export function useFirebaseStudyPartnerSettings(): [{ apiUrl: string; autoSync: 
     { apiUrl: 'https://api.studypartner.app/v1', autoSync: false },
     (userId, data) => firestoreService.saveUserData(userId, 'studypartner-settings', data),
     (userId) => firestoreService.getUserData<{ apiUrl: string; autoSync: boolean }>(userId, 'studypartner-settings')
+  )
+}
+
+export function useFirebaseNotes(): [StickyNote[], (value: StickyNote[] | ((prev: StickyNote[]) => StickyNote[])) => void] {
+  return useFirebaseData<StickyNote[]>(
+    'sticky-notes',
+    [] as StickyNote[],
+    (userId, data) => firestoreService.saveNotes(userId, data),
+    (userId) => firestoreService.getNotes(userId)
+  )
+}
+
+export function useFirebaseTheme(): [string, (value: string | ((prev: string) => string)) => void] {
+  return useFirebaseData<string>(
+    'theme-preference',
+    'dark',
+    (userId, data) => firestoreService.saveUserData(userId, 'theme', data),
+    (userId) => firestoreService.getUserData<string>(userId, 'theme')
   )
 }

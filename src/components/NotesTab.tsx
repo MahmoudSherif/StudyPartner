@@ -19,6 +19,7 @@ import {
 import { StickyNote } from '@/lib/types'
 import { toast } from 'sonner'
 import { mobileFeedback } from '@/lib/mobileFeedback'
+import { useFirebaseNotes } from '@/hooks/useFirebaseData'
 
 const NOTE_COLORS = [
   { name: 'Yellow', value: '#fef3c7', dark: '#f59e0b' },
@@ -48,10 +49,8 @@ export function NotesTab() {
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
-  // TODO: Migrate to Firebase-based notes storage
-  const [notes, setNotes] = useState<StickyNote[]>([])
-  // const [notes, setNotes] = useKV<StickyNote[]>(userDataKey('sticky-notes'), [])
+  // Use Firebase hook for notes storage
+  const [notes, setNotes] = useFirebaseNotes()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0])
   const [showAddNote, setShowAddNote] = useState(false)
@@ -69,7 +68,7 @@ export function NotesTab() {
   // Initialize notes with random positions if empty
   useEffect(() => {
     try {
-      if (notes.length === 0) {
+      if (notes.length === 0 && user?.uid) {
         const welcomeNote: StickyNote = {
           id: 'welcome-note',
           title: 'Welcome to Notes! 📝',
@@ -88,7 +87,7 @@ export function NotesTab() {
       // Error handling for production
       // Don't show user error for initialization
     }
-  }, [])
+  }, [user?.uid])
 
   // Filter notes based on search
   const filteredNotes = notes.filter(note => 
