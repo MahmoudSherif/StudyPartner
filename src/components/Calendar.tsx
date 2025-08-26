@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useFirebaseCalendarEvents } from '@/hooks/useFirebaseData'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -35,11 +36,9 @@ export function Calendar({ subjects }: CalendarProps) {
   
   // Get user-specific data
   const currentUserId = user?.uid || 'anonymous'
-  const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  // Temporarily disabled GitHub Spark KV to prevent rate limit errors
-  const [events, setEvents] = useState<CalendarEvent[]>([])
-  // const [events, setEvents] = useKV<CalendarEvent[]>(userDataKey('calendar-events'), [])
+  // Use Firebase-backed calendar events
+  const [events, setEvents] = useFirebaseCalendarEvents()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isAddEventOpen, setIsAddEventOpen] = useState(false)

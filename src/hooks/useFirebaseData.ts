@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { firestoreService } from '@/lib/firestore'
-import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal, StickyNote } from '@/lib/types'
+import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal, StickyNote, CalendarEvent } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { onSnapshot, doc } from 'firebase/firestore'
 import { db, isFirebaseAvailable } from '@/lib/firebase'
@@ -331,5 +331,23 @@ export function useFirebaseTheme(): [string, (value: string | ((prev: string) =>
     'dark',
     (userId, data) => firestoreService.saveUserData(userId, 'theme', data),
     (userId) => firestoreService.getUserData<string>(userId, 'theme')
+  )
+}
+
+export function useFirebaseCalendarEvents(): [CalendarEvent[], (value: CalendarEvent[] | ((prev: CalendarEvent[]) => CalendarEvent[])) => void] {
+  return useFirebaseData<CalendarEvent[]>(
+    'calendar-events',
+    [] as CalendarEvent[],
+    (userId, data) => firestoreService.saveCalendarEvents(userId, data),
+    (userId) => firestoreService.getCalendarEvents(userId)
+  )
+}
+
+export function useFirebaseActiveFocusSession(): [FocusSession | null, (value: FocusSession | null | ((prev: FocusSession | null) => FocusSession | null)) => void] {
+  return useFirebaseData<FocusSession | null>(
+    'active-focus-session',
+    null,
+    (userId, data) => firestoreService.saveActiveFocusSession(userId, data),
+    (userId) => firestoreService.getActiveFocusSession(userId)
   )
 }

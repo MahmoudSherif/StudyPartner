@@ -1474,6 +1474,98 @@ export class FirestoreService {
       return { data: null, error: error.message || 'Failed to get notes' }
     }
   }
+
+  // Calendar Events Management
+  async saveCalendarEvents(userId: string, events: any[]): Promise<{ error: string | null }> {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const sanitizedEvents = events.map(event => this.sanitize({
+        ...event,
+        date: event.date instanceof Date ? event.date.toISOString() : event.date
+      }))
+      
+      const userRef = doc(db, 'users', userId)
+      await setDoc(userRef, { 
+        calendarEvents: sanitizedEvents,
+        updatedAt: serverTimestamp()
+      }, { merge: true })
+      return { error: null }
+    } catch (error: any) {
+      console.error('Failed to save calendar events:', error)
+      return { error: error.message || 'Failed to save calendar events' }
+    }
+  }
+
+  async getCalendarEvents(userId: string): Promise<{ data: any[] | null; error: string | null }> {
+    if (!isFirebaseAvailable || !db) return { data: null, error: 'Firestore unavailable' }
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId))
+      if (userDoc.exists()) {
+        const data = userDoc.data()
+        if (data.calendarEvents) {
+          // Convert date strings back to Date objects
+          const events = data.calendarEvents.map((event: any) => ({
+            ...event,
+            date: event.date ? new Date(event.date) : new Date()
+          }))
+          return { data: events, error: null }
+        }
+      }
+      return { data: null, error: null }
+    } catch (error: any) {
+      console.error('Failed to get calendar events:', error)
+      return { data: null, error: error.message || 'Failed to get calendar events' }
+    }
+  }
+
+  // Active Focus Session Management
+  async saveActiveFocusSession(userId: string, session: any | null): Promise<{ error: string | null }> {
+    if (!isFirebaseAvailable || !db) return { error: 'Firestore unavailable' }
+    try {
+      const userRef = doc(db, 'users', userId)
+      if (session) {
+        const sanitizedSession = this.sanitize({
+          ...session,
+          startTime: session.startTime instanceof Date ? session.startTime.toISOString() : session.startTime
+        })
+        await setDoc(userRef, { 
+          activeFocusSession: sanitizedSession,
+          updatedAt: serverTimestamp()
+        }, { merge: true })
+      } else {
+        // Clear active session
+        await setDoc(userRef, { 
+          activeFocusSession: null,
+          updatedAt: serverTimestamp()
+        }, { merge: true })
+      }
+      return { error: null }
+    } catch (error: any) {
+      console.error('Failed to save active focus session:', error)
+      return { error: error.message || 'Failed to save active focus session' }
+    }
+  }
+
+  async getActiveFocusSession(userId: string): Promise<{ data: any | null; error: string | null }> {
+    if (!isFirebaseAvailable || !db) return { data: null, error: 'Firestore unavailable' }
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId))
+      if (userDoc.exists()) {
+        const data = userDoc.data()
+        if (data.activeFocusSession) {
+          const session = {
+            ...data.activeFocusSession,
+            startTime: data.activeFocusSession.startTime ? new Date(data.activeFocusSession.startTime) : new Date()
+          }
+          return { data: session, error: null }
+        }
+      }
+      return { data: null, error: null }
+    } catch (error: any) {
+      console.error('Failed to get active focus session:', error)
+      return { data: null, error: error.message || 'Failed to get active focus session' }
+    }
+  }
 }
 
 export const firestoreService = new FirestoreService()
