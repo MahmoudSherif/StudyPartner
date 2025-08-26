@@ -43,17 +43,18 @@ export function useRealTimeStats() {
     
     const currentUserId = user.uid || 'anonymous'
     
-    const newStats = statsManager.updateStats(
-      sessions || [],
-      focusSessions || [],
-      tasks || [],
-      challenges || [],
-      goals || [],
-      achievements || [],
-      currentUserId
-    )
-    
-    setStats(newStats)
+    // Only update stats if we have data
+    if (sessions || focusSessions || tasks || challenges || goals || achievements) {
+      statsManager.updateStats(
+        sessions || [],
+        focusSessions || [],
+        tasks || [],
+        challenges || [],
+        goals || [],
+        achievements || [],
+        currentUserId
+      )
+    }
   }, [
     user?.uid,
     sessions,

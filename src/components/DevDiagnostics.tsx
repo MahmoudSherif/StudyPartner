@@ -8,10 +8,12 @@ interface DevDiagnosticsProps {
 }
 
 export const DevDiagnostics: React.FC<DevDiagnosticsProps> = ({ challenges, activeCode }) => {
+  const [migrateStatus, setMigrateStatus] = useState<string>('')
+  
   if (process.env.NODE_ENV === 'production') return null
+  
   const active = challenges.find(c => c.code === activeCode)
   const summary = active?.pointsSummary
-  const [migrateStatus, setMigrateStatus] = useState<string>('')
   const runMigration = async () => {
     setMigrateStatus('running...')
     const res = await firestoreService.migrateChallengeTasksStructure()
