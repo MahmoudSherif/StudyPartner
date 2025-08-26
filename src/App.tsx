@@ -725,7 +725,26 @@ function AppContent() {
       // Add to local state
   setChallenges(current => [...current, newChallenge])
   // Force a one-time fresh fetch (ensures tasks subcollection baseline captured)
-  firestoreService.getUserChallenges(currentUserId).then(r => { if (r.data) setChallenges(r.data) })
+  console.log('🔄 Forcing fresh challenge reload after creation...')
+  const reloadWithRetry = async (attempt = 1) => {
+    const r = await firestoreService.getUserChallenges(currentUserId)
+    console.log('🔄 Fresh reload result (attempt', attempt + '):', r.data?.length || 0, 'challenges')
+    if (r.data) {
+      const foundNewChallenge = r.data.find(c => c.code === newChallenge.code)
+      if (foundNewChallenge) {
+        setChallenges(r.data)
+        console.log('✅ Challenge found in reload, updated state')
+        console.log('🔄 Updated challenges state:', r.data.map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive })))
+      } else if (attempt <= 3) {
+        console.log('⏳ Challenge not found in reload, retrying in 1s...')
+        setTimeout(() => reloadWithRetry(attempt + 1), 1000)
+      } else {
+        console.warn('⚠️ Challenge still not found after retries, using optimistic state')
+        setChallenges(r.data)
+      }
+    }
+  }
+  reloadWithRetry()
   if (newChallenge.code) setActiveChallengeCode(newChallenge.code)
   toast.success(`Challenge created! Code: ${newChallenge.code}`)
       
