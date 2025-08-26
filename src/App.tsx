@@ -23,6 +23,7 @@ import { firestoreService } from '@/lib/firestore'
 import { db, isFirebaseAvailable } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
+import { networkErrorInterceptor } from '@/lib/networkErrorInterceptor'
 import { 
   useFirebaseSubjects,
   useFirebaseSessions,
@@ -163,7 +164,7 @@ function AppContent() {
     threshold: 100
   })
 
-  // Initialize notifications on app start
+  // Initialize notifications and network error interceptor on app start
   useEffect(() => {
     const setupNotifications = async () => {
       try {
@@ -175,6 +176,9 @@ function AppContent() {
     };
 
     setupNotifications();
+    
+    // Initialize network error interceptor (it's a singleton, so this just ensures it's set up)
+    networkErrorInterceptor.reset();
   }, []);
 
   // Load user's challenges when they log in

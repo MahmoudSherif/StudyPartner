@@ -32,21 +32,30 @@ export function NetworkBlockIndicator({ onBlockDetected }: NetworkBlockIndicator
       if (!hasShownWarning) {
         setHasShownWarning(true)
         
-        toast.warning('⚠️ Network requests blocked', {
-          description: `${operation} blocked by ad blocker. Data is saved locally and will sync when possible.`,
-          duration: 8000,
+        toast.warning('⚠️ Ad Blocker Detected', {
+          description: 'Your ad blocker is preventing real-time sync. Data will be saved locally.',
+          duration: 10000,
           action: {
             label: 'How to fix',
             onClick: () => {
-              toast.info('💡 Fix blocking issues:', {
-                description: '1. Disable ad blocker for this site\n2. Add Firebase domains to allowlist\n3. Refresh the page',
-                duration: 12000
+              toast.info('🔧 To enable real-time sync:', {
+                description: `1. Disable your ad blocker for this site
+2. Or add these to your allowlist:
+   • firestore.googleapis.com
+   • firebase.googleapis.com
+3. Then refresh the page`,
+                duration: 15000
               })
             }
           }
         })
 
         onBlockDetected?.()
+        
+        // Reset warning flag after 5 minutes to show again if needed
+        setTimeout(() => {
+          setHasShownWarning(false)
+        }, 300000)
       }
     }
 
