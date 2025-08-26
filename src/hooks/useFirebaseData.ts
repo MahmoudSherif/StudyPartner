@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { firestoreService } from '@/lib/firestore'
 import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal, StickyNote } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
+import { onSnapshot, doc } from 'firebase/firestore'
+import { db, isFirebaseAvailable } from '@/lib/firebase'
 
 // Enhanced error handling for Firebase operations
 function handleFirebaseError(error: any, operation: string): string {
@@ -22,7 +24,7 @@ function handleFirebaseError(error: any, operation: string): string {
   return `Error during ${operation}: ${error?.message || 'Unknown error'}`
 }
 
-// Generic hook for Firebase data with improved reliability
+// Generic hook for Firebase data with improved reliability and real-time updates
 function useFirebaseData<T>(
   key: string,
   defaultValue: T,
@@ -37,6 +39,7 @@ function useFirebaseData<T>(
   const isSyncingRef = useRef(false)
   const isLoadingRef = useRef(false)
   const lastSyncedDataRef = useRef<T | null>(null)
+  const unsubscribeRef = useRef<(() => void) | null>(null)
 
   // Load data when user changes
   useEffect(() => {
@@ -44,6 +47,49 @@ function useFirebaseData<T>(
       loadDataFromFirestore()
     }
   }, [user?.uid])
+
+  // Set up real-time listener for data changes
+  useEffect(() => {
+    if (!user?.uid || !isFirebaseAvailable || !db) return
+
+    // Clean up previous listener
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current()
+      unsubscribeRef.current = null
+    }
+
+    // Set up real-time listener
+    const docRef = doc(db, 'userData', `${user.uid}_${key}`)
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const docData = docSnap.data()
+        const newData = docData.data as T
+        console.log(`🔄 Real-time update for ${key}:`, newData)
+        setData(newData)
+        lastSyncedDataRef.current = newData
+        hasLoadedRef.current = true
+      } else {
+        console.log(`📭 No real-time data found for ${key}, using defaults`)
+        hasLoadedRef.current = true
+        lastSyncedDataRef.current = defaultValue
+      }
+    }, (error) => {
+      console.warn(`Real-time listener error for ${key}:`, error)
+      // Fall back to manual loading if real-time fails
+      if (!hasLoadedRef.current) {
+        loadDataFromFirestore()
+      }
+    })
+
+    unsubscribeRef.current = unsubscribe
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+    }
+  }, [user?.uid, key])
 
   const loadDataFromFirestore = async () => {
     if (!user?.uid || isLoadingRef.current) return
@@ -90,6 +136,11 @@ function useFirebaseData<T>(
     if (!user?.uid) {
       hasLoadedRef.current = false
       lastSyncedDataRef.current = null
+      // Clean up listener
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
     }
   }, [user?.uid])
 
@@ -116,6 +167,11 @@ function useFirebaseData<T>(
           console.log(`🔄 Syncing ${key} on component unmount`)
           syncDataToFirestore()
         }
+      }
+      // Clean up listener
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
       }
     }
   }, [data, user?.uid])

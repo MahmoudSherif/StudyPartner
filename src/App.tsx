@@ -29,12 +29,15 @@ import {
   useFirebaseAchievements,
   useFirebaseTasks,
   useFirebaseFocusSessions,
-  useFirebaseGoals
+  useFirebaseGoals,
+  useFirebaseChallenges
 } from '@/hooks/useFirebaseData'
+import { useRealTimeStats } from '@/hooks/useRealTimeStats'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
 import { DevDiagnostics } from '@/components/DevDiagnostics'
-import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
+import { StatsDebugger } from '@/components/StatsDebugger'
+import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal, UserStats } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
 import { useTouchGestures } from '@/hooks/useTouchGestures'
@@ -73,7 +76,7 @@ function AppContent() {
   const [sessions, setSessions] = useFirebaseSessions()
   const [achievements, setAchievements] = useFirebaseAchievements()
   const [tasks, setTasks] = useFirebaseTasks()
-  const [challenges, setChallenges] = useState<Challenge[]>([])
+  const [challenges, setChallenges] = useFirebaseChallenges()
   // Active challenge code for real-time subscription
   const [activeChallengeCode, setActiveChallengeCode] = useState<string | null>(null)
   const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
@@ -497,8 +500,31 @@ function AppContent() {
   // Get current user ID from Firebase Auth
   const currentUserId = user?.uid || 'anonymous'
 
-  // Combine regular study sessions and focus sessions for stats calculation
-  const stats = calculateUserStats(sessions || [], focusSessions || [], tasks || [], challenges || [], currentUserId)
+  // Use real-time stats management
+  const { 
+    userStats: stats, 
+    achievements: realTimeAchievements, 
+    taskProgress, 
+    weeklyProgress, 
+    monthlyProgress,
+    isLoading: statsLoading 
+  } = useRealTimeStats()
+  
+  // Provide default values to prevent type errors
+  const defaultStats: UserStats = {
+    totalStudyTime: 0,
+    streak: 0,
+    longestStreak: 0,
+    sessionsCompleted: 0,
+    averageSessionLength: 0,
+    tasksCompleted: 0,
+    challengeTasksCompleted: 0
+  }
+  
+  const defaultTaskProgress: TaskProgress = {
+    dailyTasks: { total: 0, completed: 0, percentage: 0 },
+    challengeProgress: undefined
+  }
   
   // Combine regular study sessions and focus sessions for activity tracking
   const allSessions = [
@@ -512,80 +538,6 @@ function AppContent() {
       completed: fs.completed
     } as StudySession))
   ]
-
-  // Calculate task progress
-  const calculateTaskProgress = (): TaskProgress => {
-    const today = new Date()
-    const todayTasks = (tasks || []).filter(task => {
-      const taskDate = new Date(task.createdAt)
-      return taskDate.toDateString() === today.toDateString()
-    })
-    
-    const completedTodayTasks = todayTasks.filter(task => task.completed)
-    
-    const dailyProgress = {
-      total: todayTasks.length,
-      completed: completedTodayTasks.length,
-      percentage: todayTasks.length > 0 ? (completedTodayTasks.length / todayTasks.length) * 100 : 0
-    }
-
-    // Find active challenge the user is participating in
-    const activeChallenge = (challenges || []).find(challenge => 
-      challenge.isActive && challenge.participants.includes(currentUserId)
-    )
-
-    let challengeProgress: TaskProgress['challengeProgress'] = undefined
-    if (activeChallenge && showChallengeProgress) {
-      const summary = activeChallenge.pointsSummary
-      let maxPoints = summary?.maxPoints
-      if (maxPoints == null) {
-        maxPoints = activeChallenge.tasks.reduce((total, task) => total + task.points, 0)
-      }
-      // Build leaderboard leveraging summary when present
-      let leaderboard = activeChallenge.participants.map(participantId => {
-        let points = summary?.pointsByUser?.[participantId]
-        if (points == null) {
-          const completed = activeChallenge.tasks.filter(t => (t.completions?.[participantId]?.completed) || t.completedBy.includes(participantId))
-          points = completed.reduce((sum, t) => sum + t.points, 0)
-        }
-  const tasksCompleted = activeChallenge.tasks.filter(t => (t.completions?.[participantId]?.completed) || t.completedBy.includes(participantId)).length
-        return { userId: participantId, points, tasksCompleted, rank: 0 }
-      }).sort((a,b) => b.points - a.points)
-      // Rank assignment with tie handling
-      leaderboard.forEach((p, idx) => {
-        if (idx === 0) p.rank = 1
-        else if (p.points === leaderboard[idx-1].points) p.rank = leaderboard[idx-1].rank
-        else p.rank = idx + 1
-      })
-      const userPoints = leaderboard.find(p => p.userId === currentUserId)?.points || 0
-  const userCompletedTasks = activeChallenge.tasks.filter(t => (t.completions?.[currentUserId]?.completed) || t.completedBy.includes(currentUserId)).length
-      const userRank = leaderboard.find(p => p.userId === currentUserId)?.rank || 1
-      const isCompleted = activeChallenge.endDate ? new Date() > new Date(activeChallenge.endDate) : false
-      const winnerId = isCompleted && leaderboard.length > 0 ? leaderboard[0].userId : undefined
-      challengeProgress = {
-        challengeId: activeChallenge.id,
-        challengeTitle: activeChallenge.title,
-        totalTasks: activeChallenge.tasks.length,
-        completedTasks: userCompletedTasks,
-        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks / activeChallenge.tasks.length) * 100 : 0,
-        userRank,
-        totalParticipants: activeChallenge.participants.length,
-        userPoints,
-        maxPoints,
-        pointsPercentage: (maxPoints || 0) > 0 ? (userPoints / (maxPoints || 0)) * 100 : 0,
-        leaderboard,
-        isCompleted,
-        winnerId
-      }
-    }
-
-    return {
-      dailyTasks: dailyProgress,
-      challengeProgress
-    }
-  }
-
-  const taskProgress = calculateTaskProgress()
 
   const handleAddSubject = (subjectData: Omit<Subject, 'id'>) => {
     const newSubject: Subject = {
@@ -1205,13 +1157,17 @@ function AppContent() {
                 <Lightbulb size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Inspire</span>
               </TabsTrigger>
+              <TabsTrigger value="debug" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
+                <ChartBar size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Debug</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="achieve" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <AchieveTab 
-                achievements={achievements}
+                achievements={realTimeAchievements}
                 onUpdateAchievements={handleUpdateAchievements}
               />
             </div>
@@ -1223,7 +1179,7 @@ function AppContent() {
                 tasks={tasks}
                 challenges={challenges}
                 subjects={subjects}
-                taskProgress={taskProgress}
+                taskProgress={taskProgress || defaultTaskProgress}
                 currentUserId={currentUserId}
                 onAddTask={handleAddTask}
                 onToggleTask={handleToggleTask}
@@ -1253,19 +1209,25 @@ function AppContent() {
 
           <TabsContent value="profile" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
-              <ProfileTab stats={stats} achievements={achievements} sessions={sessions} focusSessions={focusSessions} tasks={tasks} challenges={challenges} />
+              <ProfileTab stats={stats || defaultStats} achievements={achievements} sessions={sessions} focusSessions={focusSessions} tasks={tasks} challenges={challenges} />
             </div>
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
-              <Achievements achievements={achievements} />
+              <Achievements achievements={realTimeAchievements} />
             </div>
           </TabsContent>
 
           <TabsContent value="inspiration" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <InspirationCarousel />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="debug" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <StatsDebugger />
             </div>
           </TabsContent>
         </Tabs>
