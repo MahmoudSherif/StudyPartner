@@ -253,24 +253,51 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
         let shouldUpdate = false
         
         if (goal.category === 'daily') {
-          // Check if goal is for today
-          const goalDate = new Date(goal.createdAt)
-          if (goalDate.toDateString() === today.toDateString()) {
+          // Daily goals should reset and be available every day
+          // Check if goal deadline is today or hasn't passed
+          if (goal.deadline) {
+            const deadlineDate = new Date(goal.deadline)
+            if (deadlineDate.toDateString() === today.toDateString()) {
+              shouldUpdate = true
+            }
+          } else {
+            // If no deadline, daily goals are always active
             shouldUpdate = true
           }
         } else if (goal.category === 'weekly') {
-          // Check if goal is for this week
-          const startOfWeek = new Date(today)
-          startOfWeek.setDate(today.getDate() - today.getDay())
-          const goalDate = new Date(goal.createdAt)
-          if (goalDate >= startOfWeek) {
-            shouldUpdate = true
+          // Weekly goals should be active during their week period
+          if (goal.deadline) {
+            const deadlineDate = new Date(goal.deadline)
+            const startOfCurrentWeek = new Date(today)
+            startOfCurrentWeek.setDate(today.getDate() - today.getDay())
+            const endOfCurrentWeek = new Date(startOfCurrentWeek)
+            endOfCurrentWeek.setDate(startOfCurrentWeek.getDate() + 6)
+            
+            if (deadlineDate >= startOfCurrentWeek && deadlineDate <= endOfCurrentWeek) {
+              shouldUpdate = true
+            }
+          } else {
+            // If no deadline, check if goal was created this week or is still active
+            const startOfCurrentWeek = new Date(today)
+            startOfCurrentWeek.setDate(today.getDate() - today.getDay())
+            const goalDate = new Date(goal.createdAt)
+            if (goalDate >= startOfCurrentWeek) {
+              shouldUpdate = true
+            }
           }
         } else if (goal.category === 'monthly') {
-          // Check if goal is for this month
-          const goalDate = new Date(goal.createdAt)
-          if (goalDate.getMonth() === today.getMonth() && goalDate.getFullYear() === today.getFullYear()) {
-            shouldUpdate = true
+          // Monthly goals should be active during their month period
+          if (goal.deadline) {
+            const deadlineDate = new Date(goal.deadline)
+            if (deadlineDate.getMonth() === today.getMonth() && deadlineDate.getFullYear() === today.getFullYear()) {
+              shouldUpdate = true
+            }
+          } else {
+            // If no deadline, check if goal was created this month or is still active
+            const goalDate = new Date(goal.createdAt)
+            if (goalDate.getMonth() === today.getMonth() && goalDate.getFullYear() === today.getFullYear()) {
+              shouldUpdate = true
+            }
           }
         } else {
           // Custom goals always get updated
