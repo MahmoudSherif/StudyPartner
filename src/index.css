@@ -88,7 +88,22 @@
 
   /* Horizontal tab strip scrollbar hidden */
   .scrollbar-none::-webkit-scrollbar { display: none; }
-  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none { 
+    -ms-overflow-style: none; 
+    scrollbar-width: none;
+    /* Add smooth scrolling for tab navigation */
+    scroll-behavior: smooth;
+    /* Enable momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Improve tab touch targets on mobile */
+  @media (max-width: 768px) {
+    .tab-trigger {
+      min-width: 68px;
+      touch-action: manipulation;
+    }
+  }
 }
 
 :root {
