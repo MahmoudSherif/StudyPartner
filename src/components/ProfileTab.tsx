@@ -134,6 +134,9 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
                 <h3 className="font-medium text-white">
                   {user?.displayName || user?.email?.split('@')[0] || 'User'}
                 </h3>
+                {user?.username && (
+                  <p className="text-sm text-white/60">@{user.username}</p>
+                )}
                 <p className="text-sm text-white/70">{user?.email}</p>
                 {user?.isFromStudyPartner && (
                   <p className="text-xs text-green-400">Connected to StudyPartner</p>
