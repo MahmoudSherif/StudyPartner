@@ -24,7 +24,8 @@ export const AuthScreen = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    displayName: ''
+    displayName: '',
+    username: ''
   })
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -47,7 +48,7 @@ export const AuthScreen = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!signUpForm.email || !signUpForm.password || !signUpForm.confirmPassword) {
+    if (!signUpForm.email || !signUpForm.password || !signUpForm.confirmPassword || !signUpForm.username) {
       toast.error('Please fill in all fields')
       return
     }
@@ -62,11 +63,23 @@ export const AuthScreen = () => {
       return
     }
 
+    // Username validation
+    if (signUpForm.username.length < 3) {
+      toast.error('Username must be at least 3 characters long')
+      return
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(signUpForm.username)) {
+      toast.error('Username can only contain letters, numbers, and underscores')
+      return
+    }
+
     setLoading(true)
     const { user, error } = await signUp(
       signUpForm.email, 
       signUpForm.password, 
-      signUpForm.displayName
+      signUpForm.displayName,
+      signUpForm.username
     )
     
     if (error) {
@@ -185,6 +198,19 @@ export const AuthScreen = () => {
                       className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                       placeholder="Your name"
                       disabled={loading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-username" className="text-white">Username *</Label>
+                    <Input
+                      id="signup-username"
+                      type="text"
+                      value={signUpForm.username}
+                      onChange={(e) => setSignUpForm({ ...signUpForm, username: e.target.value.toLowerCase() })}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      placeholder="Choose a unique username"
+                      disabled={loading}
+                      required
                     />
                   </div>
                   <div className="space-y-2">

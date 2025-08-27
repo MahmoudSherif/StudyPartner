@@ -17,7 +17,11 @@ import {
   getDoc, 
   setDoc, 
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore'
 import { mockAuthFunctions } from '@/lib/mockAuth'
 
@@ -258,6 +262,24 @@ export const firestoreFunctions = {
       return { error: null }
     } catch (error: any) {
       return { error: error.message }
+    }
+  },
+
+  // Check if username is available
+  checkUsernameAvailable: async (username: string) => {
+    try {
+      if (!isFirebaseAvailable || !db) {
+        // In offline mode, assume username is available
+        return { available: true, error: null }
+      }
+      
+      const usersRef = collection(db, 'users')
+      const q = query(usersRef, where('username', '==', username.toLowerCase()))
+      const querySnapshot = await getDocs(q)
+      
+      return { available: querySnapshot.empty, error: null }
+    } catch (error: any) {
+      return { available: false, error: error.message }
     }
   }
 }
