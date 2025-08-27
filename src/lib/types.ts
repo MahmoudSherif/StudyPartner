@@ -167,6 +167,7 @@ export interface FocusSession {
   completed: boolean
   category?: string
   notes?: string
+  isRunning?: boolean // To persist timer state
 }
 
 export interface Goal {

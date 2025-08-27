@@ -787,28 +787,32 @@ export function TasksManagement({
                 return (
                 <div key={challenge.id} className="bg-white/10 rounded-lg p-4 border border-white/20">
                   <div className="space-y-4">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-white flex items-center gap-2">
+                        <h4 className="font-semibold text-white flex flex-wrap items-center gap-2">
                           <Trophy size={16} />
-                          {challenge.title}
+                          <span className="break-words">{challenge.title}</span>
                           <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 font-mono text-xs">
                             {challenge.code}
                           </Badge>
                           {isEnded && (
-                            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 ml-2">
+                            <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
                               Completed
                             </Badge>
                           )}
                         </h4>
                         <p className="text-sm text-white/70 mt-1">{challenge.description}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-white/60">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-xs sm:text-sm text-white/60">
                           <span>{challenge.participants.length} participants</span>
-                          <span>{totalPoints} total points</span>
+                          <span>•</span>
+                          <span>{totalPoints} points</span>
                           {challenge.endDate && (
-                            <span>
-                              {isEnded ? 'Ended' : 'Ends'}: {new Date(challenge.endDate).toLocaleDateString()}
-                            </span>
+                            <>
+                              <span className="hidden sm:inline">•</span>
+                              <span className="w-full sm:w-auto">
+                                {isEnded ? 'Ended' : 'Ends'}: {new Date(challenge.endDate).toLocaleDateString()}
+                              </span>
+                            </>
                           )}
                         </div>
                         
@@ -823,15 +827,15 @@ export function TasksManagement({
                         )}
                       </div>
                       
-                      <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => copyInviteCode(challenge.code)}
-                          className="border-white/20 text-white hover:bg-white/10"
+                          className="border-white/20 text-white hover:bg-white/10 flex-1 sm:flex-initial"
                         >
                           <Copy size={12} className="mr-1" />
-                          {challenge.code}
+                          <span className="font-mono">{challenge.code}</span>
                         </Button>
                         
                         {/* End Challenge Button */}
@@ -839,10 +843,11 @@ export function TasksManagement({
                           <Button
                             size="sm"
                             onClick={() => handleEndChallenge(challenge.id, winner.userId)}
-                            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white flex-1 sm:flex-initial"
                           >
                             <Trophy size={12} className="mr-1" />
-                            End & Declare Winner
+                            <span className="hidden sm:inline">End & Declare Winner</span>
+                            <span className="sm:hidden">End Challenge</span>
                           </Button>
                         )}
                       </div>

@@ -1101,34 +1101,34 @@ function AppContent() {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10" style={{ position: '-webkit-sticky' }}>
-            <TabsList className="w-full grid gap-1 bg-white/10 backdrop-blur-sm sm:grid-cols-8 grid-flow-col auto-cols-max overflow-x-auto scrollbar-none px-1">
-              <TabsTrigger value="achieve" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <Target size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Achieve</span>
+            <TabsList className="w-full grid gap-1 bg-white/10 backdrop-blur-sm grid-cols-4 sm:grid-cols-7 px-1">
+              <TabsTrigger value="achieve" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <Target size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Achieve</span>
               </TabsTrigger>
-              <TabsTrigger value="tasks" data-testid="tasks-tab" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <CheckSquare size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Tasks</span>
+              <TabsTrigger value="tasks" data-testid="tasks-tab" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <CheckSquare size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Tasks</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <CalendarIcon size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Calendar</span>
+              <TabsTrigger value="calendar" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <CalendarIcon size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="notes" data-testid="notes-tab" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <Note size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Notes</span>
+              <TabsTrigger value="notes" data-testid="notes-tab" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <Note size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Notes</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" data-testid="profile-tab" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <User size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Profile</span>
+              <TabsTrigger value="profile" data-testid="profile-tab" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <User size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="achievements" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <Trophy size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Awards</span>
+              <TabsTrigger value="achievements" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <Trophy size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Awards</span>
               </TabsTrigger>
-              <TabsTrigger value="inspiration" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
-                <Lightbulb size={16} className="lg:size-5" />
-                <span className="text-xs lg:text-sm">Inspire</span>
+              <TabsTrigger value="inspiration" className="flex flex-col justify-center items-center gap-1 h-14 sm:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 px-1 py-1">
+                <Lightbulb size={18} className="sm:size-5" />
+                <span className="text-xs font-medium">Inspire</span>
               </TabsTrigger>
               {/* Temporarily disabled debug tab to fix React hooks error
               <TabsTrigger value="debug" className="min-w-[72px] flex-col lg:flex-row gap-1 lg:gap-2 h-12 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200 text-[11px] lg:text-sm px-2 py-1">
