@@ -44,7 +44,13 @@ function useFirebaseData<T>(
   // Load data when user changes
   useEffect(() => {
     if (user?.uid && !hasLoadedRef.current && !isLoadingRef.current) {
-      loadDataFromFirestore()
+      // Add a small delay to ensure Firebase auth is fully initialized
+      const timer = setTimeout(() => {
+        if (user?.uid && !hasLoadedRef.current && !isLoadingRef.current) {
+          loadDataFromFirestore()
+        }
+      }, 100)
+      return () => clearTimeout(timer)
     }
   }, [user?.uid])
 
@@ -151,7 +157,11 @@ function useFirebaseData<T>(
 
   // Reset hasLoaded when user changes but preserve during tab switches
   useEffect(() => {
+    // Store previous user ID
+    const prevUserId = lastSyncedDataRef.current ? user?.uid : null
+    
     if (!user?.uid) {
+      // User signed out
       hasLoadedRef.current = false
       lastSyncedDataRef.current = null
       // Clean up listener
@@ -159,6 +169,11 @@ function useFirebaseData<T>(
         unsubscribeRef.current()
         unsubscribeRef.current = null
       }
+    } else if (prevUserId && prevUserId !== user.uid) {
+      // User changed (new sign in)
+      hasLoadedRef.current = false
+      lastSyncedDataRef.current = null
+      // Data will be loaded by the other useEffect
     }
   }, [user?.uid])
 

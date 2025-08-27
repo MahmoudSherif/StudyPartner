@@ -53,6 +53,16 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
   const [sessionCategory, setSessionCategory] = useState('')
   const [sessionNotes, setSessionNotes] = useState('')
   
+  // Save timer state to localStorage as backup
+  useEffect(() => {
+    if (currentUserId && activeFocusSession && !activeFocusSession.completed) {
+      localStorage.setItem(`${currentUserId}-active-timer-state`, JSON.stringify({
+        currentTime,
+        isRunning
+      }))
+    }
+  }, [currentTime, isRunning, currentUserId, activeFocusSession])
+  
   // UI state
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [showEditGoal, setShowEditGoal] = useState<Goal | null>(null)
@@ -69,13 +79,30 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     if (activeFocusSession && !activeFocusSession.completed) {
       // Resume active session
       const elapsed = Math.floor((Date.now() - new Date(activeFocusSession.startTime).getTime()) / 1000)
-      setCurrentTime(elapsed)
+      
+      // Try to load saved timer state from localStorage
+      const savedState = localStorage.getItem(`${currentUserId}-active-timer-state`)
+      if (savedState) {
+        try {
+          const { currentTime: savedTime, isRunning: savedRunning } = JSON.parse(savedState)
+          // Use the greater of elapsed time or saved time to handle page refreshes
+          setCurrentTime(Math.max(elapsed, savedTime))
+          setIsRunning(savedRunning || activeFocusSession.isRunning || false)
+        } catch (e) {
+          // Fallback to calculated elapsed time
+          setCurrentTime(elapsed)
+          setIsRunning(activeFocusSession.isRunning || false)
+        }
+      } else {
+        setCurrentTime(elapsed)
+        setIsRunning(activeFocusSession.isRunning || false)
+      }
+      
       setSessionTitle(activeFocusSession.title)
       setSessionCategory(activeFocusSession.category || '')
       setSessionNotes(activeFocusSession.notes || '')
-      // Don't auto-start, let user decide to resume
     }
-  }, []) // Only run on mount
+  }, [currentUserId]) // Run when currentUserId changes
 
   // Timer effect
   useEffect(() => {
@@ -89,7 +116,8 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
           if (activeFocusSession) {
             setActiveFocusSession({
               ...activeFocusSession,
-              duration: Math.floor(newTime / 60) // Update duration in minutes
+              duration: Math.floor(newTime / 60), // Update duration in minutes
+              isRunning: true
             })
           }
           return newTime
@@ -147,6 +175,7 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
       duration: 0,
       startTime: new Date(),
       completed: false,
+      isRunning: true,
       // Only include optional fields if they have actual values
       ...(sanitizedCategory && { category: sanitizedCategory }),
       ...(sanitizedNotes && { notes: sanitizedNotes })
@@ -161,7 +190,17 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
 
   // Pause/resume session
   const togglePause = () => {
-    setIsRunning(!isRunning)
+    const newRunningState = !isRunning
+    setIsRunning(newRunningState)
+    
+    // Update active session with new running state
+    if (activeFocusSession) {
+      setActiveFocusSession({
+        ...activeFocusSession,
+        isRunning: newRunningState
+      })
+    }
+    
     mobileFeedback.buttonPress()
   }
 
@@ -195,6 +234,9 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     setSessionTitle('')
     setSessionCategory('')
     setSessionNotes('')
+    
+    // Clear saved timer state
+    localStorage.removeItem(`${currentUserId}-active-timer-state`)
 
     mobileFeedback.studySessionComplete()
     toast.success(`Focus session completed! ${sessionMinutes} minutes of focused work.`)
