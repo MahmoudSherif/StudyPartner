@@ -102,7 +102,7 @@ function useFirebaseData<T>(
       }
       unsubscribeRef.current = null
     }
-  }, [user?.uid, key, isFirebaseAvailable, db])
+  }, [user?.uid, key])
 
   const loadDataFromFirestore = async () => {
     if (!user?.uid || isLoadingRef.current) return
