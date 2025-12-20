@@ -401,19 +401,19 @@ export class FirestoreService {
 
   // Specific data type methods
   async saveSubjects(userId: string, subjects: Subject[]) {
-    return this.saveUserData(userId, 'subjects', subjects)
+    return this.saveUserData(userId, 'study-subjects', subjects)
   }
 
   async getSubjects(userId: string) {
-    return this.getUserData<Subject[]>(userId, 'subjects')
+    return this.getUserData<Subject[]>(userId, 'study-subjects')
   }
 
   async saveSessions(userId: string, sessions: StudySession[]) {
-    return this.saveUserData(userId, 'sessions', sessions)
+    return this.saveUserData(userId, 'study-sessions', sessions)
   }
 
   async getSessions(userId: string) {
-    return this.getUserData<StudySession[]>(userId, 'sessions')
+    return this.getUserData<StudySession[]>(userId, 'study-sessions')
   }
 
   async saveAchievements(userId: string, achievements: Achievement[]) {
@@ -425,19 +425,19 @@ export class FirestoreService {
   }
 
   async saveTasks(userId: string, tasks: Task[]) {
-    return this.saveUserData(userId, 'tasks', tasks)
+    return this.saveUserData(userId, 'daily-tasks', tasks)
   }
 
   async getTasks(userId: string) {
-    return this.getUserData<Task[]>(userId, 'tasks')
+    return this.getUserData<Task[]>(userId, 'daily-tasks')
   }
 
   async saveChallenges(userId: string, challenges: Challenge[]) {
-    return this.saveUserData(userId, 'challenges', challenges)
+    return this.saveUserData(userId, 'user-challenges', challenges)
   }
 
   async getChallenges(userId: string) {
-    return this.getUserData<Challenge[]>(userId, 'challenges')
+    return this.getUserData<Challenge[]>(userId, 'user-challenges')
   }
 
   async saveFocusSessions(userId: string, focusSessions: FocusSession[]) {
@@ -454,11 +454,11 @@ export class FirestoreService {
       ...(session.notes && { notes: session.notes })
     }))
     
-    return this.saveUserData(userId, 'focusSessions', sanitizedFocusSessions)
+    return this.saveUserData(userId, 'focus-sessions', sanitizedFocusSessions)
   }
 
   async getFocusSessions(userId: string) {
-    return this.getUserData<FocusSession[]>(userId, 'focusSessions')
+    return this.getUserData<FocusSession[]>(userId, 'focus-sessions')
   }
 
   async saveGoals(userId: string, goals: Goal[]) {
