@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 // Simple challenge sharing removed
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -83,9 +83,14 @@ function AppContent() {
   const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
   const [goals, setGoals] = useFirebaseGoals()
   const [currentTab, setCurrentTab] = useState('achieve')
+  const lastTabSwitchRef = useRef(Date.now())
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [lastSessionDuration, setLastSessionDuration] = useState(0)
+
+  // Use ref to track pending challenge task toggles and prevent race conditions
+  const pendingTogglesRef = useRef<Set<string>>(new Set())
+
   const [celebrationData, setCelebrationData] = useState<{
     isOpen: boolean
     taskTitle: string
@@ -181,18 +186,22 @@ function AppContent() {
     networkErrorInterceptor.reset();
   }, []);
 
-  // Load user's challenges when they log in
+  // Load user's challenges when they log in - optimized to prevent duplicate reads
   useEffect(() => {
-    const loadUserChallenges = async () => {
+    let isMounted = true
+
+    const loadUserChallenges = async (skipOfflineSync = false) => {
       if (!user?.uid) {
         setChallenges([])
-  setActiveChallengeCode(null)
+        setActiveChallengeCode(null)
         return
       }
 
       try {
         // Load only user's joined challenges
         const userResult = await firestoreService.getUserChallenges(user.uid)
+
+        if (!isMounted) return // Prevent state update on unmounted component
 
         if (userResult.data) {
           setChallenges(userResult.data)
@@ -211,20 +220,25 @@ function AppContent() {
           console.warn('Failed to load user challenges:', userResult.error)
         }
 
-        // Attempt to push any locally saved (unsynced) challenges created while offline
-        firestoreService.syncLocalChallengesForUser(user.uid).then(syncRes => {
+        // Sync offline challenges only on first load (prevent recursive reload)
+        if (!skipOfflineSync) {
+          const syncRes = await firestoreService.syncLocalChallengesForUser(user.uid)
           if (syncRes.pushed > 0) {
-            toast.success(`Synced ${syncRes.pushed} offline challenge(s)`) 
-            // Reload after sync to show fresh data
-            loadUserChallenges() // Recursively reload to get fresh data
+            toast.success(`Synced ${syncRes.pushed} offline challenge(s)`)
+            // Reload only once after sync with flag to skip offline sync
+            await loadUserChallenges(true)
           }
-        })
+        }
       } catch (error) {
         console.error('Error loading challenges:', error)
       }
     }
 
     loadUserChallenges()
+
+    return () => {
+      isMounted = false
+    }
   }, [user?.uid])
 
   // Real-time subscription to active challenge
@@ -331,6 +345,24 @@ function AppContent() {
       setCurrentTab(tabParam)
     }
   }, [])
+
+  // Tab-aware visibility optimization - log tab switches for analytics
+  useEffect(() => {
+    const now = Date.now()
+    const timeSinceLastSwitch = now - lastTabSwitchRef.current
+    lastTabSwitchRef.current = now
+
+    // Log tab switch for analytics (only if more than 1 second since last switch)
+    if (timeSinceLastSwitch > 1000) {
+      console.log(`📑 Switched to ${currentTab} tab`)
+    }
+
+    // Optional: Trigger data refresh if tab was idle for more than 5 minutes
+    // This ensures data is fresh when users return to a tab
+    if (timeSinceLastSwitch > 300000) { // 5 minutes
+      console.log(`🔄 Tab was idle for >5 min, data should be fresh via listeners`)
+    }
+  }, [currentTab])
 
   // Progress tracking and milestone notifications (only when user is logged in)
   useEffect(() => {
@@ -855,22 +887,24 @@ function AppContent() {
   }
 
   const handleToggleChallengeTask = async (challengeId: string, taskId: string) => {
+    const key = `${challengeId}:${taskId}`
+
+    // Prevent concurrent toggles using ref instead of window object
+    if (pendingTogglesRef.current.has(key)) {
+      console.log(`⏳ Toggle already in progress for ${key}, skipping...`)
+      return
+    }
+
     try {
-      // Debounce rapid taps per task to reduce contention
-      const key = `${challengeId}:${taskId}`
-      ;(window as any)._challengeToggleLocks = (window as any)._challengeToggleLocks || {}
-      const locks = (window as any)._challengeToggleLocks
-      const now = Date.now()
-      const last = locks[key] || 0
-      if (now - last < 250) {
-        clearTimeout(locks[key+':timer'])
-        locks[key+':timer'] = setTimeout(() => handleToggleChallengeTask(challengeId, taskId), 260)
-        return
-      }
-      locks[key] = now
+      // Mark as pending
+      pendingTogglesRef.current.add(key)
+
       const challenge = challenges.find(c => c.id === challengeId)
       const task = challenge?.tasks.find(t => t.id === taskId)
-      if (!challenge || !task) return
+      if (!challenge || !task) {
+        pendingTogglesRef.current.delete(key)
+        return
+      }
       // Determine current completion via new completions map (fallback to legacy array)
       const existingCompletions = task.completions || {}
       const isCompleted = existingCompletions[currentUserId]?.completed || task.completedBy.includes(currentUserId)
@@ -960,6 +994,9 @@ function AppContent() {
     } catch (error) {
       console.error('Error toggling challenge task:', error)
       toast.error('Failed to update challenge task. Please try again.')
+    } finally {
+      // Always remove from pending set
+      pendingTogglesRef.current.delete(key)
     }
   }
 

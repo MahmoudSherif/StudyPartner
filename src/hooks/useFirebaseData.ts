@@ -54,14 +54,15 @@ function useFirebaseData<T>(
     }
   }, [user?.uid])
 
-  // Set up real-time listener for data changes
+  // Set up real-time listener for data changes with proper cleanup
   useEffect(() => {
-    if (!user?.uid || !isFirebaseAvailable || !db) return
-
-    // Clean up previous listener
-    if (unsubscribeRef.current) {
-      unsubscribeRef.current()
-      unsubscribeRef.current = null
+    if (!user?.uid || !isFirebaseAvailable || !db) {
+      // Clean up listener when conditions aren't met
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+      return
     }
 
     // Set up real-time listener
@@ -90,15 +91,18 @@ function useFirebaseData<T>(
       }
     })
 
+    // Store the unsubscribe function
     unsubscribeRef.current = unsubscribe
 
+    // CRITICAL: Always cleanup on unmount or dependency change
     return () => {
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-        unsubscribeRef.current = null
+      console.log(`🧹 Cleaning up real-time listener for ${key}`)
+      if (unsubscribe) {
+        unsubscribe()
       }
+      unsubscribeRef.current = null
     }
-  }, [user?.uid, key])
+  }, [user?.uid, key, isFirebaseAvailable, db])
 
   const loadDataFromFirestore = async () => {
     if (!user?.uid || isLoadingRef.current) return
