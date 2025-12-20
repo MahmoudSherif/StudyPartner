@@ -24,6 +24,7 @@ import { db, isFirebaseAvailable } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
 import { networkErrorInterceptor } from '@/lib/networkErrorInterceptor'
+import { migrateUserDataKeys, needsMigration } from '@/lib/dataMigration'
 import { 
   useFirebaseSubjects,
   useFirebaseSessions,
@@ -188,6 +189,29 @@ function AppContent() {
     // Initialize network error interceptor (it's a singleton, so this just ensures it's set up)
     networkErrorInterceptor.reset();
   }, []);
+
+  // Run data migration on user login (one-time)
+  useEffect(() => {
+    const runMigration = async () => {
+      if (!user?.uid) return
+
+      try {
+        const needsIt = await needsMigration(user.uid)
+        if (needsIt) {
+          console.log('🔄 Running data migration for userData keys...')
+          const result = await migrateUserDataKeys(user.uid)
+          console.log(`✅ Migration complete: ${result.migrated} documents migrated`)
+          if (result.errors.length > 0) {
+            console.warn('Migration errors:', result.errors)
+          }
+        }
+      } catch (error) {
+        console.error('Migration failed:', error)
+      }
+    }
+
+    runMigration()
+  }, [user?.uid])
 
   // Load user's challenges when they log in - optimized to prevent duplicate reads
   useEffect(() => {
