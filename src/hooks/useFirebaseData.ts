@@ -78,11 +78,13 @@ function useFirebaseData<T>(
         lastSyncedDataRef.current = newData
         hasLoadedRef.current = true
       } else {
-        console.log(`📭 No real-time data found for ${key}, keeping current state`)
-        // Don't reset to defaults if we already have data
+        console.log(`📭 No real-time data found for ${key}, using defaults`)
+        // Document doesn't exist - use defaults
         if (!hasLoadedRef.current) {
-          hasLoadedRef.current = true
+          isListenerUpdateRef.current = true
+          setData(defaultValue)
           lastSyncedDataRef.current = defaultValue
+          hasLoadedRef.current = true
         }
       }
     }, (error) => {
