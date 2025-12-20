@@ -41,6 +41,7 @@ function useFirebaseData<T>(
   const lastSyncedDataRef = useRef<T | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
   const isListenerUpdateRef = useRef(false)
+  const previousUserIdRef = useRef<string | null>(null)
 
   // Load data when user changes
   useEffect(() => {
@@ -71,6 +72,14 @@ function useFirebaseData<T>(
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const docData = docSnap.data()
+
+        // CRITICAL SECURITY CHECK: Verify the userId in the document matches the current user
+        if (docData.userId && docData.userId !== user.uid) {
+          console.error(`🚨 SECURITY: Data userId mismatch! Document userId: ${docData.userId}, Current user: ${user.uid}`)
+          console.error(`🚨 This should never happen - potential data leak! Ignoring this data.`)
+          return
+        }
+
         const newData = docData.data as T
         console.log(`🔄 Real-time update for ${key}:`, newData)
         isListenerUpdateRef.current = true
@@ -171,27 +180,37 @@ function useFirebaseData<T>(
     }
   }, [user?.uid])
 
-  // Reset hasLoaded when user changes but preserve during tab switches
+  // CRITICAL: Reset data when user changes to prevent data leakage between users
   useEffect(() => {
-    // Store previous user ID
-    const prevUserId = lastSyncedDataRef.current ? user?.uid : null
-    
-    if (!user?.uid) {
-      // User signed out
+    const currentUserId = user?.uid
+    const previousUserId = previousUserIdRef.current
+
+    if (!currentUserId && previousUserId) {
+      // User signed out - IMMEDIATELY clear all data
+      console.log(`🔒 User signed out, clearing ${key} data`)
+      isListenerUpdateRef.current = true
+      setData(defaultValue)
       hasLoadedRef.current = false
       lastSyncedDataRef.current = null
+      previousUserIdRef.current = null
       // Clean up listener
       if (unsubscribeRef.current) {
         unsubscribeRef.current()
         unsubscribeRef.current = null
       }
-    } else if (prevUserId && prevUserId !== user.uid) {
-      // User changed (new sign in)
+    } else if (currentUserId && previousUserId && currentUserId !== previousUserId) {
+      // CRITICAL: Different user signed in - IMMEDIATELY clear old user's data
+      console.log(`🔒 User changed from ${previousUserId} to ${currentUserId}, clearing ${key} data`)
+      isListenerUpdateRef.current = true
+      setData(defaultValue)
       hasLoadedRef.current = false
       lastSyncedDataRef.current = null
-      // Data will be loaded by the other useEffect
+      // Listener will be recreated by the other useEffect with new user ID
     }
-  }, [user?.uid])
+
+    // Update the previous user ID
+    previousUserIdRef.current = currentUserId || null
+  }, [user?.uid, key])
 
   // Ensure data is saved when component unmounts or page unloads
   useEffect(() => {
