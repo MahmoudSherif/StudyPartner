@@ -92,16 +92,16 @@ export function Timer({ subject, onSessionComplete, onSessionCancel }: TimerProp
         <CardContent className="p-6">
           <div className="text-center space-y-6">
             {subject && (
-              <div className="flex items-center justify-center space-x-2">
-                <div 
-                  className="w-4 h-4 rounded-full" 
+              <div className="flex items-center justify-center gap-3">
+                <div
+                  className="w-4 h-4 rounded-full flex-shrink-0"
                   style={{ backgroundColor: subject.color }}
                 />
                 <span className="text-lg font-medium">{subject.name}</span>
               </div>
             )}
 
-            <div className="relative">
+            <div className="relative mt-4">
               <div className="text-6xl font-bold text-primary tabular-nums">
                 {formatDuration(timeLeft)}
               </div>

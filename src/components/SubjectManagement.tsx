@@ -143,19 +143,19 @@ export function SubjectManagement({
               onClick={() => onSelectSubject(subject)}
             >
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div
+                      className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
                       style={{ backgroundColor: subject.color }}
                     />
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <h3 className="font-medium">{subject.name}</h3>
-                      <div className="text-xs text-muted-foreground space-y-0.5">
+                      <div className="text-xs text-muted-foreground space-y-1 mt-1">
                         <div>{formatTime(subject.totalTime)} studied</div>
                         {(subject.dailyTarget || subject.weeklyTarget) && (
-                          <div className="flex items-center gap-1">
-                            <Target size={10} />
+                          <div className="flex items-center gap-1.5">
+                            <Target size={12} className="flex-shrink-0" />
                             {subject.dailyTarget && <span>{subject.dailyTarget}m/day</span>}
                             {subject.dailyTarget && subject.weeklyTarget && <span>•</span>}
                             {subject.weeklyTarget && <span>{formatTime(subject.weeklyTarget)}/week</span>}

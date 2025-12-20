@@ -686,7 +686,7 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
             </div>
           ) : (
             <div className="text-center space-y-6">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h3 className="text-2xl font-bold text-white">{activeFocusSession.title}</h3>
                 {activeFocusSession.category && (
                   <Badge variant="secondary" className="bg-white/20 text-white">
@@ -694,12 +694,12 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
                   </Badge>
                 )}
               </div>
-              
-              <div className="text-6xl font-mono font-bold text-accent">
+
+              <div className="text-6xl font-mono font-bold text-accent my-6">
                 {formatTime(currentTime)}
               </div>
-              
-              <div className="flex gap-3 justify-center">
+
+              <div className="flex gap-4 justify-center items-center">
                 <Button
                   onClick={togglePause}
                   variant="outline"

@@ -32,51 +32,51 @@ export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverv
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-4 text-center">
-            <Clock size={24} className="mx-auto text-primary mb-2" />
+          <CardContent className="p-5 text-center">
+            <Clock size={24} className="mx-auto text-primary mb-3" />
             <div className="text-2xl font-bold">{formatTime(stats.totalStudyTime)}</div>
-            <div className="text-sm text-muted-foreground">Total Study Time</div>
+            <div className="text-sm text-muted-foreground mt-1">Total Study Time</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <Flame size={24} className="mx-auto text-accent mb-2" />
+          <CardContent className="p-5 text-center">
+            <Flame size={24} className="mx-auto text-accent mb-3" />
             <div className="text-2xl font-bold">{stats.streak}</div>
-            <div className="text-sm text-muted-foreground">Day Streak</div>
+            <div className="text-sm text-muted-foreground mt-1">Day Streak</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <Target size={24} className="mx-auto text-primary mb-2" />
+          <CardContent className="p-5 text-center">
+            <Target size={24} className="mx-auto text-primary mb-3" />
             <div className="text-2xl font-bold">{stats.sessionsCompleted}</div>
-            <div className="text-sm text-muted-foreground">Sessions</div>
+            <div className="text-sm text-muted-foreground mt-1">Sessions</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 text-center">
-            <Trophy size={24} className="mx-auto text-accent mb-2" />
+          <CardContent className="p-5 text-center">
+            <Trophy size={24} className="mx-auto text-accent mb-3" />
             <div className="text-2xl font-bold">{unlockedAchievements.length}</div>
-            <div className="text-sm text-muted-foreground">Achievements</div>
+            <div className="text-sm text-muted-foreground mt-1">Achievements</div>
           </CardContent>
         </Card>
         {typeof stats.tasksCompleted === 'number' && (
           <Card>
-            <CardContent className="p-4 text-center">
-              <Target size={24} className="mx-auto text-primary mb-2" />
+            <CardContent className="p-5 text-center">
+              <Target size={24} className="mx-auto text-primary mb-3" />
               <div className="text-2xl font-bold">{stats.tasksCompleted}</div>
-              <div className="text-sm text-muted-foreground">Tasks Done</div>
+              <div className="text-sm text-muted-foreground mt-1">Tasks Done</div>
             </CardContent>
           </Card>
         )}
         {typeof stats.challengeTasksCompleted === 'number' && (
           <Card>
-            <CardContent className="p-4 text-center">
-              <Trophy size={24} className="mx-auto text-accent mb-2" />
+            <CardContent className="p-5 text-center">
+              <Trophy size={24} className="mx-auto text-accent mb-3" />
               <div className="text-2xl font-bold">{stats.challengeTasksCompleted}</div>
-              <div className="text-sm text-muted-foreground">Challenge Tasks</div>
+              <div className="text-sm text-muted-foreground mt-1">Challenge Tasks</div>
             </CardContent>
           </Card>
         )}
@@ -85,10 +85,10 @@ export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverv
       {/* Weekly Progress and Best Time */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <CardContent className="p-4 text-center">
-            <Calendar size={24} className="mx-auto text-primary mb-2" />
+          <CardContent className="p-5 text-center">
+            <Calendar size={24} className="mx-auto text-primary mb-3" />
             <div className="text-2xl font-bold">{formatTime(thisWeekMinutes)}</div>
-            <div className="text-sm text-muted-foreground">This Week</div>
+            <div className="text-sm text-muted-foreground mt-1">This Week</div>
             {weeklyProgress !== 0 && (
               <div className={`text-xs mt-1 ${weeklyProgress > 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {weeklyProgress > 0 ? '+' : ''}{Math.round(weeklyProgress)}% vs last week

@@ -104,14 +104,14 @@ export function Achievements({ achievements }: AchievementsProps) {
           : 'bg-black/30 border-white/10 hover:border-white/20'
       }`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-4">
-          <div className={`text-3xl transition-all duration-300 ${
+      <CardContent className="p-5">
+        <div className="flex items-start gap-4">
+          <div className={`text-3xl flex-shrink-0 transition-all duration-300 ${
             achievement.unlocked ? 'filter-none animate-pulse' : 'filter grayscale opacity-50'
           }`}>
             {achievement.icon}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-medium text-white">{achievement.title}</h3>
               {achievement.unlocked && (

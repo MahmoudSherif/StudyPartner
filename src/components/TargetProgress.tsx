@@ -41,13 +41,13 @@ export function TargetProgress({ subjects, sessions }: TargetProgressProps) {
         return (
           <Card key={subject.id}>
             <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: subject.color }}
                   />
-                  <span className="font-medium text-sm">{subject.name}</span>
+                  <span className="font-medium text-sm truncate">{subject.name}</span>
                 </div>
                 <div className="flex gap-1">
                   {progress.isBehindDaily && (
@@ -64,21 +64,21 @@ export function TargetProgress({ subjects, sessions }: TargetProgressProps) {
               </div>
 
               {subject.dailyTarget && (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1">
-                      <Clock size={12} />
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={12} className="flex-shrink-0" />
                       <span>Daily Goal</span>
                     </div>
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground tabular-nums">
                       {formatTime(progress.todayTime)} / {formatTime(subject.dailyTarget)}
                     </span>
                   </div>
-                  <Progress 
-                    value={progress.dailyProgress} 
+                  <Progress
+                    value={progress.dailyProgress}
                     className="h-2"
                   />
-                  <div className="text-right text-xs text-muted-foreground">
+                  <div className="text-right text-xs text-muted-foreground tabular-nums">
                     {Math.round(progress.dailyProgress)}%
                   </div>
                 </div>

@@ -117,26 +117,26 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
                 {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt="Profile" 
+                  <img
+                    src={user.avatar}
+                    alt="Profile"
                     className="w-12 h-12 rounded-full object-cover"
                   />
                 ) : (
                   <UserIcon size={24} className="text-primary" />
                 )}
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 space-y-1">
                 <h3 className="font-medium text-white truncate">
                   {user?.displayName || user?.email?.split('@')[0] || 'User'}
                 </h3>
                 <p className="text-sm text-white/70 truncate">{user?.email}</p>
                 {user?.isFromStudyPartner && (
-                  <p className="text-xs text-green-400">Connected to StudyPartner</p>
+                  <p className="text-xs text-green-400 mt-1">Connected to StudyPartner</p>
                 )}
               </div>
             </div>
@@ -144,10 +144,11 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
               onClick={handleSignOut}
               variant="outline"
               size="sm"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+              className="flex-shrink-0 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
             >
               <SignOut size={16} className="mr-2" />
-              Sign Out
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
             </Button>
           </div>
         </CardContent>
@@ -223,43 +224,43 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-4 text-center">
-                <Clock size={24} className="mx-auto text-primary mb-2" />
+              <CardContent className="p-5 text-center">
+                <Clock size={24} className="mx-auto text-primary mb-3" />
                 <div className="text-2xl font-bold text-white">{formatTime(stats.totalStudyTime)}</div>
-                <div className="text-sm text-white/70">Total Study Time</div>
+                <div className="text-sm text-white/70 mt-1">Total Study Time</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4 text-center">
-                <Flame size={24} className="mx-auto text-accent mb-2" />
+              <CardContent className="p-5 text-center">
+                <Flame size={24} className="mx-auto text-accent mb-3" />
                 <div className="text-2xl font-bold text-white">{stats.streak}</div>
-                <div className="text-sm text-white/70">Day Streak</div>
+                <div className="text-sm text-white/70 mt-1">Day Streak</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4 text-center">
-                <Target size={24} className="mx-auto text-primary mb-2" />
+              <CardContent className="p-5 text-center">
+                <Target size={24} className="mx-auto text-primary mb-3" />
                 <div className="text-2xl font-bold text-white">{stats.sessionsCompleted}</div>
-                <div className="text-sm text-white/70">Sessions</div>
+                <div className="text-sm text-white/70 mt-1">Sessions</div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4 text-center">
-                <Trophy size={24} className="mx-auto text-accent mb-2" />
+              <CardContent className="p-5 text-center">
+                <Trophy size={24} className="mx-auto text-accent mb-3" />
                 <div className="text-2xl font-bold text-white">{unlockedAchievements.length}</div>
-                <div className="text-sm text-white/70">Achievements</div>
+                <div className="text-sm text-white/70 mt-1">Achievements</div>
               </CardContent>
             </Card>
           </div>
 
           {/* Weekly Progress and Best Time */}
-          <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <CardContent className="p-4 text-center">
-                <Calendar size={24} className="mx-auto text-primary mb-2" />
+              <CardContent className="p-5 text-center">
+                <Calendar size={24} className="mx-auto text-primary mb-3" />
                 <div className="text-2xl font-bold text-white">{formatTime(thisWeekMinutes)}</div>
                 <div className="text-sm text-white/70">This Week</div>
                 {weeklyProgress !== 0 && (

@@ -551,25 +551,25 @@ export function TasksManagement({
                         mobileFeedback.buttonPress()
                         onToggleTask(task.id)
                       }}
-                      className={`mt-1 p-1 h-6 w-6 rounded-full border-2 ${
-                        task.completed 
-                          ? 'bg-green-500 border-green-500 text-white' 
+                      className={`flex-shrink-0 mt-0.5 p-1 h-6 w-6 rounded-full border-2 ${
+                        task.completed
+                          ? 'bg-green-500 border-green-500 text-white'
                           : 'border-white/30 hover:border-white/50'
                       }`}
                     >
                       {task.completed && <Check size={12} />}
                     </Button>
-                    
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <h4 className={`font-medium ${task.completed ? 'line-through text-white/60' : 'text-white'}`}>
+
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className={`font-medium flex-1 ${task.completed ? 'line-through text-white/60' : 'text-white'}`}>
                           {task.title}
                         </h4>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => onDeleteTask(task.id)}
-                          className="text-white/60 hover:text-red-400 p-2 h-9 w-9 md:h-8 md:w-8"
+                          className="flex-shrink-0 text-white/60 hover:text-red-400 p-2 h-8 w-8"
                         >
                           <X size={14} />
                         </Button>
