@@ -130,11 +130,11 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
                   <UserIcon size={24} className="text-primary" />
                 )}
               </div>
-              <div>
-                <h3 className="font-medium text-white">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium text-white truncate">
                   {user?.displayName || user?.email?.split('@')[0] || 'User'}
                 </h3>
-                <p className="text-sm text-white/70">{user?.email}</p>
+                <p className="text-sm text-white/70 truncate">{user?.email}</p>
                 {user?.isFromStudyPartner && (
                   <p className="text-xs text-green-400">Connected to StudyPartner</p>
                 )}
@@ -221,7 +221,7 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           <ActivityCharts sessions={allActivitySessions} tasks={tasks} challenges={challenges} currentUserId={currentUserId} />
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
                 <Clock size={24} className="mx-auto text-primary mb-2" />

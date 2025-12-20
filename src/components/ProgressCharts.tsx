@@ -177,21 +177,24 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
     <div className="space-y-4">
       <Tabs defaultValue="weekly" className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
-          <TabsTrigger value="weekly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-            <Calendar size={16} className="mr-1" />
-            Weekly
+          <TabsTrigger value="weekly" className="text-[10px] md:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white px-2 md:px-3">
+            <Calendar size={14} className="mr-0.5 md:mr-1 md:size-4" />
+            <span className="hidden sm:inline">Weekly</span>
+            <span className="sm:hidden">Week</span>
           </TabsTrigger>
-          <TabsTrigger value="monthly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-            <ArrowUp size={16} className="mr-1" />
-            Monthly
+          <TabsTrigger value="monthly" className="text-[10px] md:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white px-2 md:px-3">
+            <ArrowUp size={14} className="mr-0.5 md:mr-1 md:size-4" />
+            <span className="hidden sm:inline">Monthly</span>
+            <span className="sm:hidden">Month</span>
           </TabsTrigger>
-          <TabsTrigger value="daily" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-            <Clock size={16} className="mr-1" />
+          <TabsTrigger value="daily" className="text-[10px] md:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white px-2 md:px-3">
+            <Clock size={14} className="mr-0.5 md:mr-1 md:size-4" />
             Daily
           </TabsTrigger>
-          <TabsTrigger value="subjects" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-            <BookOpen size={16} className="mr-1" />
-            Subjects
+          <TabsTrigger value="subjects" className="text-[10px] md:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white px-2 md:px-3">
+            <BookOpen size={14} className="mr-0.5 md:mr-1 md:size-4" />
+            <span className="hidden sm:inline">Subjects</span>
+            <span className="sm:hidden">Subj</span>
           </TabsTrigger>
         </TabsList>
 
@@ -204,7 +207,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-48 md:h-56 lg:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={weeklyData}>
                     <XAxis 
@@ -240,7 +243,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="h-48">
+              <div className="h-40 md:h-44 lg:h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={weeklyData}>
                     <XAxis 
@@ -275,7 +278,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-48 md:h-56 lg:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={monthlyData}>
                     <XAxis 
@@ -329,7 +332,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-48 md:h-56 lg:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dailyData}>
                     <XAxis 

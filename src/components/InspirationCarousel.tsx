@@ -413,10 +413,10 @@ export function InspirationCarousel() {
         <p className="text-white/70 text-sm">Learn from history's greatest minds across cultures and time</p>
       </div>
 
-      <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden lg:h-[500px]">
+      <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden md:h-[400px] lg:h-[500px]">
         <CardContent className="p-0 lg:grid lg:grid-cols-2 lg:h-full">
           {/* Character Image */}
-          <div className="h-48 lg:h-full bg-gradient-to-br from-primary/30 to-accent/30 relative flex items-center justify-center">
+          <div className="h-40 md:h-full bg-gradient-to-br from-primary/30 to-accent/30 relative flex items-center justify-center">
             <div className="text-center p-4">
               {currentCharacter.imageType === 'portrait' && currentCharacter.imageUrl && !imageErrors.has(currentCharacter.id) ? (
                 <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full mx-auto mb-3 overflow-hidden bg-white/20 backdrop-blur-sm border-2 border-white/30 relative">

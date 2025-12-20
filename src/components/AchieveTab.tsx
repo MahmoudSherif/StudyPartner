@@ -786,22 +786,22 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
               const avgSessionTime = focusSessions.length > 0 ? Math.round(totalFocusTime / focusSessions.length) : 0
               
               return (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 text-center">
                   <div className="space-y-1">
-                    <div className="text-2xl font-bold text-accent">{goals.filter(g => g.isCompleted).length}</div>
-                    <div className="text-xs text-white/60">Goals Completed</div>
+                    <div className="text-xl md:text-2xl font-bold text-accent">{goals.filter(g => g.isCompleted).length}</div>
+                    <div className="text-[10px] md:text-xs text-white/60">Goals Completed</div>
                   </div>
                   <div className="space-y-1">
-                    <div className="text-2xl font-bold text-accent">{focusSessions.filter(fs => fs.completed).length}</div>
-                    <div className="text-xs text-white/60">Focus Sessions</div>
+                    <div className="text-xl md:text-2xl font-bold text-accent">{focusSessions.filter(fs => fs.completed).length}</div>
+                    <div className="text-[10px] md:text-xs text-white/60">Focus Sessions</div>
+                  </div>
+                  <div className="space-y-1 md:block hidden">
+                    <div className="text-xl md:text-2xl font-bold text-primary">{totalFocusTime}</div>
+                    <div className="text-[10px] md:text-xs text-white/60">Total Focus (min)</div>
                   </div>
                   <div className="space-y-1 lg:block hidden">
-                    <div className="text-2xl font-bold text-primary">{totalFocusTime}</div>
-                    <div className="text-xs text-white/60">Total Focus (min)</div>
-                  </div>
-                  <div className="space-y-1 lg:block hidden">
-                    <div className="text-2xl font-bold text-primary">{avgSessionTime}</div>
-                    <div className="text-xs text-white/60">Avg Session (min)</div>
+                    <div className="text-xl md:text-2xl font-bold text-primary">{avgSessionTime}</div>
+                    <div className="text-[10px] md:text-xs text-white/60">Avg Session (min)</div>
                   </div>
                 </div>
               )

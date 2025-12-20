@@ -262,9 +262,9 @@ export function NotesTab() {
       </div>
 
       {/* Notes Board */}
-      <div 
+      <div
         ref={boardRef}
-        className="relative min-h-[600px] bg-black/20 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden"
+        className="relative min-h-[400px] md:min-h-[500px] lg:min-h-[600px] bg-black/20 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden"
         onMouseMove={handleDragMove}
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}

@@ -129,7 +129,7 @@ export function ActivityGrid({ sessions }: ActivityGridProps) {
               {week.map((day, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className={`w-3 h-3 rounded-sm border border-white/10 ${getColorClass(day.level)}`}
+                  className={`w-3 h-3 md:w-4 md:h-4 rounded-sm border border-white/10 ${getColorClass(day.level)}`}
                   title={`${day.date.toLocaleDateString()}: ${day.minutes} minutes`}
                 />
               ))}

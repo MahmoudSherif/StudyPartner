@@ -30,7 +30,7 @@ export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverv
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <Clock size={24} className="mx-auto text-primary mb-2" />
@@ -83,7 +83,7 @@ export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverv
       </div>
 
       {/* Weekly Progress and Best Time */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <Calendar size={24} className="mx-auto text-primary mb-2" />

@@ -70,12 +70,9 @@ export function TasksManagement({
   const [selectedChallenge, setSelectedChallenge] = useState<string | null>(null)
   const [joinCode, setJoinCode] = useState('')
   
-  // Debug: Log when challenges prop changes
+  // Track challenges updates
   useEffect(() => {
-    console.log('🔍 TasksManagement challenges prop updated:', challenges.length, 'challenges')
-    if (challenges.length > 0) {
-      console.log('🔍 Recent challenges:', challenges.slice(-3).map(c => ({ code: c.code, title: c.title, isActive: c.isActive })))
-    }
+    // Challenges updated
   }, [challenges])
   
   const [newTask, setNewTask] = useState({
@@ -302,31 +299,19 @@ export function TasksManagement({
   // Debug function to list all challenges in database
   const debugListAllChallenges = async () => {
     try {
-      console.log('🔍 Running debug: List all challenges...')
-      
-      // Fetch all (including inactive) challenges from Firestore
       const result = await firestoreService.getAllSharedChallenges(true)
 
-      console.log('🔍 === FIRESTORE CHALLENGE REPORT ===')
-      console.log('📊 Firestore challenges found:', result.data?.length || 0)
-
       if (result.data && result.data.length > 0) {
-        result.data.forEach((challenge: Challenge, index: number) => {
-          const codeDisplay = `📋 ${challenge.code} - "${challenge.title}" (${challenge.isActive ? 'Active' : 'Inactive'})`
-          console.log(`${index + 1}. ${codeDisplay}`)
-        })
         toast.success(`Found ${result.data.length} challenges in Firestore`)
       } else {
         toast.info('No challenges found in Firestore')
       }
 
       if (result.error) {
-        console.error('❌ Debug error:', result.error)
         toast.error('Debug failed: ' + result.error)
       }
     } catch (error) {
-      console.error('❌ Debug exception:', error)
-      toast.error('Debug exception - check console')
+      toast.error('Debug exception occurred')
     }
   }
 
@@ -490,7 +475,7 @@ export function TasksManagement({
                     className="bg-white/10 border-white/20 text-white"
                   />
                   <div className="grid grid-cols-2 gap-4">
-                    <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as any })}>
+                    <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value as 'low' | 'medium' | 'high' })}>
                       <SelectTrigger className="bg-white/10 border-white/20 text-white">
                         <SelectValue />
                       </SelectTrigger>
@@ -584,9 +569,9 @@ export function TasksManagement({
                           size="sm"
                           variant="ghost"
                           onClick={() => onDeleteTask(task.id)}
-                          className="text-white/60 hover:text-red-400 p-1 h-6 w-6"
+                          className="text-white/60 hover:text-red-400 p-2 h-9 w-9 md:h-8 md:w-8"
                         >
-                          <X size={12} />
+                          <X size={14} />
                         </Button>
                       </div>
                       
@@ -782,17 +767,17 @@ export function TasksManagement({
                 
                 const isEnded = challenge.endDate ? new Date() > new Date(challenge.endDate) : false
                 const winner = leaderboard.length > 0 ? leaderboard[0] : null
-                const finalSnapshot = (challenge as any).finalPointsByUser as Record<string, number> | undefined
+                const finalSnapshot = (challenge as { finalPointsByUser?: Record<string, number> }).finalPointsByUser
                 
                 return (
                 <div key={challenge.id} className="bg-white/10 rounded-lg p-4 border border-white/20">
                   <div className="space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-white flex flex-wrap items-center gap-2">
-                          <Trophy size={16} />
-                          <span className="break-words">{challenge.title}</span>
-                          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 font-mono text-xs">
+                          <Trophy size={16} className="flex-shrink-0" />
+                          <span className="break-words min-w-0 max-w-full">{challenge.title}</span>
+                          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 font-mono text-[10px] md:text-xs truncate max-w-[80px]">
                             {challenge.code}
                           </Badge>
                           {isEnded && (

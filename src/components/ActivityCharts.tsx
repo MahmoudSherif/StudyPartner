@@ -85,7 +85,7 @@ export function ActivityCharts({ sessions, tasks = [], challenges = [], currentU
           ch.tasks.forEach(ct => {
             const completed = (ct.completions?.[currentUserId]?.completed) || ct.completedBy.includes(currentUserId)
             if (completed && ct.completions?.[currentUserId]?.completedAt) {
-              const at = new Date(ct.completions[currentUserId].completedAt as any)
+              const at = new Date(ct.completions[currentUserId].completedAt)
               if (at.toDateString() === key) challengeCompleted++
             }
           })
@@ -341,7 +341,7 @@ export function ActivityCharts({ sessions, tasks = [], challenges = [], currentU
           <TabsContent value="today" className="space-y-4 mt-4">
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-white">Today's Activity (24 hours)</h4>
-              <div className="flex items-end justify-between gap-1 h-32 bg-black/20 rounded-lg p-3 overflow-x-auto">
+              <div className="flex items-end justify-between gap-1 h-28 md:h-32 lg:h-36 bg-black/20 rounded-lg p-3 overflow-x-auto">
                 {hourlyData.map((hour, index) => (
                   <div key={index} className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
                     <div 
