@@ -84,12 +84,15 @@ function AppContent() {
   const [goals, setGoals] = useFirebaseGoals()
   const [currentTab, setCurrentTab] = useState('achieve')
   const lastTabSwitchRef = useRef(Date.now())
-  
+
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [lastSessionDuration, setLastSessionDuration] = useState(0)
 
   // Use ref to track pending challenge task toggles and prevent race conditions
   const pendingTogglesRef = useRef<Set<string>>(new Set())
+
+  // Use ref to track previous achievements without causing re-renders
+  const previousAchievementsRef = useRef<Achievement[]>([])
 
   const [celebrationData, setCelebrationData] = useState<{
     isOpen: boolean
@@ -461,24 +464,33 @@ function AppContent() {
 
   // Achievement tracking (only when user is logged in)
   useEffect(() => {
-    if (!user || !userStats) return
+    if (!user || !userStats || !achievements) return
 
     try {
       const updatedAchievements = updateAchievements(
-        achievements || [],
+        achievements,
         userStats,
         sessions || [],
         focusSessions || [],
         goals || []
       )
 
-      // Check for newly unlocked achievements
-      const newlyUnlocked = updatedAchievements.filter((achievement, index) =>
-        achievement.unlocked && !(achievements || [])[index]?.unlocked
-      )
+      // Check for newly unlocked achievements by comparing with previous state
+      const newlyUnlocked = updatedAchievements.filter((achievement, index) => {
+        const prevAchievement = previousAchievementsRef.current[index]
+        return achievement.unlocked && (!prevAchievement || !prevAchievement.unlocked)
+      })
+
+      // Update the ref before setting state
+      previousAchievementsRef.current = updatedAchievements
+
+      // Only update if achievements actually changed
+      const achievementsChanged = JSON.stringify(achievements) !== JSON.stringify(updatedAchievements)
+      if (!achievementsChanged) return
+
+      setAchievements(updatedAchievements)
 
       if (newlyUnlocked.length > 0) {
-        setAchievements(updatedAchievements)
         newlyUnlocked.forEach(async (achievement) => {
           // Trigger achievement haptic feedback
           mobileFeedback.achievement()
@@ -499,13 +511,11 @@ function AppContent() {
             // Silent notification failure
           }
         })
-      } else {
-        setAchievements(updatedAchievements)
       }
     } catch (error) {
       // Silent error handling for achievements update
     }
-  }, [user, userStats, sessions, focusSessions, goals, achievements])
+  }, [user, userStats, sessions, focusSessions, goals])
 
   // Show loading screen while checking authentication
   if (loading) {

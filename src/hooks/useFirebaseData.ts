@@ -291,19 +291,26 @@ export function useFirebaseAchievements(): [Achievement[], (value: Achievement[]
     (userId, data) => firestoreService.saveAchievements(userId, data),
     (userId) => firestoreService.getAchievements(userId)
   )
-  
-  // After load, ensure all INITIAL_ACHIEVEMENTS IDs exist
+
+  const hasInitializedAchievementsRef = useRef(false)
+
+  // After load, ensure all INITIAL_ACHIEVEMENTS IDs exist (run only once)
   useEffect(() => {
     if (!achievements) return
     if (achievements.length === 0) return // initial empty still loading maybe
+    if (hasInitializedAchievementsRef.current) return // already initialized
+
     const existingIds = new Set(achievements.map(a => a.id))
     const missing = INITIAL_ACHIEVEMENTS.filter(a => !existingIds.has(a.id))
     if (missing.length > 0) {
+      hasInitializedAchievementsRef.current = true
       setAchievements(prev => {
         const merged = [...prev, ...missing]
         // Migration no longer needed - all data stored in Firebase
         return merged
       })
+    } else {
+      hasInitializedAchievementsRef.current = true
     }
   }, [achievements, setAchievements])
   
