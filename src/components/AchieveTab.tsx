@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useFirebaseActiveFocusSession } from '@/hooks/useFirebaseData'
 import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
@@ -104,31 +104,35 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     }
   }, [currentUserId]) // Run when currentUserId changes
 
-  // Timer effect
+  // Timer effect - using useRef to avoid memory leaks
   useEffect(() => {
-    let interval: NodeJS.Timeout
-    
+    const intervalRef = { current: null as NodeJS.Timeout | null }
+
     if (isRunning && activeFocusSession) {
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setCurrentTime(prev => {
           const newTime = prev + 1
           // Update the active session with new elapsed time
-          if (activeFocusSession) {
-            setActiveFocusSession({
-              ...activeFocusSession,
+          setActiveFocusSession(prevSession => {
+            if (!prevSession) return prevSession
+            return {
+              ...prevSession,
               duration: Math.floor(newTime / 60), // Update duration in minutes
               isRunning: true
-            })
-          }
+            }
+          })
           return newTime
         })
       }, 1000)
     }
-    
+
     return () => {
-      if (interval) clearInterval(interval)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
     }
-  }, [isRunning, activeFocusSession])
+  }, [isRunning, activeFocusSession?.id])
 
   // Format time display
   const formatTime = (seconds: number) => {

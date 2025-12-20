@@ -929,7 +929,7 @@ export class FirestoreService {
     }
   }
 
-  // Batch sync all user data
+  // Batch sync all user data - using Promise.allSettled for partial success
   async syncAllUserData(userId: string, userData: {
     subjects: Subject[]
     sessions: StudySession[]
@@ -940,24 +940,44 @@ export class FirestoreService {
     goals: Goal[]
   }) {
     try {
-      const promises = [
-        this.saveSubjects(userId, userData.subjects),
-        this.saveSessions(userId, userData.sessions),
-        this.saveAchievements(userId, userData.achievements),
-        this.saveTasks(userId, userData.tasks),
-        this.saveChallenges(userId, userData.challenges),
-        this.saveFocusSessions(userId, userData.focusSessions),
-        this.saveGoals(userId, userData.goals)
+      const saveOperations = [
+        { name: 'subjects', promise: this.saveSubjects(userId, userData.subjects) },
+        { name: 'sessions', promise: this.saveSessions(userId, userData.sessions) },
+        { name: 'achievements', promise: this.saveAchievements(userId, userData.achievements) },
+        { name: 'tasks', promise: this.saveTasks(userId, userData.tasks) },
+        { name: 'challenges', promise: this.saveChallenges(userId, userData.challenges) },
+        { name: 'focusSessions', promise: this.saveFocusSessions(userId, userData.focusSessions) },
+        { name: 'goals', promise: this.saveGoals(userId, userData.goals) }
       ]
 
-      const results = await Promise.all(promises)
-      const errors = results.filter(result => result.error).map(result => result.error)
-      
-      if (errors.length > 0) {
-        return { error: `Failed to sync some data: ${errors.join(', ')}` }
+      // Use allSettled to allow partial success
+      const results = await Promise.allSettled(saveOperations.map(op => op.promise))
+
+      const failures: string[] = []
+      const successes: string[] = []
+
+      results.forEach((result, index) => {
+        const opName = saveOperations[index].name
+        if (result.status === 'rejected') {
+          failures.push(`${opName}: ${result.reason}`)
+        } else if (result.value.error) {
+          failures.push(`${opName}: ${result.value.error}`)
+        } else {
+          successes.push(opName)
+        }
+      })
+
+      if (failures.length > 0) {
+        console.warn(`Partial sync - Succeeded: ${successes.join(', ')} | Failed: ${failures.join(', ')}`)
+        return {
+          error: `Failed to sync: ${failures.join('; ')}`,
+          partialSuccess: successes.length > 0,
+          succeeded: successes,
+          failed: failures
+        }
       }
 
-      return { error: null }
+      return { error: null, succeeded: successes }
     } catch (error: any) {
       return { error: error.message }
     }

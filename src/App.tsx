@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 // Simple challenge sharing removed
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -332,17 +332,6 @@ function AppContent() {
     }
   }, [])
 
-  // URL import removed
-
-  // Handle URL tab parameter for PWA shortcuts
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const tabParam = urlParams.get('tab')
-    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration'].includes(tabParam)) {
-      setCurrentTab(tabParam)
-    }
-  }, [])
-
   // Progress tracking and milestone notifications (only when user is logged in)
   useEffect(() => {
     if (!user) return
@@ -426,32 +415,48 @@ function AppContent() {
     }
   }, [user, tasks, challenges, showChallengeProgress, previousDailyProgress, previousChallengeProgress])
 
+  // Memoize expensive stats calculation
+  const userStats = useMemo(() => {
+    if (!user?.uid) return null
+    return calculateUserStats(
+      sessions || [],
+      focusSessions || [],
+      tasks || [],
+      challenges || [],
+      user.uid
+    )
+  }, [user?.uid, sessions, focusSessions, tasks, challenges])
+
   // Achievement tracking (only when user is logged in)
   useEffect(() => {
-    if (!user) return
-    
+    if (!user || !userStats) return
+
     try {
-  const currentUserId = user.uid
-  const stats = calculateUserStats(sessions || [], focusSessions || [], tasks || [], challenges || [], currentUserId)
-      const updatedAchievements = updateAchievements(achievements || [], stats, sessions || [], focusSessions || [], goals || [])
-      
+      const updatedAchievements = updateAchievements(
+        achievements || [],
+        userStats,
+        sessions || [],
+        focusSessions || [],
+        goals || []
+      )
+
       // Check for newly unlocked achievements
-      const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
+      const newlyUnlocked = updatedAchievements.filter((achievement, index) =>
         achievement.unlocked && !(achievements || [])[index]?.unlocked
       )
-      
+
       if (newlyUnlocked.length > 0) {
         setAchievements(updatedAchievements)
         newlyUnlocked.forEach(async (achievement) => {
           // Trigger achievement haptic feedback
           mobileFeedback.achievement()
-          
+
           // Show in-app toast
           toast.success(`Achievement Unlocked: ${achievement.title}`, {
             description: achievement.description,
             duration: 5000
           })
-          
+
           // Send push notification
           try {
             await notificationManager.notifyAchievementUnlock(
@@ -468,7 +473,7 @@ function AppContent() {
     } catch (error) {
       // Silent error handling for achievements update
     }
-  }, [user, sessions, focusSessions, goals, tasks, challenges]) // include tasks & challenges for task-based achievements
+  }, [user, userStats, sessions, focusSessions, goals, achievements])
 
   // Show loading screen while checking authentication
   if (loading) {
