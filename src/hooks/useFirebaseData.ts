@@ -40,6 +40,7 @@ function useFirebaseData<T>(
   const isLoadingRef = useRef(false)
   const lastSyncedDataRef = useRef<T | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
+  const isListenerUpdateRef = useRef(false)
 
   // Load data when user changes
   useEffect(() => {
@@ -72,6 +73,7 @@ function useFirebaseData<T>(
         const docData = docSnap.data()
         const newData = docData.data as T
         console.log(`🔄 Real-time update for ${key}:`, newData)
+        isListenerUpdateRef.current = true
         setData(newData)
         lastSyncedDataRef.current = newData
         hasLoadedRef.current = true
@@ -113,6 +115,7 @@ function useFirebaseData<T>(
       const result = await loadFromFirestore(user.uid)
       if (result.data !== null) {
         console.log(`✅ Loaded ${key}:`, result.data)
+        isListenerUpdateRef.current = true
         setData(result.data)
         lastSyncedDataRef.current = result.data
         hasLoadedRef.current = true
@@ -120,6 +123,7 @@ function useFirebaseData<T>(
         console.log(`📭 No ${key} data found, keeping current state or using defaults`)
         // Only use defaults if we don't have any data yet
         if (!hasLoadedRef.current) {
+          isListenerUpdateRef.current = true
           setData(defaultValue)
           lastSyncedDataRef.current = defaultValue
         }
@@ -140,6 +144,12 @@ function useFirebaseData<T>(
 
   // Sync to Firestore when data changes (immediate sync for important changes)
   useEffect(() => {
+    // Skip sync if this update came from the real-time listener
+    if (isListenerUpdateRef.current) {
+      isListenerUpdateRef.current = false
+      return
+    }
+
     if (user?.uid && !isSyncingRef.current && !isLoadingRef.current && hasLoadedRef.current) {
       // Check if data has actually changed from last synced data
       const hasChanged = JSON.stringify(data) !== JSON.stringify(lastSyncedDataRef.current)
