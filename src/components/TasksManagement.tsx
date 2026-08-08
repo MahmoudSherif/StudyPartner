@@ -736,18 +736,12 @@ export function TasksManagement({
               >Completed</Button>
             </div>
             {(() => {
-              console.log('🔍 TasksManagement challenges debug:', challenges.length, 'total challenges')
-              console.log('🔍 First few challenges:', challenges.slice(0, 3).map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive, endDate: c.endDate })))
               const now = Date.now()
               const activeList = challenges.filter(c => {
                 const isActive = c.isActive !== false
                 const hasValidEndDate = c.endDate && !isNaN(new Date(c.endDate).getTime())
                 const isNotExpired = !hasValidEndDate || (c.endDate && new Date(c.endDate).getTime() > now)
-                const result = isActive && isNotExpired
-                if (!result) {
-                  console.log('🔍 Challenge filtered out:', { code: c.code, isActive: c.isActive, endDate: c.endDate, hasValidEndDate, isNotExpired })
-                }
-                return result
+                return isActive && isNotExpired
               })
               const completedList = challenges.filter(c => {
                 const isInactive = c.isActive === false
@@ -755,8 +749,6 @@ export function TasksManagement({
                 const isExpired = hasValidEndDate && c.endDate && new Date(c.endDate).getTime() <= now
                 return isInactive || isExpired
               })
-              console.log('🔍 Active challenges filtered:', activeList.length, activeList.map(c => ({ code: c.code, isActive: c.isActive, endDate: c.endDate })))
-              console.log('🔍 Showing completed challenges?', showCompletedChallenges)
               const list = showCompletedChallenges ? completedList : activeList
               if (list.length === 0) {
                 return (

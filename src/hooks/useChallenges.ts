@@ -49,6 +49,13 @@ interface ChallengeStore {
   seq: number
   /** In-flight refresh, so concurrent callers share one round trip. */
   inFlight: Promise<void> | null
+  /**
+   * A refresh queued to start once `inFlight` settles. At most one is ever
+   * queued: any number of callers arriving mid-flight are satisfied by a single
+   * follow-up round trip, since they all want the same thing -- state no older
+   * than the moment they asked.
+   */
+  queued: Promise<void> | null
   started: boolean
 }
 
@@ -66,6 +73,7 @@ function getStore(userId: string): ChallengeStore {
     unsubscribe: null,
     seq: 0,
     inFlight: null,
+    queued: null,
     started: false
   }
   return store
@@ -88,9 +96,35 @@ function setState(target: ChallengeStore, patch: Partial<ChallengeState>): void 
   target.listeners.forEach(listener => listener())
 }
 
+/**
+ * Refreshes, guaranteeing the caller sees state no older than this call.
+ *
+ * Sharing an in-flight request is only sound when that request started *after*
+ * whatever the caller is waiting to observe. It did not: creating a challenge
+ * also fires the realtime subscription, which starts its own refresh, so the
+ * `await refresh()` after `createChallenge` was handed a round trip that had
+ * already read the table before the new row was visible. It resolved against
+ * stale data and the new challenge did not appear until a manual reload.
+ *
+ * So a caller arriving mid-flight now waits for a fresh round trip that begins
+ * after the current one settles, rather than piggybacking on it.
+ */
 async function refreshStore(target: ChallengeStore): Promise<void> {
-  if (target.inFlight) return target.inFlight
+  if (target.inFlight) {
+    if (!target.queued) {
+      target.queued = target.inFlight
+        .catch(() => {})
+        .then(() => {
+          target.queued = null
+          return runRefresh(target)
+        })
+    }
+    return target.queued
+  }
+  return runRefresh(target)
+}
 
+function runRefresh(target: ChallengeStore): Promise<void> {
   const run = (async () => {
     const seq = ++target.seq
     const { data, error } = await loadMyChallenges()
