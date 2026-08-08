@@ -46,10 +46,10 @@ In scope:
 - The application source in this repository (`src/`, `public/sw.js`, `index.html`).
 - The Supabase schema, migrations, and Row Level Security policies
   (`supabase/migrations/`), which are what actually enforce data isolation.
-- Build and deployment configuration in this repository (`wrangler.toml`,
-  `vite.config.ts`, `public/_headers`, and `public/_redirects`). The build runs
-  on Cloudflare Pages from a Git connection; there is no CI workflow in this
-  repository.
+- Build and deployment configuration in this repository (`vite.config.ts`,
+  `public/_headers`, and `public/_redirects`). The build runs on Cloudflare
+  Pages from a Git connection; there is no CI workflow and no Wrangler config
+  file in this repository — build settings live in the Cloudflare dashboard.
 - Authentication and data-isolation flaws, such as one user being able to read or
   modify another user's study data.
 - Secrets or credentials committed to the repository.

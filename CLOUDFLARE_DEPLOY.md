@@ -8,7 +8,7 @@ assets; Supabase is the backend. There is no server to run.
 | Build command | `npm run build` |
 | Output directory | `dist` |
 | Node version | 20 |
-| Config | `wrangler.toml` |
+| Config | Cloudflare dashboard (no config file in the repo — see below) |
 | Headers / SPA routing | `public/_headers`, `public/_redirects` |
 
 Vite copies everything in `public/` into `dist/` verbatim, so `_headers` and
@@ -20,7 +20,6 @@ Vite copies everything in `public/` into `dist/` verbatim, so `_headers` and
 - Node 20 and npm.
 - A Cloudflare account with Pages enabled.
 - A Supabase project (URL + anon key).
-- `wrangler` — no install needed, use `npx wrangler`.
 
 ## How deploys work
 
@@ -66,12 +65,22 @@ Cloudflare supplies) and `.env` files (what a local build uses).
 For local development, `cp .env.example .env` and fill in the two Supabase
 values. `.env` is gitignored.
 
-> **`wrangler.toml` and dashboard variables coexist.** A Wrangler config file
-> overrides the dashboard for *runtime* Pages Functions bindings and `[vars]`.
-> Build-time variables like these are a separate system and continue to come from
-> the dashboard. This project has no Pages Functions, so the distinction never
-> bites — but do not "fix" a missing variable by moving it into `wrangler.toml`,
-> where the build would not see it.
+> **Why there is no `wrangler.toml` here.** This repository used to carry one.
+> It was removed because dashboard variables were not reaching the build: the
+> deploy failed with `VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY not set`
+> while both were set on Production.
+>
+> Cloudflare's docs state that once a Wrangler configuration file is present it
+> becomes "the source of truth" for the project and you "can not edit the same
+> fields in the dashboard", with `vars` named among the affected keys. The file
+> was carrying only `name`, `pages_build_output_dir`, and `compatibility_date` —
+> all of which the dashboard holds natively, since this project has no Pages
+> Functions — so it bought nothing and risked shadowing the variables.
+>
+> Do **not** reintroduce it, and in particular do not try to fix a missing
+> variable by putting it in a `[vars]` block: that is a *runtime* binding for
+> Pages Functions, and Vite would still not see it at build time. Build-time
+> variables come from the dashboard only.
 
 ## One-time: set up the database
 
@@ -141,13 +150,13 @@ GitHub → select `StudyPartner`, then:
 sets the output directory to `build`; this project builds to `dist`. The wrong
 preset deploys an empty site with no error to explain it.
 
-**The project name must be `motivamate`**, matching `name` in `wrangler.toml`.
-Cloudflare pre-fills the repository name (`studypartner`), which does not match
-and fails the deploy. It is also your `<name>.pages.dev` hostname.
+**The project name decides your `<name>.pages.dev` hostname.** Cloudflare
+pre-fills the repository name (`studypartner`); `motivamate` is what the
+existing site uses, so keep it unless you want the URL to change.
 
-The build command and output directory are also declared in `wrangler.toml`
-(`pages_build_output_dir = "dist"`), which Cloudflare reads during the build.
-Keep the dashboard values in step with it.
+The build command and output directory live **only** in these dashboard fields —
+there is no config file in the repo backing them up, so if the output directory
+is wrong the deploy publishes an empty site. Verify `dist` is set here.
 
 > **Migrating from the old Direct Upload setup:** a Pages project cannot be
 > switched from Direct Upload to Git integration. Delete the existing

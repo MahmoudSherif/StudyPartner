@@ -21,14 +21,32 @@ function assertRequiredEnv(mode: string) {
   const fromFiles = loadEnv(mode, process.cwd(), 'VITE_')
   const missing = REQUIRED_ENV.filter(key => !(process.env[key] || fromFiles[key]))
 
-  if (missing.length > 0) {
-    throw new Error(
-      `Cannot build: ${missing.join(' and ')} not set.\n` +
-      'For a deploy, set them in Cloudflare dashboard > Workers & Pages > ' +
-      'motivamate > Settings > Variables and Secrets (Production *and* Preview).\n' +
-      'For a local build, put them in .env. See .env.example.'
-    )
-  }
+  if (missing.length === 0) return
+
+  // The failure looks identical whether the variables were never set, were set
+  // on the wrong environment, or were set correctly but never reached the build
+  // runner. Print what this process can actually see so the build log
+  // distinguishes them instead of leaving it to guesswork.
+  const visibleVite = Object.keys(process.env).filter(k => k.startsWith('VITE_'))
+  const onCloudflare = Boolean(process.env.CF_PAGES)
+
+  throw new Error(
+    `Cannot build: ${missing.join(' and ')} not set.\n` +
+    '\n--- what this build can see ---\n' +
+    `running on Cloudflare Pages: ${onCloudflare ? 'yes' : 'no'}\n` +
+    (onCloudflare ? `branch: ${process.env.CF_PAGES_BRANCH ?? '(unset)'}\n` : '') +
+    `VITE_* in the process environment: ${visibleVite.join(', ') || '(none)'}\n` +
+    `VITE_* found in .env files: ${Object.keys(fromFiles).join(', ') || '(none)'}\n` +
+    '-------------------------------\n' +
+    '\nIf "running on Cloudflare Pages" is yes but no VITE_* variables are\n' +
+    'listed, the dashboard values are not reaching the build. Check they are set\n' +
+    'on the environment matching the branch above (Production vs Preview), and\n' +
+    'that nobody has reintroduced a wrangler.toml — it takes over as the source\n' +
+    'of truth for vars and shadows the dashboard. See CLOUDFLARE_DEPLOY.md.\n' +
+    'Build-time variables are baked in, so changing one requires a NEW build;\n' +
+    'a retry of the old deployment will not pick it up.\n' +
+    'For a local build, put them in .env. See .env.example.'
+  )
 }
 
 // https://vite.dev/config/

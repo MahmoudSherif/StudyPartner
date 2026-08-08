@@ -113,12 +113,15 @@ GitHub → pick `StudyPartner`.
 Two things that are easy to get wrong:
 
 - **Pick `Vite`, not `React`.** The React preset assumes Create React App and
-  sets the output directory to `build`. This is a Vite app and builds to `dist`
-  (`wrangler.toml`), so the React preset deploys an empty site.
-- **The project name must be `motivamate`**, matching `name` in `wrangler.toml`.
-  Cloudflare defaults it to the repository name (`studypartner`), which does not
-  match and fails the deploy step. It also decides your
-  `<name>.pages.dev` hostname.
+  sets the output directory to `build`. This is a Vite app and builds to `dist`,
+  so the React preset deploys an empty site.
+- **Build output directory must be `dist`.** There is deliberately no
+  `wrangler.toml` in this repo (see [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md)
+  — it shadowed the dashboard's environment variables), so these dashboard
+  fields are the only place the build settings exist.
+- **The project name decides your `<name>.pages.dev` hostname.** Cloudflare
+  defaults it to the repository name (`studypartner`); the existing site uses
+  `motivamate`.
 
 > **Already have a Direct Upload project?** A Pages project cannot be converted
 > from Direct Upload to Git integration — delete the old `motivamate` project
