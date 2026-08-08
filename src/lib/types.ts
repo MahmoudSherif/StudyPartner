@@ -168,6 +168,15 @@ export interface FocusSession {
   category?: string
   notes?: string
   isRunning?: boolean // To persist timer state
+  /**
+   * The single goal this session counts toward, if any.
+   *
+   * Undefined means the session counts toward no goal at all: it is still
+   * recorded and still feeds study totals and streaks, it just does not move
+   * any goal's progress. A session never advances more than the one goal named
+   * here.
+   */
+  goalId?: string
 }
 
 export interface Goal {

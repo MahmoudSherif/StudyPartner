@@ -118,7 +118,8 @@ export function useFocusSessions() {
       completed: !!row.completed,
       category: row.category ?? undefined,
       notes: row.notes ?? undefined,
-      isRunning: !!row.is_running
+      isRunning: !!row.is_running,
+      goalId: row.goal_id ?? undefined
     }),
     toRow: session => ({
       title: session.title || 'Focus session',
@@ -128,7 +129,10 @@ export function useFocusSessions() {
       completed: !!session.completed,
       category: session.category ?? null,
       notes: session.notes ?? null,
-      is_running: !!session.isRunning
+      is_running: !!session.isRunning,
+      // Null, not undefined: the column has to be cleared when a session is
+      // detached from its goal, and undefined would omit the key entirely.
+      goal_id: session.goalId ?? null
     })
   })
   return [items, setItems] as const

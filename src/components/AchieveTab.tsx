@@ -28,6 +28,9 @@ import { toast } from 'sonner'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { notificationManager } from '@/lib/notifications'
 
+/** Select value meaning "this session counts toward no goal". */
+const NO_GOAL = 'none'
+
 interface AchieveTabProps {
   achievements: Achievement[]
   onUpdateAchievements: (achievements: Achievement[]) => void
@@ -58,6 +61,11 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
   const [sessionTitle, setSessionTitle] = useState('')
   const [sessionCategory, setSessionCategory] = useState('')
   const [sessionNotes, setSessionNotes] = useState('')
+  // Which goal the next session will count toward. `NO_GOAL` is a real sentinel
+  // rather than '' because Radix Select treats an empty string as "no value" and
+  // would render the placeholder instead of the "No goal" choice, leaving the
+  // default looking unset when it is in fact a deliberate selection.
+  const [sessionGoalId, setSessionGoalId] = useState<string>(NO_GOAL)
 
   /** Seconds banked from previous run segments (i.e. before the current resume). */
   const [elapsedBase, setElapsedBase] = useState(0)
@@ -74,6 +82,12 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
   }, [elapsedBase, runStartedAt, tick])
 
   const timerStateKey = `${currentUserId}-active-timer-state`
+
+  /** The goal the running session counts toward, if it still exists. */
+  const linkedGoal = useMemo(
+    () => (activeFocusSession?.goalId ? goals.find(g => g.id === activeFocusSession.goalId) ?? null : null),
+    [activeFocusSession?.goalId, goals]
+  )
 
   // Which session the adopt effect below has already taken over. Declared here,
   // above the mirror effect, because that effect must not run before adoption.
@@ -162,6 +176,7 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     setSessionTitle(activeFocusSession.title)
     setSessionCategory(activeFocusSession.category || '')
     setSessionNotes(activeFocusSession.notes || '')
+    setSessionGoalId(activeFocusSession.goalId || NO_GOAL)
   }, [activeFocusSession, timerStateKey])
 
   // Re-render once a second while running so the derived elapsed time updates.
@@ -220,7 +235,12 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
       isRunning: true,
       // Only include optional fields if they have actual values
       ...(sanitizedCategory && { category: sanitizedCategory }),
-      ...(sanitizedNotes && { notes: sanitizedNotes })
+      ...(sanitizedNotes && { notes: sanitizedNotes }),
+      // Stored on the row, not in component state, so the link survives a
+      // refresh or the session being picked up on another device. Guarded
+      // against a goal deleted between opening the picker and pressing start.
+      ...(sessionGoalId !== NO_GOAL &&
+        goals.some(g => g.id === sessionGoalId) && { goalId: sessionGoalId })
     }
 
     adoptedSessionRef.current = newSession.id
@@ -282,10 +302,15 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
       )
     )
 
-    // Update goals progress
-    updateGoalsProgress(sessionMinutes).catch(error => {
-      // Silent error handling for goals progress
-    });
+    // Credit only the goal this session was started against, if any. The goal
+    // is read off the session row rather than component state so it survives a
+    // refresh, a pause, or the session being adopted on another device.
+    if (activeFocusSession.goalId) {
+      creditGoal(activeFocusSession.goalId, sessionMinutes).catch(() => {
+        // Silent: the session itself is already saved, and goal progress is
+        // recoverable. Failing loudly here would imply the session was lost.
+      })
+    }
 
     adoptedSessionRef.current = null
     setElapsedBase(0)
@@ -294,6 +319,7 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     setSessionTitle('')
     setSessionCategory('')
     setSessionNotes('')
+    setSessionGoalId(NO_GOAL)
 
     // Clear saved timer state
     try {
@@ -306,146 +332,88 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     toast.success(`Focus session completed! ${sessionMinutes} minutes of focused work.`)
   }
 
-  // Update goals progress with error handling
-  const updateGoalsProgress = async (minutes: number) => {
+  /**
+   * Adds a completed session's minutes to one goal, and one goal only.
+   *
+   * This replaced `updateGoalsProgress(minutes)`, which walked every goal and
+   * credited each one whose category window happened to be open -- a daily goal
+   * with no deadline always qualified, a weekly one all week, a monthly one all
+   * month, and custom goals unconditionally. A single 30 minute session
+   * therefore advanced four unrelated goals by 30 minutes each, so a goal's
+   * progress reflected how long the user had studied in total rather than how
+   * long they had spent on that goal. Sessions now name their goal up front and
+   * nothing else is touched.
+   *
+   * Category windows are deliberately not consulted any more. The user picked
+   * this goal when starting the session, which is a clearer statement of intent
+   * than a date range, and honouring the window would silently drop the credit
+   * for a goal whose deadline had just passed.
+   */
+  const creditGoal = async (goalId: string, minutes: number) => {
     try {
-      const today = new Date()
+      if (minutes <= 0) return
+
+      const goal = goals.find(g => g.id === goalId)
+      // Gone or already finished: nothing to add. A goal deleted mid-session
+      // leaves `goal_id` null on the row (the FK clears it), so this is the
+      // deleted-while-running case rather than an error.
+      if (!goal || goal.isCompleted) return
+
+      const newCurrent = Math.min(goal.current + minutes, goal.target)
+      const isNowCompleted = newCurrent >= goal.target
+
+      setGoals(current =>
+        current.map(g =>
+          g.id === goalId ? { ...g, current: newCurrent, isCompleted: isNowCompleted } : g
+        )
+      )
+
+      if (!isNowCompleted) return
+
       const notificationPromises: Promise<void>[] = []
-      let achievementToUpdate: any = null
-      
-      const updatedGoals = goals.map(goal => {
-        let shouldUpdate = false
-        
-        if (goal.category === 'daily') {
-          // Daily goals should reset and be available every day
-          // Check if goal deadline is today or hasn't passed
-          if (goal.deadline) {
-            const deadlineDate = new Date(goal.deadline)
-            if (deadlineDate.toDateString() === today.toDateString()) {
-              shouldUpdate = true
-            }
-          } else {
-            // If no deadline, daily goals are always active
-            shouldUpdate = true
-          }
-        } else if (goal.category === 'weekly') {
-          // Weekly goals should be active during their week period
-          if (goal.deadline) {
-            const deadlineDate = new Date(goal.deadline)
-            const startOfCurrentWeek = new Date(today)
-            startOfCurrentWeek.setDate(today.getDate() - today.getDay())
-            const endOfCurrentWeek = new Date(startOfCurrentWeek)
-            endOfCurrentWeek.setDate(startOfCurrentWeek.getDate() + 6)
-            
-            if (deadlineDate >= startOfCurrentWeek && deadlineDate <= endOfCurrentWeek) {
-              shouldUpdate = true
-            }
-          } else {
-            // If no deadline, check if goal was created this week or is still active
-            const startOfCurrentWeek = new Date(today)
-            startOfCurrentWeek.setDate(today.getDate() - today.getDay())
-            const goalDate = new Date(goal.createdAt)
-            if (goalDate >= startOfCurrentWeek) {
-              shouldUpdate = true
-            }
-          }
-        } else if (goal.category === 'monthly') {
-          // Monthly goals should be active during their month period
-          if (goal.deadline) {
-            const deadlineDate = new Date(goal.deadline)
-            if (deadlineDate.getMonth() === today.getMonth() && deadlineDate.getFullYear() === today.getFullYear()) {
-              shouldUpdate = true
-            }
-          } else {
-            // If no deadline, check if goal was created this month or is still active
-            const goalDate = new Date(goal.createdAt)
-            if (goalDate.getMonth() === today.getMonth() && goalDate.getFullYear() === today.getFullYear()) {
-              shouldUpdate = true
-            }
-          }
-        } else {
-          // Custom goals always get updated
-          shouldUpdate = true
-        }
+      mobileFeedback.achievement()
+      toast.success(`\u{1F3AF} Goal completed: ${goal.title}!`)
+      notificationPromises.push(
+        notificationManager
+          .notifyGoalAchievement(goal.title, goal.description)
+          .catch(() => {
+            /* silent notification failure */
+          })
+      )
 
-        if (shouldUpdate && !goal.isCompleted) {
-          const newCurrent = Math.min(goal.current + minutes, goal.target)
-          const wasCompleted = goal.isCompleted
-          const isNowCompleted = newCurrent >= goal.target
+      // +1 for the goal just completed, which is not yet reflected in `goals`.
+      const completedGoalsCount = goals.filter(g => g.isCompleted).length + 1
+      const goalAchieverAchievement = achievements.find(a => a.id === 'goal-achiever')
 
-          if (!wasCompleted && isNowCompleted) {
-            mobileFeedback.achievement()
-            toast.success(`🎯 Goal completed: ${goal.title}!`)
-            
-            // Queue push notification for goal achievement
-            notificationPromises.push(
-              notificationManager.notifyGoalAchievement(goal.title, goal.description)
-                .catch(error => {
-                  // Silent notification failure
-                })
-            )
-            
-            // Check for goal achievement milestone
-            const completedGoalsCount = goals.filter(g => g.isCompleted).length + 1 // +1 for this newly completed goal
-            const goalAchieverAchievement = achievements.find(a => a.id === 'goal-achiever')
-            
-            if (goalAchieverAchievement && !goalAchieverAchievement.unlocked && completedGoalsCount >= goalAchieverAchievement.requirement) {
-              const updatedAchievements = achievements.map(achievement => {
-                if (achievement.id === 'goal-achiever') {
-                  return {
-                    ...achievement,
-                    progress: completedGoalsCount,
-                    unlocked: true,
-                    unlockedAt: new Date()
-                  }
-                }
-                return achievement
-              })
-              
-              achievementToUpdate = {
-                achievements: updatedAchievements,
-                achievement: goalAchieverAchievement
-              }
-              
-              // Queue push notification for achievement unlock
-              notificationPromises.push(
-                notificationManager.notifyAchievementUnlock(
-                  goalAchieverAchievement.title,
-                  goalAchieverAchievement.description
-                ).catch(error => {
-                  // Silent notification failure
-                })
-              )
-            }
-          }
-
-          return {
-            ...goal,
-            current: newCurrent,
-            isCompleted: isNowCompleted
-          }
-        }
-        
-        return goal
-      })
-
-      // Update goals first
-      setGoals(updatedGoals)
-      
-      // Handle achievement updates
-      if (achievementToUpdate) {
-        onUpdateAchievements(achievementToUpdate.achievements)
+      if (
+        goalAchieverAchievement &&
+        !goalAchieverAchievement.unlocked &&
+        completedGoalsCount >= goalAchieverAchievement.requirement
+      ) {
+        onUpdateAchievements(
+          achievements.map(achievement =>
+            achievement.id === 'goal-achiever'
+              ? { ...achievement, progress: completedGoalsCount, unlocked: true, unlockedAt: new Date() }
+              : achievement
+          )
+        )
         mobileFeedback.achievement()
-        toast.success(`Achievement Unlocked: ${achievementToUpdate.achievement.title}!`, {
-          description: achievementToUpdate.achievement.description,
+        toast.success(`Achievement Unlocked: ${goalAchieverAchievement.title}!`, {
+          description: goalAchieverAchievement.description,
           duration: 5000
         })
+        notificationPromises.push(
+          notificationManager
+            .notifyAchievementUnlock(goalAchieverAchievement.title, goalAchieverAchievement.description)
+            .catch(() => {
+              /* silent notification failure */
+            })
+        )
       }
-      
-      // Send all queued notifications
+
       await Promise.allSettled(notificationPromises)
     } catch (error) {
-      // Silent error handling for goals progress
+      // Silent: the session is already saved; goal progress is secondary.
     }
   }
 
@@ -723,7 +691,30 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none h-20"
               />
               
-              <Button 
+              {/*
+                Which goal this session counts toward. Defaults to "No goal":
+                opting in is the safe default, since a session silently credited
+                to the wrong goal is harder to notice and undo than one credited
+                to nothing. Only unfinished goals are offered -- adding minutes
+                to an already completed goal cannot change anything.
+              */}
+              <Select value={sessionGoalId} onValueChange={setSessionGoalId}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectValue placeholder="No goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_GOAL}>No goal &mdash; just track the time</SelectItem>
+                  {goals
+                    .filter(goal => !goal.isCompleted)
+                    .map(goal => (
+                      <SelectItem key={goal.id} value={goal.id}>
+                        {goal.title} ({goal.current}/{goal.target} min)
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              <Button
                 onClick={startSession}
                 className="w-full bg-accent hover:bg-accent/80 text-accent-foreground"
                 disabled={!sessionTitle.trim()}
@@ -742,6 +733,13 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
                     {activeFocusSession.category}
                   </Badge>
                 )}
+                {/* State the destination while it still matters. Once stopped,
+                    the minutes are already committed and there is no undo. */}
+                <p className="text-sm text-white/70">
+                  {linkedGoal
+                    ? `Counting toward: ${linkedGoal.title}`
+                    : 'Not counting toward any goal'}
+                </p>
               </div>
 
               <div className="text-6xl font-mono font-bold text-accent my-6">
