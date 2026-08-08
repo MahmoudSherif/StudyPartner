@@ -13,7 +13,31 @@
 */
 @custom-variant dark (&:is(.dark *));
 
-@config '../tailwind.config.js';
+/*
+  `@config '../tailwind.config.js'` was here and is deliberately gone.
+
+  That v3-style config replaced Tailwind's whole spacing scale with references
+  to `var(--size-1 … --size-96)` (tailwind.config.js:104), and those tokens are
+  declared in `./styles/theme.css` inside a `#spark-app { … }` block — leftover
+  GitHub Spark scaffolding. This app mounts on `#root` (see main.tsx) and has no
+  `#spark-app` element anywhere, so every one of those custom properties was
+  undefined.
+
+  The result: `p-4` compiled to `padding: var(--size-4)`, resolved to nothing,
+  and computed to 0. Every padding, margin, gap and inset in the app collapsed —
+  cards with no padding, inputs flush to the screen edge, and absolutely
+  positioned elements ignoring `right-0`/`top-0` and falling out of place. Colours
+  survived (they come from the `@theme` blocks), which is what made it look like
+  a styling problem rather than a broken theme config.
+
+  Without the `@config`, Tailwind v4 uses its native scale — `p-4` is
+  `calc(var(--spacing) * 4)` = 1rem — which is what these components were
+  written against. Nothing else was lost: the config's custom `coarse:`/`fine:`/
+  `pwa:` variants and its `neutral-*`/`fg-*`/`bg-*` colours had zero usages, and
+  `accent` resolves from `@theme` in index.css, not from the config.
+
+  Do not re-add it without also giving those `--size-*` tokens a live selector.
+*/
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -35,78 +59,44 @@
 }
 
 /*
-  ---break---
+  Palette note — READ THIS BEFORE ADDING TOKENS HERE.
+
+  The palette lives in `./index.css`, imported above: a dark navy base (hue
+  240) with a blue primary and an amber accent.
+
+  This file used to restate the entire stock shadcn *light* palette in `:root`
+  *after* that import. Same specificity, later in source order, so it silently
+  won: `--background` resolved to white and `--foreground` to near-black, while
+  54 components paint `text-white` on top of it. The app rendered white-on-white.
+
+  So `:root` here now carries only tokens index.css does not define. Do not
+  reintroduce `--background`, `--foreground`, `--primary`, `--border`, or
+  anything else index.css owns — it is the single source of truth for the
+  palette, and whatever is declared below it wins by source order.
+
+  There is deliberately no `.dark` block. The app is dark by default through
+  index.css's `:root`, and the stock grayscale `.dark` that used to sit here
+  would have flattened the brand hues the moment anything set the class.
 */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+  /* shadcn scaffold: `ui/chart.tsx` and `ui/sidebar.tsx` are not imported
+     anywhere today. The tokens are kept so those components work if adopted,
+     retuned onto the navy base — they shipped with light-theme values that
+     would have rendered a white sidebar on a dark app. */
+  --chart-1: oklch(0.62 0.19 250);
+  --chart-2: oklch(0.70 0.14 180);
+  --chart-3: oklch(0.75 0.17 65);
+  --chart-4: oklch(0.65 0.20 300);
+  --chart-5: oklch(0.68 0.19 15);
 
-/*
-  ---break---
-*/
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.15 0.05 240);
+  --sidebar-foreground: oklch(0.95 0.01 240);
+  --sidebar-primary: oklch(0.6 0.2 250);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.25 0.05 240);
+  --sidebar-accent-foreground: oklch(0.95 0.01 240);
+  --sidebar-border: oklch(0.3 0.05 240);
+  --sidebar-ring: oklch(0.6 0.2 250);
 }
 
 /*

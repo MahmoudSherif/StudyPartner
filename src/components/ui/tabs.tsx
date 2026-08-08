@@ -26,7 +26,11 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
+        // `min-h-9` rather than the stock fixed `h-9`: index.css gives every
+        // button a 44px min-height for touch targets, so a 36px-tall list left
+        // its triggers overflowing top and bottom. Letting the list grow keeps
+        // the touch target intact instead of shrinking it back.
+        "bg-muted text-muted-foreground inline-flex min-h-9 w-fit items-center justify-center rounded-lg p-[3px]",
         className
       )}
       {...props}
