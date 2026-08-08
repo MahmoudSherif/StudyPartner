@@ -262,25 +262,30 @@ export function ActivityCharts({ sessions, tasks = [], challenges = [], currentU
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="today" className="w-full">
+          {/* Five columns is ~62px per tab on a 390px screen, which an inline
+              icon plus a word like "Monthly" cannot fit -- they collided into
+              each other. The icon sits above the label instead, and is dropped
+              entirely on the narrowest phones where only the word fits. */}
           <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm">
-            <TabsTrigger value="today" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <Clock size={14} className="mr-1" />
+            <TabsTrigger value="today" className="flex-col gap-0.5 px-0.5 text-[10px] leading-tight sm:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <Clock size={14} className="hidden sm:block" />
               Today
             </TabsTrigger>
-            <TabsTrigger value="daily" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <Calendar size={14} className="mr-1" />
+            <TabsTrigger value="daily" className="flex-col gap-0.5 px-0.5 text-[10px] leading-tight sm:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <Calendar size={14} className="hidden sm:block" />
               Daily
             </TabsTrigger>
-            <TabsTrigger value="weekly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <Calendar size={14} className="mr-1" />
+            <TabsTrigger value="weekly" className="flex-col gap-0.5 px-0.5 text-[10px] leading-tight sm:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <Calendar size={14} className="hidden sm:block" />
               Weekly
             </TabsTrigger>
-            <TabsTrigger value="monthly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <ArrowUp size={14} className="mr-1" />
+            <TabsTrigger value="monthly" className="flex-col gap-0.5 px-0.5 text-[10px] leading-tight sm:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <ArrowUp size={14} className="hidden sm:block" />
               Monthly
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              📋 Tasks
+            <TabsTrigger value="tasks" className="flex-col gap-0.5 px-0.5 text-[10px] leading-tight sm:text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <span className="hidden sm:block">📋</span>
+              Tasks
             </TabsTrigger>
           </TabsList>
           <TabsContent value="tasks" className="space-y-4 mt-4">
@@ -354,8 +359,16 @@ export function ActivityCharts({ sessions, tasks = [], challenges = [], currentU
                         {hour.label}: {formatTime(hour.minutes)}
                       </div>
                     </div>
-                    <div className="text-xs text-white/70 text-center transform -rotate-45 origin-center mt-2">
-                      {hour.shortLabel}
+                    {/*
+                      Only every fourth hour is labelled. Twenty-four labels
+                      across a ~340px phone is about 14px each, and rotating
+                      them -45deg to compensate turned the axis into a solid
+                      unreadable band of overlapping digits. Six upright labels
+                      are legible, the bars stay one-per-hour, and the exact
+                      figure for any hour is still on the bar's tooltip.
+                    */}
+                    <div className="mt-2 h-4 text-center text-xs text-white/70">
+                      {index % 4 === 0 ? hour.shortLabel : ''}
                     </div>
                   </div>
                 ))}

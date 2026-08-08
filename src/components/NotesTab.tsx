@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -52,6 +53,7 @@ export function NotesTab() {
   
   // `loading` distinguishes "this user has no notes" from "the fetch has not
   // come back yet". Seeding on the latter wipes the board -- see the effect below.
+  const isMobile = useIsMobile()
   const [notes, setNotes, { loading }] = useNotes()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0])
@@ -103,11 +105,21 @@ export function NotesTab() {
   }, [loading, user?.uid, notes.length, setNotes])
 
   // Filter notes based on search
-  const filteredNotes = notes.filter(note => 
+  const matchedNotes = notes.filter(note =>
     note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     note.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   )
+
+  // The desktop board keeps whatever order it gets -- position, not sequence, is
+  // what places a note there. The mobile column has no positions, so pinned
+  // notes are surfaced first and the rest fall in newest-first order.
+  const filteredNotes = isMobile
+    ? [...matchedNotes].sort((a, b) => {
+        if (!!a.isPinned !== !!b.isPinned) return a.isPinned ? -1 : 1
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+    : matchedNotes
 
   // Get random position for new notes
   const getRandomPosition = (): Position => {
@@ -274,16 +286,32 @@ export function NotesTab() {
         </Button>
       </div>
 
-      {/* Notes Board */}
+      {/*
+        Two layouts, because a free-form pinboard does not survive a phone.
+
+        Notes carry absolute x/y and a fixed 250x200 size. The board is
+        `overflow-hidden`, and on a 390px screen it is roughly 340px wide, so
+        any note placed past x≈90 was clipped with no way to reach it -- the
+        rest overlapped into an unreadable stack. Dragging to fix that is not
+        available either, since the drag competes with touch scrolling.
+
+        So: below `md` the notes flow in a single responsive column, sized by
+        their content and ordered pinned-first. At `md` and up the original
+        draggable board is unchanged.
+      */}
       <div
         ref={boardRef}
-        className="relative min-h-[400px] md:min-h-[500px] lg:min-h-[600px] bg-black/20 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden"
-        onMouseMove={handleDragMove}
-        onMouseUp={handleDragEnd}
-        onMouseLeave={handleDragEnd}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ 
+        className={
+          isMobile
+            ? 'space-y-3'
+            : 'relative min-h-[400px] md:min-h-[500px] lg:min-h-[600px] bg-black/20 backdrop-blur-md rounded-lg border border-white/10 overflow-hidden'
+        }
+        onMouseMove={isMobile ? undefined : handleDragMove}
+        onMouseUp={isMobile ? undefined : handleDragEnd}
+        onMouseLeave={isMobile ? undefined : handleDragEnd}
+        onTouchMove={isMobile ? undefined : handleTouchMove}
+        onTouchEnd={isMobile ? undefined : handleTouchEnd}
+        style={isMobile ? undefined : {
           backgroundImage: `
             radial-gradient(circle at 20px 20px, rgba(255,255,255,0.05) 1px, transparent 1px),
             radial-gradient(circle at 60px 60px, rgba(255,255,255,0.05) 1px, transparent 1px)
@@ -292,7 +320,9 @@ export function NotesTab() {
         }}
       >
         {filteredNotes.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className={isMobile
+            ? 'flex items-center justify-center rounded-lg border border-white/10 bg-black/20 py-12 backdrop-blur-md'
+            : 'absolute inset-0 flex items-center justify-center'}>
             <div className="text-center">
               <div className="text-6xl mb-4">📝</div>
               <h3 className="text-white font-medium mb-2">No notes yet</h3>
@@ -314,21 +344,28 @@ export function NotesTab() {
             return (
               <div
                 key={note.id}
-                className={`absolute cursor-move select-none transition-all duration-200 ${
-                  isDragging ? 'z-50 rotate-2 scale-105' : 'z-10 hover:z-20 hover:scale-102'
-                }`}
-                style={{
+                className={
+                  isMobile
+                    ? 'flex w-full flex-col overflow-hidden rounded-lg select-none'
+                    : `absolute cursor-move select-none transition-all duration-200 ${
+                        isDragging ? 'z-50 rotate-2 scale-105' : 'z-10 hover:z-20 hover:scale-102'
+                      }`
+                }
+                style={isMobile ? {
+                  backgroundColor: note.color,
+                  boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+                } : {
                   left: note.position.x,
                   top: note.position.y,
                   width: note.size.width,
                   height: note.size.height,
                   backgroundColor: note.color,
-                  boxShadow: isDragging 
-                    ? '0 20px 40px rgba(0,0,0,0.4)' 
+                  boxShadow: isDragging
+                    ? '0 20px 40px rgba(0,0,0,0.4)'
                     : '0 8px 16px rgba(0,0,0,0.2)'
                 }}
-                onMouseDown={(e) => handleDragStart(e, note.id)}
-                onTouchStart={(e) => handleTouchStart(e, note.id)}
+                onMouseDown={isMobile ? undefined : (e) => handleDragStart(e, note.id)}
+                onTouchStart={isMobile ? undefined : (e) => handleTouchStart(e, note.id)}
               >
                 {/* Note Header */}
                 <div className="p-3 border-b border-black/10">
@@ -397,10 +434,12 @@ export function NotesTab() {
                   </div>
                 )}
 
-                {/* Move Handle */}
-                <div className="absolute bottom-1 right-1 opacity-40 hover:opacity-80">
-                  <ArrowsOutCardinal size={16} className="text-gray-600" />
-                </div>
+                {/* Move handle: drag only exists on the desktop board. */}
+                {!isMobile && (
+                  <div className="absolute bottom-1 right-1 opacity-40 hover:opacity-80">
+                    <ArrowsOutCardinal size={16} className="text-gray-600" />
+                  </div>
+                )}
               </div>
             )
           })

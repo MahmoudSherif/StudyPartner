@@ -111,36 +111,50 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-                {user?.photoURL ? (
-                  <img
-                    src={user.photoURL}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <UserIcon size={24} className="text-primary" />
-                )}
+          {/*
+            The address gets its own full-width row rather than sharing one with
+            the avatar and the sign-out button. Between those two there is only
+            about 150px left at 320px: `truncate` cut it to "tester@exampl..."
+            and hid the domain, which is the part that tells you which account
+            you are signed in as, and simply wrapping in place broke it into a
+            four-line sliver. On `sm` and up there is room, so it sits inline as
+            before.
+          */}
+          <div className="space-y-2">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0 sm:gap-4">
+                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  {user?.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt="Profile"
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <UserIcon size={24} className="text-primary" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-medium text-white truncate">
+                    {user?.displayName || user?.email?.split('@')[0] || 'User'}
+                  </h3>
+                </div>
               </div>
-              <div className="min-w-0 flex-1 space-y-1">
-                <h3 className="font-medium text-white truncate">
-                  {user?.displayName || user?.email?.split('@')[0] || 'User'}
-                </h3>
-                <p className="text-sm text-white/70 truncate">{user?.email}</p>
-              </div>
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                size="sm"
+                className="flex-shrink-0 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+              >
+                <SignOut size={16} className="mr-2" />
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">Out</span>
+              </Button>
             </div>
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              size="sm"
-              className="flex-shrink-0 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
-            >
-              <SignOut size={16} className="mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
-              <span className="sm:hidden">Out</span>
-            </Button>
+            {/* Rendered once, not once per breakpoint: two copies differing only
+                by `hidden`/`sm:hidden` would be read out twice by a screen
+                reader and matched twice by any query. */}
+            <p className="text-sm text-white/70 break-all">{user?.email}</p>
           </div>
         </CardContent>
       </Card>
