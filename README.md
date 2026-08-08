@@ -94,36 +94,61 @@ working. If it vanishes, open the console — see [Troubleshooting](#troubleshoo
 
 ### 3. Create the Cloudflare Pages project
 
-CI deploys are non-interactive and cannot create the project, so do this once:
+**Cloudflare builds this repository itself.** There is no GitHub Actions
+workflow: you connect the repo once, and every push to `main` triggers a build
+on Cloudflare's runners.
 
-```bash
-npx wrangler login
-npx wrangler pages project create motivamate --production-branch main
-```
+Dashboard → Workers & Pages → Create → Pages → **Connect to Git** → authorise
+GitHub → pick `StudyPartner`.
 
-The name must match `name` in `wrangler.toml`. If you use a different one,
-change it there too — CI reads it from that file.
-
-> Deploys are **direct upload** from GitHub Actions. Do *not* also connect the
-> Pages project to your Git repo in the Cloudflare dashboard; a project uses one
-> method or the other, and both at once causes competing deployments.
-
-### 4. Add the secrets and push
-
-GitHub → Settings → Secrets and variables → Actions → New repository secret:
-
-| Secret | Where to get it |
+| Setting | Value |
 |---|---|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → **Edit Cloudflare Workers** template |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare → Workers & Pages → right sidebar |
+| Project name | `motivamate` |
+| Production branch | `main` |
+| Framework preset | **Vite** |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Root directory | *(leave empty)* |
+
+Two things that are easy to get wrong:
+
+- **Pick `Vite`, not `React`.** The React preset assumes Create React App and
+  sets the output directory to `build`. This is a Vite app and builds to `dist`
+  (`wrangler.toml`), so the React preset deploys an empty site.
+- **The project name must be `motivamate`**, matching `name` in `wrangler.toml`.
+  Cloudflare defaults it to the repository name (`studypartner`), which does not
+  match and fails the deploy step. It also decides your
+  `<name>.pages.dev` hostname.
+
+> **Already have a Direct Upload project?** A Pages project cannot be converted
+> from Direct Upload to Git integration — delete the old `motivamate` project
+> first (project → Settings → Delete project), then create it fresh with the
+> steps above under the same name to keep the same `motivamate.pages.dev`
+> hostname.
+
+### 4. Add the environment variables and push
+
+Cloudflare's build runners cannot read GitHub secrets, so the Supabase values go
+in the Cloudflare dashboard: project → Settings → **Variables and Secrets**.
+
+Add all four to **Production *and* Preview** — a variable set only on Production
+gives every preview branch an unconfigured build:
+
+| Variable | Value |
+|---|---|
 | `VITE_SUPABASE_URL` | Supabase → Settings → API → Project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase → Settings → API → `anon` `public` key |
+| `VITE_ENVIRONMENT` | `production` |
+| `NODE_VERSION` | `20` |
+
+`NODE_VERSION` is not optional. Cloudflare's default Node is older than this
+project's dependencies expect.
 
 The two `VITE_` values are compiled into the browser bundle and are visible to
 anyone who opens devtools. That is by design — the anon key only identifies the
 project, and RLS decides what each authenticated user may read or write. They
-live in secrets so builds target the intended project, not because they need
-hiding.
+live in dashboard variables so builds target the intended Supabase project, not
+because they need hiding.
 
 Then:
 
@@ -131,17 +156,20 @@ Then:
 git push origin main
 ```
 
-`.github/workflows/deploy.yml` installs, verifies both Supabase secrets are
-present (a missing one would otherwise inline an empty string and fail at
-runtime with an opaque error), builds, and deploys.
+Cloudflare installs, builds, and deploys. Watch it under the project's
+Deployments tab.
 
-**Deploying by hand instead:**
+If either Supabase variable is missing, the build **fails** with a message
+naming it, rather than succeeding and shipping a bundle that breaks in the
+browser — see the guard in `vite.config.ts`. Vite inlines an empty string for a
+missing `VITE_` variable, which is otherwise very hard to diagnose from the
+front end.
 
-```bash
-npm ci
-npm run build
-npx wrangler pages deploy      # reads name + dist from wrangler.toml
-```
+There is no by-hand deploy path any more, by design. A Git-connected project
+does not accept direct uploads, and hand-uploading a locally built `dist/` is
+what previously put a build pointing at `http://localhost:54321` onto the live
+site: `.env.local` holds the local Supabase URL, and Vite bakes it in. Push and
+let Cloudflare build.
 
 ---
 

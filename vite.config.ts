@@ -1,13 +1,49 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import { resolve } from 'path'
+
+// Without these the app builds cleanly and then fails in the browser.
+const REQUIRED_ENV = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY']
+
+// Vite inlines an empty string for a missing VITE_ variable rather than
+// erroring, so an unset value ships a bundle that looks fine and dies at runtime
+// with an opaque Supabase error. Worse, a *stale* value (a localhost URL left in
+// .env.local, say) ships a production build that points at nothing.
+//
+// This check used to be a step in .github/workflows/deploy.yml. The build now
+// runs on Cloudflare Pages, which has no pre-build hook, so it lives here — the
+// build itself is the only place left that sees every deploy.
+//
+// Both sources are read: Cloudflare and CI supply these as real process
+// environment variables, while a local `npm run build` gets them from .env files.
+function assertRequiredEnv(mode: string) {
+  const fromFiles = loadEnv(mode, process.cwd(), 'VITE_')
+  const missing = REQUIRED_ENV.filter(key => !(process.env[key] || fromFiles[key]))
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Cannot build: ${missing.join(' and ')} not set.\n` +
+      'For a deploy, set them in Cloudflare dashboard > Workers & Pages > ' +
+      'motivamate > Settings > Variables and Secrets (Production *and* Preview).\n' +
+      'For a local build, put them in .env. See .env.example.'
+    )
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    {
+      name: 'assert-required-env',
+      // Build only. `npm run dev` against an unconfigured checkout should still
+      // start and show the console warning from src/lib/supabase.ts, not refuse
+      // to boot.
+      apply: 'build',
+      config: (_config, { mode }) => { assertRequiredEnv(mode) },
+    },
   ],
   resolve: {
     alias: {

@@ -1,13 +1,15 @@
 # Cloudflare Pages project configuration.
 #
 # The presence of `pages_build_output_dir` is what marks this as a Pages project
-# rather than a Worker. With it set, `wrangler pages deploy` needs no arguments:
-# it reads the project name and the upload directory from this file, so CI and
-# local deploys cannot drift apart.
+# rather than a Worker. Cloudflare reads this file on its own build runners
+# after cloning the repo, so the output directory travels with the source
+# instead of living only in a dashboard field someone can edit out of step.
 
-# Must match the Cloudflare Pages project name exactly. Create the project once
-# with `wrangler pages project create motivamate --production-branch main`
-# (see CLOUDFLARE_DEPLOY.md); a non-interactive CI deploy cannot create it.
+# Must match the Cloudflare Pages project name exactly, or the deploy step
+# fails. The project is created once through the dashboard — Workers & Pages >
+# Create > Pages > Connect to Git — not from the CLI; see CLOUDFLARE_DEPLOY.md.
+# Cloudflare pre-fills the *repository* name (`studypartner`), which does not
+# match and must be changed at creation time.
 name = "motivamate"
 
 # `npm run build` output directory. public/_headers and public/_redirects are

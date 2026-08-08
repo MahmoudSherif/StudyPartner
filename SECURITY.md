@@ -22,8 +22,8 @@ reporting" and contains **no** technical detail, and wait to be contacted.
 
 Please include as much of the following as you can:
 
-- The type of issue (for example XSS, auth bypass, exposed credentials, insecure
-  Firestore rule).
+- The type of issue (for example XSS, auth bypass, exposed credentials, a Row
+  Level Security policy that lets one user reach another's rows).
 - The affected file(s) and the branch or commit you tested.
 - Step-by-step instructions to reproduce, and a proof of concept if you have one.
 - What an attacker could actually achieve, and any preconditions required.
@@ -44,10 +44,12 @@ You will be credited in the advisory unless you ask not to be.
 In scope:
 
 - The application source in this repository (`src/`, `public/sw.js`, `index.html`).
-- The Cloud Functions backend (`functions/`).
-- Build and deployment configuration in this repository (`netlify.toml`,
-  `firebase.json`, `firestore.rules`, and the GitHub Actions workflows in
-  `.github/workflows/`).
+- The Supabase schema, migrations, and Row Level Security policies
+  (`supabase/migrations/`), which are what actually enforce data isolation.
+- Build and deployment configuration in this repository (`wrangler.toml`,
+  `vite.config.ts`, `public/_headers`, and `public/_redirects`). The build runs
+  on Cloudflare Pages from a Git connection; there is no CI workflow in this
+  repository.
 - Authentication and data-isolation flaws, such as one user being able to read or
   modify another user's study data.
 - Secrets or credentials committed to the repository.
@@ -55,8 +57,8 @@ In scope:
 
 Out of scope:
 
-- Vulnerabilities in third-party services the app depends on (Firebase, Google
-  Sign-In, Netlify). Report those to the relevant vendor.
+- Vulnerabilities in third-party services the app depends on (Supabase,
+  Cloudflare Pages). Report those to the relevant vendor.
 - Findings that require a compromised device, a malicious browser extension, or
   physical access to an unlocked device.
 - Missing hardening headers or automated-scanner output with no demonstrated
@@ -73,7 +75,7 @@ fixes. There are no long-term support branches.
 
 ## Data Handling Note
 
-The app stores study sessions, tasks, and profile data in Firebase on behalf of the
+The app stores study sessions, tasks, and profile data in Supabase on behalf of the
 signed-in user. If a report involves real user data, please stop as soon as you have
 confirmed the issue, do not download or retain any data that is not your own, and say
 so in the advisory.
