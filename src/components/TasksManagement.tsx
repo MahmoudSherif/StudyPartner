@@ -544,20 +544,35 @@ export function TasksManagement({
                   className={`bg-white/10 rounded-lg p-4 border border-white/20 ${task.completed ? 'opacity-60' : ''}`}
                 >
                   <div className="flex items-start gap-3">
+                    {/*
+                      The tap target is the 44px button; the visible control is the
+                      24px ring inside it. Sizing the button itself to h-6 w-6 does
+                      not work here -- index.css gives every button a 44px
+                      min-height for touch, so it rendered as a 44px disc that
+                      dominated the row. `ghost` rather than `outline` because
+                      `outline` carries `bg-background`, which on this translucent
+                      card reads as a solid dark hole rather than an empty circle.
+                    */}
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={() => {
                         mobileFeedback.buttonPress()
                         onToggleTask(task.id)
                       }}
-                      className={`flex-shrink-0 mt-0.5 p-1 h-6 w-6 rounded-full border-2 ${
-                        task.completed
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-white/30 hover:border-white/50'
-                      }`}
+                      aria-pressed={task.completed}
+                      aria-label={task.completed ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
+                      className="flex-shrink-0 -ml-2 -mt-2 size-11 rounded-full p-0 hover:bg-white/10"
                     >
-                      {task.completed && <Check size={12} />}
+                      <span
+                        className={`flex size-6 items-center justify-center rounded-full border-2 transition-colors ${
+                          task.completed
+                            ? 'bg-green-500 border-green-500 text-white'
+                            : 'border-white/30'
+                        }`}
+                      >
+                        {task.completed && <Check size={12} />}
+                      </span>
                     </Button>
 
                     <div className="flex-1 min-w-0 space-y-2">
@@ -930,9 +945,11 @@ export function TasksManagement({
                         return (
                           <div key={task.id} className="bg-white/5 rounded p-3 flex items-center justify-between">
                             <div className="flex items-center gap-3">
+                              {/* Same 44px-target / 24px-ring split as the personal
+                                  task toggle above -- see the comment there. */}
                               <Button
                                 size="sm"
-                                variant="outline"
+                                variant="ghost"
                                 onClick={async () => {
                                   if (pending) return
                                   setPendingTaskToggles(p => ({ ...p, [key]: true }))
@@ -941,9 +958,15 @@ export function TasksManagement({
                                   }
                                 }}
                                 disabled={isEnded}
-                                className={`relative p-1 h-6 w-6 rounded-full border-2 ${completed ? 'bg-green-500 border-green-500 text-white' : 'border-white/30 hover:border-white/50'} ${isEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                aria-pressed={completed}
+                                aria-label={completed ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
+                                className={`relative -ml-2 size-11 flex-shrink-0 rounded-full p-0 hover:bg-white/10 ${isEnded ? 'cursor-not-allowed opacity-50' : ''}`}
                               >
-                                {pending ? <span className="animate-spin text-[10px]">⏳</span> : (completed && <Check size={12} />)}
+                                <span
+                                  className={`flex size-6 items-center justify-center rounded-full border-2 transition-colors ${completed ? 'bg-green-500 border-green-500 text-white' : 'border-white/30'}`}
+                                >
+                                  {pending ? <span className="animate-spin text-[10px]">⏳</span> : (completed && <Check size={12} />)}
+                                </span>
                               </Button>
                               <div>
                                 <span className={`text-sm ${completed ? 'line-through text-white/60' : 'text-white'}`}>{task.title}</span>

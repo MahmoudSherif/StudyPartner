@@ -62,6 +62,41 @@ export default defineConfig({
       apply: 'build',
       config: (_config, { mode }) => { assertRequiredEnv(mode) },
     },
+    {
+      // The CSP in index.html allows Supabase only at https://*.supabase.co, so
+      // pointing VITE_SUPABASE_URL at a local stack (`supabase start` serves
+      // http://127.0.0.1:54321) means every auth and REST call is blocked before
+      // it leaves the page — sign-in fails with a bare CSP violation and no
+      // application-level error. That made the documented local workflow in
+      // README impossible to actually run.
+      //
+      // Dev server only. Production is unaffected in two ways: this never runs
+      // for a build, and on Cloudflare the authoritative policy is
+      // public/_headers, which browsers intersect with the meta tag — so an
+      // origin added here could not widen the deployed policy even if it leaked.
+      name: 'dev-csp-allow-local-supabase',
+      apply: 'serve',
+      transformIndexHtml: {
+        order: 'pre',
+        handler(html, ctx) {
+          const url = ctx.server?.config.env.VITE_SUPABASE_URL as string | undefined
+          if (!url) return html
+          let parsed: URL
+          try { parsed = new URL(url) } catch { return html }
+          if (parsed.hostname.endsWith('.supabase.co')) return html // already permitted
+          // Both schemes, mirroring the https/wss pair the production policy
+          // carries: Supabase Realtime opens a websocket, and allowing only the
+          // http origin blocks it while leaving REST and auth working — the
+          // confusing half-broken state where data loads but nothing updates live.
+          const ws = `${parsed.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsed.host}`
+          return html.replace(
+            /(<meta http-equiv="Content-Security-Policy" content=")([^"]*)(")/i,
+            (_m, open, policy: string, close) =>
+              open + policy.replace(/connect-src ([^;]*)/, `connect-src $1 ${parsed.origin} ${ws}`) + close
+          )
+        },
+      },
+    },
   ],
   resolve: {
     alias: {
