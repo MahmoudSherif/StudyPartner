@@ -38,6 +38,48 @@ const SHELL_ASSETS = [
   '/favicon.ico'
 ];
 
+/**
+ * Precaches the hashed build assets that index.html references.
+ *
+ * Without this, the first visit never populates ASSET_CACHE. The page that
+ * registers this worker is not yet controlled by it, so its /assets/* requests
+ * bypass the fetch handler and are never cached. The shell would be cached
+ * while the JS and CSS it boots from were not, so going offline after a single
+ * session served index.html out of cache with nothing to run -- a blank page,
+ * not even the offline fallback. It only started working from the second online
+ * load onward, once the worker was controlling.
+ *
+ * The filenames are content-hashed and so cannot be listed in this static file;
+ * they are read out of the shell HTML instead. Fonts referenced from CSS rather
+ * than HTML are not covered and still cache on first use, which degrades to a
+ * fallback face rather than a broken page.
+ */
+async function precacheReferencedAssets() {
+  try {
+    const response = await fetch(new Request('/index.html', { cache: 'reload' }));
+    if (!response || !response.ok) return;
+    const html = await response.text();
+    const urls = new Set();
+    for (const match of html.matchAll(/(?:src|href)="(\/assets\/[^"]+)"/g)) {
+      urls.add(match[1]);
+    }
+    if (urls.size === 0) return;
+    const cache = await caches.open(ASSET_CACHE);
+    await Promise.all(
+      [...urls].map(async (path) => {
+        try {
+          if (await cache.match(path, { ignoreVary: true })) return;
+          await cache.add(new Request(path, { cache: 'reload' }));
+        } catch (error) {
+          console.warn('[SW] Could not precache asset', path);
+        }
+      })
+    );
+  } catch (error) {
+    console.warn('[SW] Asset precache failed');
+  }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
@@ -53,6 +95,7 @@ self.addEventListener('install', (event) => {
           }
         })
       );
+      await precacheReferencedAssets();
     })()
   );
   self.skipWaiting();
@@ -117,7 +160,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         } catch (error) {
-          const cached = await caches.match('/index.html', { cacheName: SHELL_CACHE });
+          const cached = await caches.match('/index.html', { cacheName: SHELL_CACHE, ignoreVary: true });
           return (
             cached ||
             new Response('<h1>Offline</h1><p>Reconnect to load MotivaMate.</p>', {
@@ -137,7 +180,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       (async () => {
         const cache = await caches.open(ASSET_CACHE);
-        const cached = await cache.match(request);
+        // ignoreVary: these URLs are same-origin and content-hashed, so the URL
+        // alone identifies the bytes. Honouring Vary breaks the precache: a
+        // server that answers `Vary: Origin` (vite preview does) makes an entry
+        // stored from a worker-issued request, which carries no Origin, fail to
+        // match the page's own `crossorigin` module request, which does. The
+        // asset then reads as uncached and the app boots to a blank page
+        // offline despite everything it needs being present.
+        const cached = await cache.match(request, { ignoreVary: true });
         if (cached) return cached;
         try {
           const response = await fetch(request);
@@ -167,7 +217,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         } catch (error) {
-          const cached = await caches.match(request, { cacheName: SHELL_CACHE });
+          const cached = await caches.match(request, { cacheName: SHELL_CACHE, ignoreVary: true });
           return cached || Response.error();
         }
       })()
