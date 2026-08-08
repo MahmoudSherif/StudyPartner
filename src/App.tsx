@@ -812,8 +812,17 @@ function AppContent() {
   }
 
 
+  // The wrapper below is deliberately NOT `.mobile-scroll-container`. That class
+  // sets `overflow-y: auto` with `overscroll-behavior-y: contain`, which only
+  // makes sense on an element with a bounded height. This wrapper is
+  // `min-h-screen` and grows with its content, so it became a scroll container
+  // whose content exactly filled it -- nothing to scroll -- while
+  // `overscroll-behavior: contain` stopped wheel and touch scrolling from
+  // chaining up to the viewport, which is what actually holds the overflow. The
+  // page could not be scrolled by wheel or touch at all, though `window.scrollTo`
+  // still worked. The document is the scroller here.
   return (
-    <div className="min-h-screen relative mobile-scroll-container" ref={containerRef as React.RefObject<HTMLDivElement>}>
+    <div className="min-h-screen relative" ref={containerRef as React.RefObject<HTMLDivElement>}>
       <SpaceBackground />
       <OfflineIndicator />
       {!isStandalone && <PWAInstallPrompt />}

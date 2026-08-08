@@ -246,8 +246,11 @@ export function useGoals() {
 
 // --- sticky notes ----------------------------------------------------------
 
+// Returns the sync meta as a third element, unlike its siblings. Anything that
+// seeds default content needs to tell "no notes" apart from "not loaded yet" --
+// see the welcome note in NotesTab.
 export function useNotes() {
-  const [items, setItems] = useSyncedCollection<StickyNote>({
+  const [items, setItems, meta] = useSyncedCollection<StickyNote>({
     table: 'sticky_notes',
     cacheKey: 'sticky-notes',
     order: { column: 'created_at', ascending: false },
@@ -276,7 +279,7 @@ export function useNotes() {
       tags: note.tags ?? []
     })
   })
-  return [items, setItems] as const
+  return [items, setItems, meta] as const
 }
 
 // --- calendar --------------------------------------------------------------

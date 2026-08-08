@@ -11,6 +11,9 @@ import { AuthProvider } from '@/contexts/AuthContext'
 // must too.
 const EMPTY: any[] = []
 const NOOP = vi.fn()
+// useSyncedCollection's third element. NotesTab reads `loading` from it to tell
+// "no notes yet" apart from "fetch has not returned" before seeding.
+const SYNC_META = { loading: false, error: null, refresh: NOOP }
 
 const STUDY_PARTNER_SETTINGS = { apiUrl: '', autoSync: false }
 
@@ -47,7 +50,7 @@ vi.mock('@/hooks/useAppData', () => ({
   useActiveFocusSession: () => [null, NOOP],
   useTasks: () => [EMPTY, NOOP],
   useGoals: () => [EMPTY, NOOP],
-  useNotes: () => [EMPTY, NOOP],
+  useNotes: () => [EMPTY, NOOP, SYNC_META],
   useCalendarEvents: () => [EMPTY, NOOP],
   useAchievements: () => [EMPTY, NOOP],
   useTheme: () => ['dark', NOOP],

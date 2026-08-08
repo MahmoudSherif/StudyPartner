@@ -133,7 +133,9 @@ export function Calendar({ subjects }: CalendarProps) {
       startTime: '09:00',
       endTime: '10:00'
     })
-    setSelectedDate(null)
+    // Selection is deliberately kept. Clearing it here collapsed the day panel
+    // the instant an event was saved, so the event you had just created was
+    // never shown and the day looked unchanged.
     toast.success('Event added successfully!')
   }
 
@@ -165,7 +167,11 @@ export function Calendar({ subjects }: CalendarProps) {
         </div>
         <Button
           onClick={() => {
-            setSelectedDate(today)
+            // Only fall back to today when no day is chosen. This used to assign
+            // `today` unconditionally, so tapping a day and then Add Event threw
+            // the selection away and filed the event under today -- every event
+            // landed on the current day regardless of which one was picked.
+            setSelectedDate(prev => prev ?? today)
             setIsAddEventOpen(true)
           }}
           className="bg-accent hover:bg-accent/80 text-accent-foreground"

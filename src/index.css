@@ -61,7 +61,14 @@
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Ensure proper scrolling on mobile */
+  /* Bounded scroll areas only -- e.g. a dialog body or a fixed-height list.
+     Applying this to an element that grows with its content (min-h-screen and
+     the like) breaks scrolling outright: the element becomes a scroll container
+     whose content exactly fills it, so it has nothing to scroll, and
+     `overscroll-behavior-y: contain` then stops wheel and touch scrolling from
+     chaining up to the viewport that does hold the overflow. The page freezes
+     while `window.scrollTo` keeps working, which makes it look like anything but
+     a CSS problem. It was on the App root for exactly this reason; see App.tsx. */
   .mobile-scroll-container {
     overflow-y: auto;
     overflow-x: hidden;

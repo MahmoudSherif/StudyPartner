@@ -50,8 +50,9 @@ export function NotesTab() {
   const currentUserId = user?.uid || 'anonymous'
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
-  // Use Firebase hook for notes storage
-  const [notes, setNotes] = useNotes()
+  // `loading` distinguishes "this user has no notes" from "the fetch has not
+  // come back yet". Seeding on the latter wipes the board -- see the effect below.
+  const [notes, setNotes, { loading }] = useNotes()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0])
   const [showAddNote, setShowAddNote] = useState(false)
@@ -66,29 +67,40 @@ export function NotesTab() {
     tags: ''
   })
 
-  // Initialize notes with random positions if empty
+  // Seed a welcome note for genuinely empty boards.
+  //
+  // This used to destroy data. It keyed off `notes.length === 0` while only
+  // depending on `user?.uid`, so it ran the moment a user id existed -- before
+  // the remote fetch had resolved, when the collection is empty for every user.
+  // It then called `setNotes([welcomeNote])`, a whole-collection replace, so
+  // every real note was deleted from the server on load and the board was left
+  // holding one hardcoded note. Reloading after writing a note reliably lost it.
+  //
+  // Three things keep that from happening again: wait for `loading` to finish so
+  // empty means empty; append rather than replace; and seed at most once per
+  // mount, since `notes` is now a dependency and the write re-runs the effect.
+  const seededRef = useRef(false)
   useEffect(() => {
-    try {
-      if (notes.length === 0 && user?.uid) {
-        const welcomeNote: StickyNote = {
-          id: 'welcome-note',
-          title: 'Welcome to Notes! 📝',
-          content: 'This is your digital sticky note board. Create, organize, and manage your thoughts and ideas here!',
-          color: NOTE_COLORS[0].value,
-          position: { x: 20, y: 20 },
-          size: { width: 250, height: 200 },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          isPinned: true,
-          tags: ['welcome', 'tutorial']
-        }
-        setNotes([welcomeNote])
-      }
-    } catch (error) {
-      // Error handling for production
-      // Don't show user error for initialization
+    if (loading || !user?.uid) return
+    if (seededRef.current) return
+    if (notes.length > 0) { seededRef.current = true; return }
+
+    seededRef.current = true
+    const welcomeNote: StickyNote = {
+      // A real id: ids must be UUIDs, and 'welcome-note' is not one.
+      id: newId(),
+      title: 'Welcome to Notes! 📝',
+      content: 'This is your digital sticky note board. Create, organize, and manage your thoughts and ideas here!',
+      color: NOTE_COLORS[0].value,
+      position: { x: 20, y: 20 },
+      size: { width: 250, height: 200 },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isPinned: true,
+      tags: ['welcome', 'tutorial']
     }
-  }, [user?.uid])
+    setNotes(current => [...current, welcomeNote])
+  }, [loading, user?.uid, notes.length, setNotes])
 
   // Filter notes based on search
   const filteredNotes = notes.filter(note => 
