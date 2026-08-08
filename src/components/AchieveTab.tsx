@@ -75,12 +75,27 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
 
   const timerStateKey = `${currentUserId}-active-timer-state`
 
+  // Which session the adopt effect below has already taken over. Declared here,
+  // above the mirror effect, because that effect must not run before adoption.
+  const adoptedSessionRef = useRef<string | null>(null)
+
   // Mirror the timer to localStorage so a refresh resumes where it left off.
   // This is deliberately NOT a database write: the previous implementation
   // pushed the elapsed time to Postgres once per second, which is one UPDATE,
   // one realtime echo and one refetch every second the timer ran.
   useEffect(() => {
     if (!currentUserId || !activeFocusSession || activeFocusSession.completed) return
+    // Nothing is written until this session has been adopted.
+    //
+    // Both this effect and the adopt effect depend on `activeFocusSession`, and
+    // React runs them in declaration order. When a running session arrived from
+    // the server this one fired first and wrote the *initial* render state --
+    // elapsedBase 0, runStartedAt null, isRunning false -- into the very key the
+    // adopt effect reads. Adoption then found a valid entry, treated it as
+    // restored, and discarded the elapsed time derived from the session's
+    // startTime. Reopening the app mid-session showed 0:00 and stopping recorded
+    // a duration of 0, so the study time was lost.
+    if (adoptedSessionRef.current !== activeFocusSession.id) return
     try {
       localStorage.setItem(
         timerStateKey,
@@ -103,8 +118,8 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
   })
 
   // Adopt whatever session is already running when this tab mounts, whether it
-  // was left by a refresh or started on another device.
-  const adoptedSessionRef = useRef<string | null>(null)
+  // was left by a refresh or started on another device. (`adoptedSessionRef` is
+  // declared above, next to the effect that depends on it.)
   useEffect(() => {
     if (!activeFocusSession || activeFocusSession.completed) return
     if (adoptedSessionRef.current === activeFocusSession.id) return

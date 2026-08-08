@@ -148,7 +148,27 @@ export function useActiveFocusSession(): [
 ] {
   const [sessions, setSessions] = useFocusSessions()
 
-  const active = useMemo(() => sessions.find(s => s.isRunning) ?? null, [sessions])
+  // A paused session is still the active one.
+  //
+  // This was `sessions.find(s => s.isRunning)`, but pausing writes
+  // `isRunning: false` to the row, so the act of pausing made the session stop
+  // being "active": the timer card unmounted, the empty start form came back,
+  // and the row was stranded at `is_running = false, completed = false` with
+  // whatever time it had accrued. Pressing Pause lost the session.
+  //
+  // A session is active until it is stopped, which is what sets `completed`.
+  // The running one wins if there is one; otherwise the most recently started
+  // unfinished session, which is the one just paused. Rows stranded by the old
+  // behaviour are superseded by any newer session rather than resurfacing.
+  const active = useMemo(() => {
+    const running = sessions.find(s => s.isRunning)
+    if (running) return running
+    const unfinished = sessions.filter(s => !s.completed)
+    if (unfinished.length === 0) return null
+    return unfinished.reduce((newest, s) =>
+      new Date(s.startTime).getTime() > new Date(newest.startTime).getTime() ? s : newest
+    )
+  }, [sessions])
 
   const setActive = useCallback(
     (value: FocusSession | null | ((prev: FocusSession | null) => FocusSession | null)) => {
