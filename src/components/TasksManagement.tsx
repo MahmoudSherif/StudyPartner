@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Task, Challenge, Subject, TaskProgress } from '@/lib/types'
-import { firestoreService } from '@/lib/firestore'
+import { Task, Challenge, Subject, TaskProgress, ChallengeTask as ChallengeTaskType } from '@/lib/types'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { 
   Plus, 
@@ -23,8 +22,25 @@ import {
   Copy,
   Share
 } from '@phosphor-icons/react'
-import { isChallengeTaskCompletedForUser, countTaskCompletions } from '@/lib/challengeTasks'
 import { toast } from 'sonner'
+
+// Determine if a challenge task is completed for a specific user using the per-user completions map.
+// Falls back to the legacy completedBy array only if no completions map exists.
+function isChallengeTaskCompletedForUser(task: ChallengeTaskType, userId: string): boolean {
+  if (!task) return false
+  if (task.completions && typeof task.completions === 'object') {
+    return !!task.completions[userId]?.completed
+  }
+  return task.completedBy?.includes(userId)
+}
+
+// Count how many users have completed a task, preferring the completions map.
+function countTaskCompletions(task: ChallengeTaskType): number {
+  if (task.completions) {
+    return Object.values(task.completions).filter(m => !!m?.completed).length
+  }
+  return task.completedBy?.length || 0
+}
 
 interface TasksManagementProps {
   tasks: Task[]
@@ -40,7 +56,9 @@ interface TasksManagementProps {
   onAddChallengeTask: (challengeId: string, task: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => Promise<void>
   onToggleChallengeTask: (challengeId: string, taskId: string) => Promise<void>
   onSwitchProgressView: () => void
-  onEndChallenge?: (challengeId: string, winnerId: string) => Promise<void>
+  // The winner is decided server-side from completion rows, so callers no
+  // longer nominate one.
+  onEndChallenge?: (challengeId: string) => Promise<void>
   userNames?: Record<string,string>
 }
 
@@ -220,7 +238,8 @@ export function TasksManagement({
     }
 
     const challenge: Omit<Challenge, 'id' | 'createdAt'> = {
-      code: Math.random().toString(36).substring(2, 8).toUpperCase(),
+      // The invite code is generated server-side by the create_challenge RPC.
+      code: '',
       title: sanitizedTitle,
       description: sanitizedDescription || '',
       createdBy: currentUserId,
@@ -289,29 +308,10 @@ export function TasksManagement({
   const handleEndChallenge = async (challengeId: string, winnerId: string) => {
     if (onEndChallenge) {
       try {
-        await onEndChallenge(challengeId, winnerId)
+        await onEndChallenge(challengeId)
       } catch (error) {
         // Error handling is done in the parent component
       }
-    }
-  }
-
-  // Debug function to list all challenges in database
-  const debugListAllChallenges = async () => {
-    try {
-      const result = await firestoreService.getAllSharedChallenges(true)
-
-      if (result.data && result.data.length > 0) {
-        toast.success(`Found ${result.data.length} challenges in Firestore`)
-      } else {
-        toast.info('No challenges found in Firestore')
-      }
-
-      if (result.error) {
-        toast.error('Debug failed: ' + result.error)
-      }
-    } catch (error) {
-      toast.error('Debug exception occurred')
     }
   }
 

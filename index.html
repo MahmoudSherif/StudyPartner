@@ -6,10 +6,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>MotivaMate - Your Mobile Study Companion</title>
     
-    <!-- Content Security Policy - Updated v4 to remove frame-ancestors (HTTP header only) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://apis.google.com https://www.gstatic.com; worker-src 'self' blob: data:; child-src 'self' blob: data:; connect-src 'self' https://firestore.googleapis.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.gstatic.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
-    <!-- Force cache refresh with v4 timestamp -->
-    <meta name="csp-version" content="v4-2025-08-26"> 
+    <!--
+      Content Security Policy (v6).
+
+      Backstop only, for contexts that serve index.html without edge headers
+      (local `vite preview`, plain static servers). public/_headers carries the
+      authoritative policy for Cloudflare Pages and the two MUST stay in sync:
+      browsers enforce the INTERSECTION of every policy that applies, so
+      anything omitted here is blocked even if _headers allows it.
+
+      Notes:
+        - connect-src must include https://*.supabase.co AND wss://*.supabase.co.
+          Supabase Realtime uses websockets; without the wss entry, live
+          challenge updates fail while ordinary requests appear to work.
+        - The Firebase and Google origins that used to be listed here were
+          removed with the Firebase backend.
+        - frame-ancestors and Strict-Transport-Security are IGNORED in a meta
+          CSP; clickjacking protection comes solely from the _headers rule
+          (frame-ancestors 'none' + X-Frame-Options: DENY).
+        - 'unsafe-eval' and data: are deliberately absent from script-src.
+        - 'unsafe-inline' is still required by the two small inline <script>
+          blocks below. A meta CSP cannot use nonces reliably.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;">
+    <meta name="csp-version" content="v6-supabase">
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Your mobile study companion with timer, tasks, and progress tracking">
@@ -32,14 +52,32 @@
     <!-- Splash Screen Images for iOS (can be generated for device sizes later) -->
     <link rel="apple-touch-startup-image" href="/icons/icon-512.png">
     
-    <!-- Service Worker -->
+    <!--
+      Service Worker.
+
+      Registered at its plain path: the previous `?v=3-csp-fix` query string
+      made the browser treat it as a distinct script URL, so the cache-busting
+      it was meant to provide only ever happened when someone remembered to
+      edit that string by hand. Browsers already byte-compare /sw.js on every
+      navigation and install a changed one automatically.
+    -->
     <script>
         if ('serviceWorker' in navigator) {
-            // Register service worker in both development and production
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=3-csp-fix')
+                navigator.serviceWorker.register('/sw.js')
                     .then(registration => {
-                        console.log('SW registered: ', registration);
+                        // A waiting worker means a new build is ready; take it
+                        // over on the next navigation rather than stranding the
+                        // user on the old bundle indefinitely.
+                        registration.addEventListener('updatefound', () => {
+                            const installing = registration.installing;
+                            if (!installing) return;
+                            installing.addEventListener('statechange', () => {
+                                if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('New version available; it will apply on next load.');
+                                }
+                            });
+                        });
                     })
                     .catch(registrationError => {
                         console.log('SW registration failed: ', registrationError);

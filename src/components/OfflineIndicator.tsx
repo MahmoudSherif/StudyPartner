@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Globe, Circle } from '@phosphor-icons/react'
-import { isFirebaseAvailable } from '@/lib/firebase'
+import { isSupabaseConfigured } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 export function OfflineIndicator() {
@@ -32,7 +32,7 @@ export function OfflineIndicator() {
     window.addEventListener('offline', handleOffline)
 
     // Show indicator initially if offline or Firebase unavailable
-    if (!navigator.onLine || !isFirebaseAvailable) {
+    if (!navigator.onLine || !isSupabaseConfigured) {
       setShowIndicator(true)
     }
 
@@ -43,12 +43,12 @@ export function OfflineIndicator() {
   }, [])
 
   // Show indicator if offline or Firebase unavailable
-  const shouldShowIndicator = showIndicator && (!isOnline || !isFirebaseAvailable)
+  const shouldShowIndicator = showIndicator && (!isOnline || !isSupabaseConfigured)
   
   if (!shouldShowIndicator) return null
 
   const getIndicatorContent = () => {
-    if (!isOnline && !isFirebaseAvailable) {
+    if (!isOnline && !isSupabaseConfigured) {
       return {
         icon: <X size={16} />,
         text: 'Offline Mode',
@@ -66,7 +66,7 @@ export function OfflineIndicator() {
       }
     }
     
-    if (!isFirebaseAvailable) {
+    if (!isSupabaseConfigured) {
       return {
         icon: <X size={16} />,
         text: 'Local Mode',
@@ -86,7 +86,7 @@ export function OfflineIndicator() {
   const { icon, text, bgColor, borderColor } = getIndicatorContent()
 
   return (
-    <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 ${bgColor} backdrop-blur-sm rounded-full px-4 py-2 border ${borderColor} ${!isFirebaseAvailable ? 'animate-pulse' : ''}`}>
+    <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 ${bgColor} backdrop-blur-sm rounded-full px-4 py-2 border ${borderColor} ${!isSupabaseConfigured ? 'animate-pulse' : ''}`}>
       <div className="flex items-center gap-2 text-white text-sm font-medium">
         {icon}
         <span>{text}</span>

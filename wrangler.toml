@@ -1,0 +1,19 @@
+# Cloudflare Pages project configuration.
+#
+# The presence of `pages_build_output_dir` is what marks this as a Pages project
+# rather than a Worker. With it set, `wrangler pages deploy` needs no arguments:
+# it reads the project name and the upload directory from this file, so CI and
+# local deploys cannot drift apart.
+
+# Must match the Cloudflare Pages project name exactly. Create the project once
+# with `wrangler pages project create motivamate --production-branch main`
+# (see CLOUDFLARE_DEPLOY.md); a non-interactive CI deploy cannot create it.
+name = "motivamate"
+
+# `npm run build` output directory. public/_headers and public/_redirects are
+# copied into it verbatim by Vite and are read by Pages from the upload root.
+pages_build_output_dir = "dist"
+
+# Inert for a purely static SPA — it only selects the Workers runtime semantics
+# used by Pages Functions, and this project intentionally has none.
+compatibility_date = "2026-08-07"

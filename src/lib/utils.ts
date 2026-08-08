@@ -8,6 +8,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Non-negative finite number, or 0.
+ *
+ * Durations reach this function from local cache and, historically, from a
+ * backend with no validation, so a NaN or a negative value is possible. One bad
+ * row used to poison the lifetime total for every screen that showed it.
+ */
+function safeDuration(value: unknown): number {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
 export function calculateUserStats(
   sessions: StudySession[],
   focusSessions: FocusSession[] = [],
@@ -15,17 +27,24 @@ export function calculateUserStats(
   challenges: Challenge[] = [],
   currentUserId?: string
 ): UserStats {
-  const completedSessions = sessions.filter(s => s.completed)
-  const completedFocusSessions = focusSessions.filter(f => f.completed)
-  
-  const sessionTime = completedSessions.reduce((total, session) => total + session.duration, 0) // seconds
-  const focusTime = completedFocusSessions.reduce((total, session) => total + session.duration * 60, 0) // convert minutes to seconds
+  // Callers include effects that run before their collection has loaded, so a
+  // null here is ordinary rather than exceptional.
+  const safeSessions = Array.isArray(sessions) ? sessions : []
+  const safeFocusSessions = Array.isArray(focusSessions) ? focusSessions : []
+  const safeTasks = Array.isArray(tasks) ? tasks : []
+  const safeChallenges = Array.isArray(challenges) ? challenges : []
+
+  const completedSessions = safeSessions.filter(s => s?.completed)
+  const completedFocusSessions = safeFocusSessions.filter(f => f?.completed)
+
+  const sessionTime = completedSessions.reduce((total, session) => total + safeDuration(session.duration), 0) // seconds
+  const focusTime = completedFocusSessions.reduce((total, session) => total + safeDuration(session.duration) * 60, 0) // convert minutes to seconds
   const totalTime = sessionTime + focusTime
   
   // Combine sessions for streak calculation
   const allSessions = [
-    ...sessions,
-    ...focusSessions.map(fs => ({
+    ...safeSessions,
+    ...safeFocusSessions.map(fs => ({
       id: fs.id,
       subjectId: 'focus',
       startTime: fs.startTime,
@@ -41,13 +60,13 @@ export function calculateUserStats(
   const totalSessions = completedSessions.length + completedFocusSessions.length
 
   // Count standard completed tasks
-  const tasksCompleted = tasks.filter(t => t.completed).length
+  const tasksCompleted = safeTasks.filter(t => t?.completed).length
   // Count challenge tasks completed by current user
   let challengeTasksCompleted = 0
   if (currentUserId) {
-    challenges.forEach(ch => {
-      ch.tasks.forEach(ct => {
-        const completed = (ct.completions?.[currentUserId]?.completed) || ct.completedBy.includes(currentUserId)
+    safeChallenges.forEach(ch => {
+      ;(ch?.tasks ?? []).forEach(ct => {
+        const completed = (ct.completions?.[currentUserId]?.completed) || (ct.completedBy ?? []).includes(currentUserId)
         if (completed) challengeTasksCompleted++
       })
     })
@@ -189,8 +208,9 @@ function getMaxDailyStudyTime(sessions: StudySession[], focusSessions: FocusSess
 }
 
 export function formatTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
+  const total = Math.max(0, Math.round(Number(minutes) || 0))
+  const hours = Math.floor(total / 60)
+  const mins = total % 60
   
   if (hours === 0) {
     return `${mins}m`
@@ -204,8 +224,9 @@ export function formatTime(minutes: number): string {
 }
 
 export function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
+  const total = Math.max(0, Math.round(Number(seconds) || 0))
+  const minutes = Math.floor(total / 60)
+  const remainingSeconds = total % 60
   
   return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
 }

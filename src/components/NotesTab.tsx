@@ -19,7 +19,8 @@ import {
 import { StickyNote } from '@/lib/types'
 import { toast } from 'sonner'
 import { mobileFeedback } from '@/lib/mobileFeedback'
-import { useFirebaseNotes } from '@/hooks/useFirebaseData'
+import { useNotes } from '@/hooks/useAppData'
+import { newId } from '@/lib/ids'
 
 const NOTE_COLORS = [
   { name: 'Yellow', value: '#fef3c7', dark: '#f59e0b' },
@@ -50,7 +51,7 @@ export function NotesTab() {
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
   // Use Firebase hook for notes storage
-  const [notes, setNotes] = useFirebaseNotes()
+  const [notes, setNotes] = useNotes()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0])
   const [showAddNote, setShowAddNote] = useState(false)
@@ -115,7 +116,7 @@ export function NotesTab() {
     }
 
     const note: StickyNote = {
-      id: Date.now().toString(),
+      id: newId(),
       title: newNote.title.trim(),
       content: newNote.content.trim(),
       color: selectedColor.value,

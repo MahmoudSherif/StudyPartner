@@ -2,7 +2,12 @@
 
 ## ⚡ **IMMEDIATE SOLUTION FOR "CVF9L9" CHALLENGE ISSUE**
 
-You ran `./firebase-rules-fix.sh` and now you have **2 options** to fix the permission errors:
+> **Note:** `firebase-rules-fix.sh` has been removed. It rewrote `firestore.rules`
+> in place — with no backup and no prompt — as a side effect of printing these
+> instructions, replacing the ruleset with a permissive one that exposed the
+> whole database to any signed-in user. Deploy `./firestore.rules` instead.
+
+To fix permission errors you have **2 options**:
 
 ---
 

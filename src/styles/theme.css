@@ -1,4 +1,4 @@
-@import "tailwindcss";
+/* Imported by main.css after Tailwind, so the framework is already in scope. */
 
 @import '@radix-ui/colors/sage-dark.css' layer(base);
 @import '@radix-ui/colors/olive.css' layer(base);

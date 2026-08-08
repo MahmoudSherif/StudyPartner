@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +7,20 @@ import 'providers/study_provider.dart';
 import 'providers/auth_provider.dart';
 import 'constants/app_constants.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Firebase backs authentication. Until this package has platform
+  // configuration (see the TODO at the top of providers/auth_provider.dart)
+  // this throws, AuthProvider reports itself as unconfigured, and every
+  // sign-in attempt is rejected. The app still starts so the failure is
+  // visible to the user rather than a silent crash.
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialisation failed, authentication disabled: $e');
+  }
+
   runApp(const MotivaMateApp());
 }
 

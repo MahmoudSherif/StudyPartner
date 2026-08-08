@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useFirebaseActiveFocusSession } from '@/hooks/useFirebaseData'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useActiveFocusSession } from '@/hooks/useAppData'
 import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +23,7 @@ import {
   CheckCircle
 } from '@phosphor-icons/react'
 import { FocusSession, Goal, Achievement } from '@/lib/types'
+import { newId } from '@/lib/ids'
 import { toast } from 'sonner'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { notificationManager } from '@/lib/notifications'
@@ -44,25 +45,52 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
   const userDataKey = (key: string) => `${currentUserId}-${key}`
   
   // Use shared firebase-backed hook for active session only
-  const [activeFocusSession, setActiveFocusSession] = useFirebaseActiveFocusSession()
+  const [activeFocusSession, setActiveFocusSession] = useActiveFocusSession()
   
-  // Timer state
+  // Timer state.
+  //
+  // Elapsed time is derived from the wall clock rather than accumulated by the
+  // interval. Browsers throttle setInterval to once a minute in a background
+  // tab and suspend it entirely when the device sleeps, so a counter that added
+  // one second per tick lost most of a long session. The interval now only
+  // triggers a re-render; the value comes from the timestamps.
   const [isRunning, setIsRunning] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
   const [sessionTitle, setSessionTitle] = useState('')
   const [sessionCategory, setSessionCategory] = useState('')
   const [sessionNotes, setSessionNotes] = useState('')
-  
-  // Save timer state to localStorage as backup
+
+  /** Seconds banked from previous run segments (i.e. before the current resume). */
+  const [elapsedBase, setElapsedBase] = useState(0)
+  /** Epoch ms at which the current run segment started; null while paused. */
+  const [runStartedAt, setRunStartedAt] = useState<number | null>(null)
+  // Re-render tick. The value is meaningless on its own; it is a dependency of
+  // the memo below purely so the derived time is recomputed once a second.
+  const [tick, setTick] = useState(0)
+
+  const currentTime = useMemo(() => {
+    if (runStartedAt === null) return elapsedBase
+    return elapsedBase + Math.floor((Date.now() - runStartedAt) / 1000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elapsedBase, runStartedAt, tick])
+
+  const timerStateKey = `${currentUserId}-active-timer-state`
+
+  // Mirror the timer to localStorage so a refresh resumes where it left off.
+  // This is deliberately NOT a database write: the previous implementation
+  // pushed the elapsed time to Postgres once per second, which is one UPDATE,
+  // one realtime echo and one refetch every second the timer ran.
   useEffect(() => {
-    if (currentUserId && activeFocusSession && !activeFocusSession.completed) {
-      localStorage.setItem(`${currentUserId}-active-timer-state`, JSON.stringify({
-        currentTime,
-        isRunning
-      }))
+    if (!currentUserId || !activeFocusSession || activeFocusSession.completed) return
+    try {
+      localStorage.setItem(
+        timerStateKey,
+        JSON.stringify({ elapsedBase, runStartedAt, isRunning })
+      )
+    } catch {
+      /* storage full or unavailable; the session row is still the source of truth */
     }
-  }, [currentTime, isRunning, currentUserId, activeFocusSession])
-  
+  }, [elapsedBase, runStartedAt, isRunning, currentUserId, activeFocusSession, timerStateKey])
+
   // UI state
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [showEditGoal, setShowEditGoal] = useState<Goal | null>(null)
@@ -74,64 +102,59 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     deadline: ''
   })
 
-  // Load active session on mount
+  // Adopt whatever session is already running when this tab mounts, whether it
+  // was left by a refresh or started on another device.
+  const adoptedSessionRef = useRef<string | null>(null)
   useEffect(() => {
-    if (activeFocusSession && !activeFocusSession.completed) {
-      // Resume active session
-      const elapsed = Math.floor((Date.now() - new Date(activeFocusSession.startTime).getTime()) / 1000)
-      
-      // Try to load saved timer state from localStorage
-      const savedState = localStorage.getItem(`${currentUserId}-active-timer-state`)
-      if (savedState) {
-        try {
-          const { currentTime: savedTime, isRunning: savedRunning } = JSON.parse(savedState)
-          // Use the greater of elapsed time or saved time to handle page refreshes
-          setCurrentTime(Math.max(elapsed, savedTime))
-          setIsRunning(savedRunning || activeFocusSession.isRunning || false)
-        } catch (e) {
-          // Fallback to calculated elapsed time
-          setCurrentTime(elapsed)
-          setIsRunning(activeFocusSession.isRunning || false)
+    if (!activeFocusSession || activeFocusSession.completed) return
+    if (adoptedSessionRef.current === activeFocusSession.id) return
+    adoptedSessionRef.current = activeFocusSession.id
+
+    // Time since the session row was created is the floor: it is authoritative
+    // and survives clearing site data, but it counts paused time too.
+    const sinceStart = Math.max(
+      0,
+      Math.floor((Date.now() - new Date(activeFocusSession.startTime).getTime()) / 1000)
+    )
+
+    let restored = false
+    try {
+      const saved = localStorage.getItem(timerStateKey)
+      if (saved) {
+        const parsed = JSON.parse(saved) as {
+          elapsedBase?: number
+          runStartedAt?: number | null
+          isRunning?: boolean
         }
-      } else {
-        setCurrentTime(elapsed)
-        setIsRunning(activeFocusSession.isRunning || false)
+        if (typeof parsed.elapsedBase === 'number') {
+          setElapsedBase(parsed.elapsedBase)
+          setRunStartedAt(parsed.runStartedAt ?? null)
+          setIsRunning(!!parsed.isRunning && parsed.runStartedAt != null)
+          restored = true
+        }
       }
-      
-      setSessionTitle(activeFocusSession.title)
-      setSessionCategory(activeFocusSession.category || '')
-      setSessionNotes(activeFocusSession.notes || '')
+    } catch {
+      /* fall through to the server-derived value */
     }
-  }, [currentUserId]) // Run when currentUserId changes
 
-  // Timer effect - using useRef to avoid memory leaks
+    if (!restored) {
+      const running = !!activeFocusSession.isRunning
+      setElapsedBase(running ? 0 : sinceStart)
+      setRunStartedAt(running ? Date.now() - sinceStart * 1000 : null)
+      setIsRunning(running)
+    }
+
+    setSessionTitle(activeFocusSession.title)
+    setSessionCategory(activeFocusSession.category || '')
+    setSessionNotes(activeFocusSession.notes || '')
+  }, [activeFocusSession, timerStateKey])
+
+  // Re-render once a second while running so the derived elapsed time updates.
+  // No state is accumulated here and nothing is written to the database.
   useEffect(() => {
-    const intervalRef = { current: null as NodeJS.Timeout | null }
-
-    if (isRunning && activeFocusSession) {
-      intervalRef.current = setInterval(() => {
-        setCurrentTime(prev => {
-          const newTime = prev + 1
-          // Update the active session with new elapsed time
-          setActiveFocusSession(prevSession => {
-            if (!prevSession) return prevSession
-            return {
-              ...prevSession,
-              duration: Math.floor(newTime / 60), // Update duration in minutes
-              isRunning: true
-            }
-          })
-          return newTime
-        })
-      }, 1000)
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
+    if (!isRunning || !activeFocusSession) return
+    const interval = setInterval(() => setTick(t => t + 1), 1000)
+    return () => clearInterval(interval)
   }, [isRunning, activeFocusSession?.id])
 
   // Format time display
@@ -174,7 +197,7 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     }
 
     const newSession: FocusSession = {
-      id: Date.now().toString(),
+      id: newId(),
       title: sanitizedTitle,
       duration: 0,
       startTime: new Date(),
@@ -185,26 +208,35 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
       ...(sanitizedNotes && { notes: sanitizedNotes })
     }
 
+    adoptedSessionRef.current = newSession.id
     setActiveFocusSession(newSession)
-    setCurrentTime(0)
+    setElapsedBase(0)
+    setRunStartedAt(Date.now())
     setIsRunning(true)
     mobileFeedback.buttonPress()
     toast.success(`Focus session started: ${sanitizedTitle}`)
   }
 
-  // Pause/resume session
+  // Pause/resume session. One write per transition, not one per second.
   const togglePause = () => {
-    const newRunningState = !isRunning
-    setIsRunning(newRunningState)
-    
-    // Update active session with new running state
-    if (activeFocusSession) {
-      setActiveFocusSession({
-        ...activeFocusSession,
-        isRunning: newRunningState
-      })
+    if (!activeFocusSession) return
+    const resuming = !isRunning
+
+    if (resuming) {
+      setRunStartedAt(Date.now())
+    } else {
+      // Bank the segment that just ended so the total survives the pause.
+      setElapsedBase(currentTime)
+      setRunStartedAt(null)
     }
-    
+    setIsRunning(resuming)
+
+    setActiveFocusSession({
+      ...activeFocusSession,
+      duration: Math.floor(currentTime / 60),
+      isRunning: resuming
+    })
+
     mobileFeedback.buttonPress()
   }
 
@@ -213,34 +245,47 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     if (!activeFocusSession) return
 
     const sessionMinutes = Math.floor(currentTime / 60)
-    const completedSession: FocusSession = {
-      ...activeFocusSession,
-      duration: sessionMinutes, // store in minutes
-      endTime: new Date(),
-      completed: true
-    };
+    const finishedId = activeFocusSession.id
 
-    // Save session
-    setFocusSessions(current => {
-      const updated = [...current, completedSession]
-      return updated
-    })
-    
+    // Update the existing row in place. The session was inserted when it
+    // started, so appending it here produced a second entry with the same
+    // primary key -- two conflicting UPDATEs whose order decided the outcome.
+    // `isRunning` must be cleared in the same write: a partial unique index
+    // allows only one running session per user, so leaving it set blocks the
+    // next one from ever starting.
+    setFocusSessions(current =>
+      current.map(session =>
+        session.id === finishedId
+          ? {
+              ...session,
+              duration: sessionMinutes,
+              endTime: new Date(),
+              completed: true,
+              isRunning: false
+            }
+          : session
+      )
+    )
+
     // Update goals progress
     updateGoalsProgress(sessionMinutes).catch(error => {
       // Silent error handling for goals progress
     });
 
-    // Clear active session
-    setActiveFocusSession(null)
-    setCurrentTime(0)
+    adoptedSessionRef.current = null
+    setElapsedBase(0)
+    setRunStartedAt(null)
     setIsRunning(false)
     setSessionTitle('')
     setSessionCategory('')
     setSessionNotes('')
-    
+
     // Clear saved timer state
-    localStorage.removeItem(`${currentUserId}-active-timer-state`)
+    try {
+      localStorage.removeItem(timerStateKey)
+    } catch {
+      /* ignore */
+    }
 
     mobileFeedback.studySessionComplete()
     toast.success(`Focus session completed! ${sessionMinutes} minutes of focused work.`)
@@ -443,7 +488,7 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
     }
 
     const goal: Goal = {
-      id: Date.now().toString(),
+      id: newId(),
       title: sanitizedTitle,
       ...(sanitizedDescription && { description: sanitizedDescription }),
       target: newGoal.target,
@@ -672,21 +717,6 @@ export function AchieveTab({ achievements, onUpdateAchievements, goals, setGoals
                 Start Focus Session
               </Button>
               
-              {/* Show resume button if there's an incomplete session */}
-              {activeFocusSession && !activeFocusSession.completed && !isRunning && (
-                <div className="space-y-2">
-                  <div className="text-sm text-white/70 text-center">
-                    Or resume your previous session:
-                  </div>
-                  <Button 
-                    onClick={() => setIsRunning(true)}
-                    className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30"
-                  >
-                    <Play size={16} className="mr-2" />
-                    Resume: {activeFocusSession.title} ({formatTime(currentTime)})
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-center space-y-6">

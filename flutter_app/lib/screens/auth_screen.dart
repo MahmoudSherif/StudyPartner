@@ -45,10 +45,15 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     if (!success && mounted) {
+      // Show the real reason (bad credentials, offline, auth not configured,
+      // ...) rather than a generic failure string.
+      final message = authProvider.errorMessage ??
+          (_isSignUp ? 'Sign up failed' : 'Sign in failed');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isSignUp ? 'Sign up failed' : 'Sign in failed'),
+          content: Text(message),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
         ),
       );
     }
@@ -157,14 +162,79 @@ class _AuthScreenState extends State<AuthScreen> {
                               const SizedBox(height: AppConstants.spacing24),
                               Consumer<AuthProvider>(
                                 builder: (context, authProvider, child) {
-                                  return SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: authProvider.isLoading ? null : _submit,
-                                      child: authProvider.isLoading
-                                          ? const CircularProgressIndicator(color: Colors.white)
-                                          : Text(_isSignUp ? 'Sign Up' : 'Sign In'),
-                                    ),
+                                  final isConfigured = authProvider.isConfigured;
+                                  final isBusy = authProvider.isLoading;
+
+                                  return Column(
+                                    children: [
+                                      // Authentication is unavailable until
+                                      // Firebase is configured. Say so plainly
+                                      // instead of letting anyone "sign in".
+                                      if (!isConfigured) ...[
+                                        Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(
+                                            AppConstants.spacing16,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade50,
+                                            borderRadius: BorderRadius.circular(
+                                              AppConstants.spacing8,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.red.shade200,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Icon(
+                                                Icons.lock_outline,
+                                                color: Colors.red.shade700,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(
+                                                width: AppConstants.spacing8,
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  AuthProvider
+                                                      .notConfiguredMessage,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.copyWith(
+                                                        color:
+                                                            Colors.red.shade700,
+                                                      ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: AppConstants.spacing16,
+                                        ),
+                                      ],
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: (isBusy || !isConfigured)
+                                              ? null
+                                              : _submit,
+                                          child: isBusy
+                                              ? const CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                )
+                                              : Text(
+                                                  _isSignUp
+                                                      ? 'Sign Up'
+                                                      : 'Sign In',
+                                                ),
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 },
                               ),

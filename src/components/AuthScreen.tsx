@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Eye, X, Globe, Sparkle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { SpaceBackground } from '@/components/SpaceBackground'
+import { isValidEmail, validatePassword, validateDisplayName, normalizeText } from '@/utils/validation'
 
 export const AuthScreen = () => {
   const { signUp, signIn, signInWithGoogle } = useAuth()
@@ -57,16 +58,31 @@ export const AuthScreen = () => {
       return
     }
 
-    if (signUpForm.password.length < 6) {
-      toast.error('Password must be at least 6 characters long')
+    if (!isValidEmail(signUpForm.email)) {
+      toast.error('Please enter a valid email address')
       return
+    }
+
+    const passwordCheck = validatePassword(signUpForm.password)
+    if (!passwordCheck.isValid) {
+      toast.error(passwordCheck.errors[0])
+      return
+    }
+
+    const displayName = normalizeText(signUpForm.displayName, 50)
+    if (displayName) {
+      const nameCheck = validateDisplayName(displayName)
+      if (!nameCheck.isValid) {
+        toast.error(nameCheck.error!)
+        return
+      }
     }
 
     setLoading(true)
     const { user, error } = await signUp(
-      signUpForm.email, 
-      signUpForm.password, 
-      signUpForm.displayName
+      signUpForm.email.trim(),
+      signUpForm.password,
+      displayName
     )
     
     if (error) {
@@ -208,7 +224,7 @@ export const AuthScreen = () => {
                         value={signUpForm.password}
                         onChange={(e) => setSignUpForm({ ...signUpForm, password: e.target.value })}
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pr-10"
-                        placeholder="Create a password (min 6 characters)"
+                        placeholder="8+ chars, upper, lower, number, symbol"
                         disabled={loading}
                       />
                       <Button

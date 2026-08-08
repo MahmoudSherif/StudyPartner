@@ -1,0 +1,70 @@
+# Cloudflare Pages `_headers`
+#
+# Format (NOT TOML): a path pattern on its own line, followed by
+# two-space-indented `Header-Name: value` lines. `*` is a greedy splat that
+# matches across `/`. Blank lines separate rules. `#` starts a comment.
+#
+# IMPORTANT — why Cache-Control is absent from the `/*` block:
+# Cloudflare joins duplicate headers with a comma when several rules match the
+# same request. Setting Cache-Control on both `/*` and `/assets/*` would emit
+# `public, max-age=0, must-revalidate, public, max-age=31536000, immutable`,
+# which is garbage. So `/*` carries security headers only, and Cache-Control is
+# set exclusively by the specific path rules below.
+#
+# These headers replace the ones that used to live in netlify.toml. That file
+# never took effect (the real deploy target was GitHub Pages, which cannot serve
+# custom headers). On Cloudflare Pages this file genuinely applies — verify with
+# the curl command in CLOUDFLARE_DEPLOY.md after every deploy.
+
+/*
+  # Framing denied outright; kept in sync with `frame-ancestors 'none'` below.
+  X-Frame-Options: DENY
+  # The legacy XSS auditor is deprecated and its filters introduced their own
+  # vulnerabilities. "0" disables it; CSP is the real defence.
+  X-XSS-Protection: 0
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  # "same-origin-allow-popups" (not "same-origin"): OAuth sign-in opens a popup
+  # that must keep its `window.opener` reference to hand the credential back.
+  # Strict "same-origin" severs that link and breaks authentication.
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  # CSP notes:
+  #   - connect-src allows Supabase REST/Auth over https and Realtime over wss.
+  #     Both are required; Realtime is a websocket and https alone will not cover
+  #     it. If you move to a self-hosted or custom-domain Supabase instance, add
+  #     that exact origin here as well.
+  #   - 'unsafe-inline' in script-src is required by the two inline <script>
+  #     blocks in index.html (service-worker registration and the online/offline
+  #     handler). Remove it once those move into the bundle.
+  #   - 'unsafe-eval' and data: are deliberately NOT in script-src.
+  #   - Fonts are self-hosted (@fontsource/inter, bundled into /assets), so no
+  #     Google Fonts origins are needed in style-src/font-src.
+  #   - img-src allows any https origin: some avatars/illustrations are remote.
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; worker-src 'self' blob:; child-src 'self' blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'self'; frame-ancestors 'none'
+
+# Vite emits content-hashed filenames here (index-C4BQPYEj.js, fonts, css), so
+# the URL changes whenever the bytes change. Safe to cache forever.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# PWA icons are NOT content-hashed (icon-192.png keeps its name across builds),
+# so "immutable" would strand users on an old icon. One day is the compromise.
+/icons/*
+  Cache-Control: public, max-age=86400
+
+# The app shell, the service worker and the manifest must always be revalidated.
+# Long-caching any of these leaves users pinned to a stale build that keeps
+# loading asset URLs which no longer exist.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.json
+  Cache-Control: public, max-age=0, must-revalidate

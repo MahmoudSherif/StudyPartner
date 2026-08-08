@@ -1,31 +1,79 @@
-Thanks for helping make GitHub safe for everyone.
+# Security Policy
 
-# Security
+MotivaMate is a small, community-maintained study-companion PWA. There is no
+dedicated security team and no bug bounty program, but security reports are
+taken seriously and are welcome.
 
-GitHub takes the security of our software products and services seriously, including all of the open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/GitHub).
+## Reporting a Vulnerability
 
-Even though [open source repositories are outside of the scope of our bug bounty program](https://bounty.github.com/index.html#scope) and therefore not eligible for bounty rewards, we will ensure that your finding gets passed along to the appropriate maintainers for remediation. 
+**Please do not report security issues through public GitHub issues, discussions,
+or pull requests.**
 
-## Reporting Security Issues
+Instead, open a private security advisory on this repository:
 
-If you believe you have found a security vulnerability in any GitHub-owned repository, please report it to us through coordinated disclosure.
+1. Go to the repository's **Security** tab.
+2. Choose **Report a vulnerability** (GitHub Private Vulnerability Reporting).
+3. Fill in the details described below.
 
-**Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
+The advisory is visible only to you and the repository maintainers until a fix is
+published. If Private Vulnerability Reporting is not enabled on the repository,
+please open a public issue that says only "security report, please enable private
+reporting" and contains **no** technical detail, and wait to be contacted.
 
-Instead, please send an email to opensource-security[@]github.com.
+Please include as much of the following as you can:
 
-Please include as much of the information listed below as you can to help us better understand and resolve the issue:
+- The type of issue (for example XSS, auth bypass, exposed credentials, insecure
+  Firestore rule).
+- The affected file(s) and the branch or commit you tested.
+- Step-by-step instructions to reproduce, and a proof of concept if you have one.
+- What an attacker could actually achieve, and any preconditions required.
 
-  * The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)
-  * Full paths of source file(s) related to the manifestation of the issue
-  * The location of the affected source code (tag/branch/commit or direct URL)
-  * Any special configuration required to reproduce the issue
-  * Step-by-step instructions to reproduce the issue
-  * Proof-of-concept or exploit code (if possible)
-  * Impact of the issue, including how an attacker might exploit the issue
+## Response Expectations
 
-This information will help us triage your report more quickly.
+This is a volunteer-maintained project, so timelines are best-effort:
 
-## Policy
+- **Acknowledgement:** within 7 days.
+- **Initial assessment (confirmed / not reproducible / out of scope):** within 14 days.
+- **Fix or documented mitigation for confirmed issues:** target 30 days, sooner for
+  anything allowing account takeover or access to another user's data.
 
-See [GitHub's Safe Harbor Policy](https://docs.github.com/en/site-policy/security-policies/github-bug-bounty-program-legal-safe-harbor#1-safe-harbor-terms)
+You will be credited in the advisory unless you ask not to be.
+
+## Scope
+
+In scope:
+
+- The application source in this repository (`src/`, `public/sw.js`, `index.html`).
+- The Cloud Functions backend (`functions/`).
+- Build and deployment configuration in this repository (`netlify.toml`,
+  `firebase.json`, `firestore.rules`, and the GitHub Actions workflows in
+  `.github/workflows/`).
+- Authentication and data-isolation flaws, such as one user being able to read or
+  modify another user's study data.
+- Secrets or credentials committed to the repository.
+- Cross-site scripting, CSP bypasses, and service-worker abuse in the deployed app.
+
+Out of scope:
+
+- Vulnerabilities in third-party services the app depends on (Firebase, Google
+  Sign-In, Netlify). Report those to the relevant vendor.
+- Findings that require a compromised device, a malicious browser extension, or
+  physical access to an unlocked device.
+- Missing hardening headers or automated-scanner output with no demonstrated
+  impact. A concrete exploitation path is what makes a report actionable.
+- Denial of service, rate-limiting, and volumetric attacks.
+- Social engineering of users or maintainers.
+- Self-XSS that a victim can only trigger by pasting attacker-supplied code into
+  their own console.
+
+## Supported Versions
+
+Only the latest deployed version, built from the default branch, receives security
+fixes. There are no long-term support branches.
+
+## Data Handling Note
+
+The app stores study sessions, tasks, and profile data in Firebase on behalf of the
+signed-in user. If a report involves real user data, please stop as soon as you have
+confirmed the issue, do not download or retain any data that is not your own, and say
+so in the advisory.

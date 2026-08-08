@@ -1,2 +1,11 @@
-# Netlify redirects for SPA
-/*    /index.html   200
+# Cloudflare Pages `_redirects`
+#
+# Format (NOT TOML): `<from>  <to>  <status>`, one rule per line.
+# Status 200 makes this a rewrite rather than a redirect: the URL stays as the
+# user typed it while index.html is served, which is what a client-side router
+# needs to hydrate deep links like /dashboard or /stats on a hard refresh.
+#
+# This must stay LAST — Cloudflare evaluates rules top to bottom and the splat
+# swallows everything. Requests that match a real file on disk are served
+# directly and never reach this rule.
+/*    /index.html    200

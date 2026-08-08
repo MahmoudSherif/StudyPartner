@@ -139,7 +139,7 @@ describe('Utils Functions', () => {
         }
       ]
       
-      const stats = { totalStudyTime: 180, sessionsCompleted: 1, streak: 1, tasksCompleted: 0, challengeTasksCompleted: 0 }
+      const stats = { totalStudyTime: 180, sessionsCompleted: 1, streak: 1, longestStreak: 1, averageSessionLength: 0, tasksCompleted: 0, challengeTasksCompleted: 0 }
       const updatedAchievements = updateAchievements(currentAchievements, stats, [], [], [])
       
       const studyTimeAchievement = updatedAchievements.find(a => a.id === 'hour-milestone')
@@ -158,7 +158,8 @@ describe('Utils Functions', () => {
       }))
 
       const stats = calculateUserStats([], [], tasks, [])
-      const updatedAchievements = updateAchievements(currentAchievements, stats, [], tasks)
+      // 4th parameter is focusSessions, not tasks; task counts reach it via stats.
+      const updatedAchievements = updateAchievements(currentAchievements, stats, [], [])
 
       const taskStarterAchievement = updatedAchievements.find(a => a.id === 'task-starter')
       expect(taskStarterAchievement?.unlocked).toBeTruthy()

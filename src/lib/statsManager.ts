@@ -47,6 +47,21 @@ export interface RealTimeStats {
   }
 }
 
+/**
+ * Structural equality for a stats snapshot.
+ *
+ * These are plain data: numbers, strings, arrays of the same, and Date values
+ * inside achievements. JSON comparison is exact for that shape and cheap at
+ * this size.
+ */
+function sameStats(a: RealTimeStats, b: RealTimeStats): boolean {
+  try {
+    return JSON.stringify(a) === JSON.stringify(b)
+  } catch {
+    return false
+  }
+}
+
 export class StatsManager {
   private static instance: StatsManager
   private listeners: Set<(stats: RealTimeStats) => void> = new Set()
@@ -92,7 +107,19 @@ export class StatsManager {
       achievements,
       currentUserId
     )
-    
+
+    // Only publish a genuine change.
+    //
+    // Every subscriber calls setState with whatever arrives here, so notifying
+    // with an equal-but-new object re-renders the whole tree. If any input
+    // array is also rebuilt on each render, that re-render recomputes stats,
+    // which notifies again: an unbounded loop that exhausts the heap rather
+    // than settling. Comparing the result makes the cycle self-terminating
+    // regardless of how the inputs are produced.
+    if (this.currentStats && sameStats(this.currentStats, stats)) {
+      return this.currentStats
+    }
+
     this.currentStats = stats
     this.notifyListeners(stats)
     return stats
@@ -231,7 +258,7 @@ export class StatsManager {
       }
       
       // Build leaderboard leveraging summary when present
-      let leaderboard = activeChallenge.participants.map(participantId => {
+      const leaderboard = activeChallenge.participants.map(participantId => {
         let points = summary?.pointsByUser?.[participantId]
         if (points == null) {
           const completed = activeChallenge.tasks.filter(t => 

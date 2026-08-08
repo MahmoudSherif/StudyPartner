@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useFirebaseCalendarEvents } from '@/hooks/useFirebaseData'
+import { useCalendarEvents } from '@/hooks/useAppData'
+import { newId } from '@/lib/ids'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -38,7 +39,7 @@ export function Calendar({ subjects }: CalendarProps) {
   const currentUserId = user?.uid || 'anonymous'
   
   // Use Firebase-backed calendar events
-  const [events, setEvents] = useFirebaseCalendarEvents()
+  const [events, setEvents] = useCalendarEvents()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isAddEventOpen, setIsAddEventOpen] = useState(false)
@@ -108,7 +109,7 @@ export function Calendar({ subjects }: CalendarProps) {
     }
 
     const event: CalendarEvent = {
-      id: Date.now().toString(),
+      id: newId(),
       title: newEvent.title,
       description: newEvent.description || '',
       date: selectedDate,

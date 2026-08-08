@@ -2,26 +2,26 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { statsManager, RealTimeStats } from '@/lib/statsManager'
-import { 
-  useFirebaseSessions, 
-  useFirebaseFocusSessions, 
-  useFirebaseTasks, 
-  useFirebaseChallenges, 
-  useFirebaseGoals, 
-  useFirebaseAchievements 
-} from '@/hooks/useFirebaseData'
+import {
+  useSessions,
+  useFocusSessions,
+  useTasks,
+  useGoals,
+  useAchievements
+} from '@/hooks/useAppData'
+import { useChallenges } from '@/hooks/useChallenges'
 
 export function useRealTimeStats() {
   const { user } = useAuth()
   const [stats, setStats] = useState<RealTimeStats | null>(null)
   
-  // Get all data from Firebase hooks
-  const [sessions] = useFirebaseSessions()
-  const [focusSessions] = useFirebaseFocusSessions()
-  const [tasks] = useFirebaseTasks()
-  const [challenges] = useFirebaseChallenges()
-  const [goals] = useFirebaseGoals()
-  const [achievements] = useFirebaseAchievements()
+  // Get all data from Supabase-backed hooks
+  const [sessions] = useSessions()
+  const [focusSessions] = useFocusSessions()
+  const [tasks] = useTasks()
+  const { challenges } = useChallenges()
+  const [goals] = useGoals()
+  const [achievements] = useAchievements()
   
   // Subscribe to stats updates
   useEffect(() => {

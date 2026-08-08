@@ -13,27 +13,19 @@ import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { PWAIndicator } from '@/components/PWAIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
-import { NetworkBlockIndicator } from '@/components/NetworkBlockIndicator'
-import { FirebaseStatusIndicator } from '@/components/FirebaseStatusIndicator'
 import { AchieveTab } from '@/components/AchieveTab'
 import { NotesTab } from '@/components/NotesTab'
 import { AuthScreen } from '@/components/AuthScreen'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { firestoreService } from '@/lib/firestore'
-import { db, isFirebaseAvailable } from '@/lib/firebase'
-import { doc, getDoc } from 'firebase/firestore'
-import { LocalChallengeStorage } from '@/lib/localChallengeStorage'
-import { networkErrorInterceptor } from '@/lib/networkErrorInterceptor'
-import { migrateUserDataKeys, needsMigration } from '@/lib/dataMigration'
-import { 
-  useFirebaseSubjects,
-  useFirebaseSessions,
-  useFirebaseAchievements,
-  useFirebaseTasks,
-  useFirebaseFocusSessions,
-  useFirebaseGoals,
-  useFirebaseChallenges
-} from '@/hooks/useFirebaseData'
+import {
+  useSubjects,
+  useSessions,
+  useAchievements,
+  useTasks,
+  useFocusSessions,
+  useGoals
+} from '@/hooks/useAppData'
+import { useChallenges } from '@/hooks/useChallenges'
 import { useRealTimeStats } from '@/hooks/useRealTimeStats'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
@@ -41,6 +33,7 @@ import { DevDiagnostics } from '@/components/DevDiagnostics'
 import { StatsDebugger } from '@/components/StatsDebugger'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal, UserStats } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
+import { newId } from '@/lib/ids'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
 import { useTouchGestures } from '@/hooks/useTouchGestures'
 import { usePWA } from '@/hooks/usePWA'
@@ -74,15 +67,26 @@ function AppContent() {
   const { user, loading, signOut } = useAuth()
   
   // Firebase-synced data - these will automatically sync with Firestore
-  const [subjects, setSubjects] = useFirebaseSubjects()
-  const [sessions, setSessions] = useFirebaseSessions()
-  const [achievements, setAchievements] = useFirebaseAchievements()
-  const [tasks, setTasks] = useFirebaseTasks()
-  const [challenges, setChallenges] = useFirebaseChallenges()
+  const [subjects, setSubjects] = useSubjects()
+  const [sessions, setSessions] = useSessions()
+  const [achievements, setAchievements] = useAchievements()
+  const [tasks, setTasks] = useTasks()
+  // Challenges are server-owned: scores are derived from completion rows, so
+  // there is no writable local array. Mutations go through these operations.
+  const {
+    challenges,
+    nameFor: resolveMemberName,
+    create: createChallengeOp,
+    join: joinChallengeOp,
+    addTask: addChallengeTaskOp,
+    toggleTask: toggleChallengeTaskOp,
+    end: endChallengeOp,
+    remove: deleteChallengeOp
+  } = useChallenges()
   // Active challenge code for real-time subscription
   const [activeChallengeCode, setActiveChallengeCode] = useState<string | null>(null)
-  const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
-  const [goals, setGoals] = useFirebaseGoals()
+  const [focusSessions, setFocusSessions] = useFocusSessions()
+  const [goals, setGoals] = useGoals()
   const [currentTab, setCurrentTab] = useState('achieve')
   const lastTabSwitchRef = useRef(Date.now())
 
@@ -111,8 +115,7 @@ function AppContent() {
   const [remainingTime, setRemainingTime] = useState<number | null>(null)
   const [previousDailyProgress, setPreviousDailyProgress] = useState(0)
   const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
-  // Cache mapping userId -> display name
-  const [userNames, setUserNames] = useState<Record<string,string>>({})
+
   
   // Use real-time stats management - MUST be called before any conditional returns
   const { 
@@ -124,31 +127,21 @@ function AppContent() {
     isLoading: statsLoading 
   } = useRealTimeStats()
 
-  const resolveUserName = useCallback(async (uid: string) => {
-    if (!uid) return ''
-    if (userNames[uid]) return userNames[uid]
-    if (!isFirebaseAvailable || !db) return ''
-    try {
-      const snap = await getDoc(doc(db, 'users', uid))
-      let name = ''
-      if (snap.exists()) {
-        const data: any = snap.data()
-        name = data.displayName || data.name || ''
-      }
-      if (!name) name = 'User ' + uid.slice(-4)
-      setUserNames(prev => ({ ...prev, [uid]: name }))
-      return name
-    } catch {
-      return ''
-    }
-  }, [userNames])
+  // Display names come from the public profile projection, resolved in bulk by
+  // useChallenges. The old implementation fetched each participant's full
+  // profile document, which also carried their email address.
+  const resolveUserName = resolveMemberName
 
-  // Preload participant names whenever challenges change
-  useEffect(() => {
-    const participantIds = new Set<string>()
-    challenges.forEach(c => c.participants.forEach(p => participantIds.add(p)))
-    participantIds.forEach(id => { if (!userNames[id]) resolveUserName(id) })
-  }, [challenges, userNames, resolveUserName])
+  // Name lookup handed to child components. Sourced from the public profile
+  // projection (display name + avatar only), never from the private profile.
+  const userNames = useMemo(() => {
+    const ids = new Set<string>()
+    challenges.forEach(c => {
+      c.participants.forEach(p => ids.add(p))
+      if (c.createdBy) ids.add(c.createdBy)
+    })
+    return Object.fromEntries(Array.from(ids).map(id => [id, resolveMemberName(id)]))
+  }, [challenges, resolveMemberName])
 
   // Mobile and PWA hooks
   const { isStandalone, isInstallable, installApp } = usePWA()
@@ -185,106 +178,18 @@ function AppContent() {
     };
 
     setupNotifications();
-    
-    // Initialize network error interceptor (it's a singleton, so this just ensures it's set up)
-    networkErrorInterceptor.reset();
   }, []);
 
-  // Run data migration on user login (one-time)
+  // Challenges load, refresh and stay live inside useChallenges: it fetches the
+  // caller's own challenges through RLS and subscribes to task, completion and
+  // challenge changes. The previous implementation hand-rolled all three here.
+
+  // Track the active challenge code for the header/summary.
   useEffect(() => {
-    const runMigration = async () => {
-      if (!user?.uid) return
-
-      try {
-        const needsIt = await needsMigration(user.uid)
-        if (needsIt) {
-          console.log('🔄 Running data migration for userData keys...')
-          const result = await migrateUserDataKeys(user.uid)
-          console.log(`✅ Migration complete: ${result.migrated} documents migrated`)
-          if (result.errors.length > 0) {
-            console.warn('Migration errors:', result.errors)
-          }
-        }
-      } catch (error) {
-        console.error('Migration failed:', error)
-      }
-    }
-
-    runMigration()
-  }, [user?.uid])
-
-  // Load user's challenges when they log in - optimized to prevent duplicate reads
-  useEffect(() => {
-    let isMounted = true
-
-    const loadUserChallenges = async (skipOfflineSync = false) => {
-      if (!user?.uid) {
-        setChallenges([])
-        setActiveChallengeCode(null)
-        return
-      }
-
-      try {
-        // Load only user's joined challenges
-        const userResult = await firestoreService.getUserChallenges(user.uid)
-
-        if (!isMounted) return // Prevent state update on unmounted component
-
-        if (userResult.data) {
-          setChallenges(userResult.data)
-          console.log(`📊 Loaded ${userResult.data.length} user challenges`)
-        } else {
-          setChallenges([])
-        }
-
-        // Auto-subscribe to first active challenge if none selected
-        if (!activeChallengeCode && userResult.data) {
-          const firstActive = userResult.data.find(c => c.isActive)
-          if (firstActive) setActiveChallengeCode(firstActive.code)
-        }
-
-        if (userResult.error) {
-          console.warn('Failed to load user challenges:', userResult.error)
-        }
-
-        // Sync offline challenges only on first load (prevent recursive reload)
-        if (!skipOfflineSync) {
-          const syncRes = await firestoreService.syncLocalChallengesForUser(user.uid)
-          if (syncRes.pushed > 0) {
-            toast.success(`Synced ${syncRes.pushed} offline challenge(s)`)
-            // Reload only once after sync with flag to skip offline sync
-            await loadUserChallenges(true)
-          }
-        }
-      } catch (error) {
-        console.error('Error loading challenges:', error)
-      }
-    }
-
-    loadUserChallenges()
-
-    return () => {
-      isMounted = false
-    }
-  }, [user?.uid])
-
-  // Real-time subscription to active challenge
-  useEffect(() => {
-    if (!activeChallengeCode) return
-    const unsubscribe = firestoreService.onChallengeSnapshot(activeChallengeCode, (liveChallenge) => {
-      if (!liveChallenge) return
-      setChallenges(current => {
-        const idx = current.findIndex(c => c.id === liveChallenge.id)
-        if (idx >= 0) {
-          const updated = [...current]
-          updated[idx] = { ...updated[idx], ...liveChallenge }
-          return updated
-        }
-        return [...current, liveChallenge]
-      })
-    })
-    return () => { unsubscribe && unsubscribe() }
-  }, [activeChallengeCode])
+    if (activeChallengeCode) return
+    const firstActive = challenges.find(c => c.isActive)
+    if (firstActive) setActiveChallengeCode(firstActive.code)
+  }, [challenges, activeChallengeCode])
 
   // Enhanced error handling for unhandled errors and promise rejections
   useEffect(() => {
@@ -318,7 +223,9 @@ function AppContent() {
             }
           seenErrors[key] = now
         }
-      } catch {}
+      } catch {
+        /* never let the log filter itself throw and swallow a real error */
+      }
       originalConsoleError.apply(console, args as any)
     }
 
@@ -594,7 +501,7 @@ function AppContent() {
   const handleAddSubject = (subjectData: Omit<Subject, 'id'>) => {
     const newSubject: Subject = {
       ...subjectData,
-      id: Date.now().toString()
+      id: newId()
     }
     setSubjects(current => [...(current || []), newSubject])
     toast.success(`Added subject: ${newSubject.name}`)
@@ -632,7 +539,7 @@ function AppContent() {
       if (!selectedSubject) return
 
       const session: StudySession = {
-        id: Date.now().toString(),
+        id: newId(),
         subjectId: selectedSubject.id,
         startTime: new Date(),
         endTime: new Date(),
@@ -675,7 +582,7 @@ function AppContent() {
   const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
     const newTask: Task = {
       ...taskData,
-      id: Date.now().toString(),
+      id: newId(),
       createdAt: new Date()
     }
     setTasks(current => [...(current || []), newTask])
@@ -715,7 +622,9 @@ function AppContent() {
           if (reached) {
             toast.success(`Task Milestone: ${reached} personal tasks completed!`, { description: 'Keep the streak going 💪' })
           }
-        } catch {}
+        } catch {
+          /* milestone toasts are cosmetic; never fail the toggle over one */
+        }
       }
     } catch (error) {
       toast.error('Failed to update task. Please try again.')
@@ -727,94 +636,27 @@ function AppContent() {
     toast.success('Task deleted')
   }
 
-  // Challenge management functions
+  // ---- Challenge management -------------------------------------------------
+  //
+  // Each of these is now a single server call. The previous versions merged
+  // task arrays client-side, retried reads, wrote to several mirrored copies of
+  // the same challenge, and recomputed scores locally. Scores are derived from
+  // completion rows in Postgres now, so none of that is needed -- and none of
+  // it can be forged.
+
   const handleCreateChallenge = async (challengeData: Omit<Challenge, 'id' | 'createdAt'>) => {
     try {
-      console.log('Creating challenge with data:', challengeData)
-      
-      const newChallenge: Challenge = {
-        ...challengeData,
-        id: Date.now().toString() + '_' + Math.random().toString(36).substring(2, 9),
-        createdAt: new Date()
-      }
-
-      console.log('New challenge object:', newChallenge)
-
-      // Save with verification
-      const result = await firestoreService.saveSharedChallengeVerified(newChallenge)
-      if (result.error) {
-        console.error('Failed to save challenge:', result.error)
-        if (result.error.includes('Permission denied')) {
-          toast.error('Challenge creation denied by rules.')
-          return
-        }
-        toast.error('Failed to create challenge: ' + result.error)
+      const { data, error } = await createChallengeOp(
+        challengeData.title,
+        challengeData.description,
+        challengeData.endDate ?? null
+      )
+      if (error || !data) {
+        toast.error(error || 'Failed to create challenge')
         return
       }
-
-      if (result.error && !result.verified) {
-        toast.error(result.error)
-        return
-      }
-      if (result.verified) {
-        console.log('Challenge saved successfully (verified)')
-      } else {
-        console.warn('Challenge save unverified.')
-      }
-      
-      // Add to local state
-  setChallenges(current => [...current, newChallenge])
-  // Force a one-time fresh fetch (ensures tasks subcollection baseline captured)
-  console.log('🔄 Forcing fresh challenge reload after creation...')
-  const reloadWithRetry = async (attempt = 1) => {
-    // Use the same loading pattern as the main effect
-    const [userResult, discoverableResult] = await Promise.all([
-      firestoreService.getUserChallenges(currentUserId),
-      firestoreService.getDiscoverableChallenges()
-    ])
-
-    // Merge and deduplicate challenges
-    const allChallenges = new Map<string, Challenge>()
-    
-    if (userResult.data) {
-      userResult.data.forEach(challenge => {
-        allChallenges.set(challenge.id, challenge)
-      })
-    }
-
-    if (discoverableResult.data) {
-      discoverableResult.data.forEach(challenge => {
-        if (!allChallenges.has(challenge.id)) {
-          allChallenges.set(challenge.id, challenge)
-        }
-      })
-    }
-
-    const mergedChallenges = Array.from(allChallenges.values())
-    
-    console.log('🔄 Fresh reload result (attempt', attempt + '):', mergedChallenges.length, 'total challenges')
-    console.log('🔄 App component challenges state before update:', challenges.length)
-    
-    const foundNewChallenge = mergedChallenges.find(c => c.code === newChallenge.code)
-    if (foundNewChallenge) {
-      setChallenges(mergedChallenges)
-      console.log('✅ Challenge found in reload, updated state')
-      console.log('🔄 Updated challenges state:', mergedChallenges.map(c => ({ id: c.id, code: c.code, title: c.title, isActive: c.isActive })))
-    } else if (attempt <= 3) {
-      console.log('⏳ Challenge not found in reload, retrying in 1s...')
-      setTimeout(() => reloadWithRetry(attempt + 1), 1000)
-    } else {
-      console.warn('⚠️ Challenge still not found after retries, using optimistic state')
-      setChallenges(mergedChallenges)
-    }
-  }
-  reloadWithRetry()
-  if (newChallenge.code) setActiveChallengeCode(newChallenge.code)
-  toast.success(`Challenge created! Code: ${newChallenge.code}`)
-      
-      // Log where the challenge was saved for debugging
-      console.log('🎯 Challenge code for sharing:', newChallenge.code)
-      console.log('📋 This code can be used from any account to join the challenge')
+      setActiveChallengeCode(data.code)
+      toast.success(`Challenge created! Share code: ${data.code}`)
     } catch (error) {
       console.error('Error creating challenge:', error)
       toast.error('Failed to create challenge. Please try again.')
@@ -823,188 +665,78 @@ function AppContent() {
 
   const handleJoinChallenge = async (code: string) => {
     try {
-      console.log('Attempting to join challenge with code:', code)
-      
-      // Try Firestore first (shared storage for cross-account access)
-      console.log('🔥 Trying Firestore first for cross-account access...')
-      const result = await firestoreService.findSharedChallengeByCode(code)
-      console.log('Find challenge result:', result)
-      
-      if (!result.error && result.data) {
-        // Successfully found challenge in Firestore
-        const challenge = result.data
-        console.log('✅ Found challenge via Firestore:', challenge.title)
-        
-        if (challenge.participants.includes(currentUserId)) {
-          toast.info('You are already participating in this challenge')
-          return
-        }
-
-        // Update challenge with new participant
-        const updatedParticipants = [...challenge.participants, currentUserId]
-        const updateResult = await firestoreService.updateSharedChallenge(challenge.id, {
-          participants: updatedParticipants
-        }, currentUserId)
-
-        if (!updateResult.error) {
-          // Update local state (Firestore update succeeded)
-          const updatedChallenge = { ...challenge, participants: updatedParticipants }
-          setChallenges(current => {
-            const existing = current.find(c => c.id === challenge.id)
-            if (existing) {
-              return current.map(c => c.id === challenge.id ? updatedChallenge : c)
-            } else {
-              return [...current, updatedChallenge]
-            }
-          })
-          setActiveChallengeCode(updatedChallenge.code)
-
-          toast.success(`Joined challenge: ${challenge.title}! 🎉`)
-          return
-        } else {
-          console.error('Failed to update challenge participants:', updateResult.error)
-          // Continue to fallback methods below
-        }
+      const trimmed = (code || '').trim().toUpperCase()
+      if (!trimmed) {
+        toast.error('Please enter a challenge code')
+        return
       }
-      
-  // Not found in Firestore
-  toast.error('Challenge not found or inaccessible.')
+      if (challenges.some(c => c.code === trimmed)) {
+        toast.info('You have already joined this challenge')
+        setActiveChallengeCode(trimmed)
+        return
+      }
+
+      const { error } = await joinChallengeOp(trimmed)
+      if (error) {
+        toast.error(error)
+        return
+      }
+      setActiveChallengeCode(trimmed)
+      toast.success('Joined challenge!')
     } catch (error) {
       console.error('Error joining challenge:', error)
       toast.error('Failed to join challenge. Please try again.')
     }
   }
 
-  const handleAddChallengeTask = async (challengeId: string, taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => {
-    try {
-      // Enforce only creator can add tasks client-side (mirrors server-side enforcement)
-      const challenge = challenges.find(c => c.id === challengeId)
-      if (!challenge) {
-        toast.error('Challenge not found')
-        return
-      }
-      if (challenge.createdBy !== currentUserId) {
-        toast.error('Only the challenge creator can add tasks')
-        return
-      }
-      // Prefer subcollection task creation (new model)
-      const subResult = await firestoreService.createSubcollectionTask(challengeId, {
-        title: taskData.title,
-        description: taskData.description,
-        points: taskData.points
-      })
-      if (subResult.error) {
-        console.warn('Subcollection task create failed, falling back to array update:', subResult.error)
-        const newTask: import('@/lib/types').ChallengeTask = {
-          ...taskData,
-          id: Date.now().toString(),
-          createdAt: new Date(),
-          completedBy: [],
-          completions: {}
-        }
-        const updatedTasks = [...challenge.tasks, newTask]
-        const result = await firestoreService.updateSharedChallenge(challengeId, { tasks: updatedTasks }, currentUserId)
-        if (result.error) {
-          toast.error('Failed to add task: ' + result.error)
-          return
-        }
-        setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
-      } else {
-        // Don't update locally - the real-time listener will handle it
-        console.log('Task added to subcollection, waiting for real-time update')
-      }
-      toast.success('Task added to challenge!')
-    } catch (error) {
-      console.error('Error adding challenge task:', error)
-      toast.error('Failed to add task. Please try again.')
+  const handleAddChallengeTask = async (
+    challengeId: string,
+    taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>
+  ) => {
+    // Row Level Security also enforces creator-only inserts; this check exists
+    // only so the UI can explain the refusal instead of showing a raw error.
+    const challenge = challenges.find(c => c.id === challengeId)
+    if (!challenge) {
+      toast.error('Challenge not found')
+      return
     }
+    if (challenge.createdBy !== currentUserId) {
+      toast.error('Only the challenge creator can add tasks')
+      return
+    }
+
+    const { error } = await addChallengeTaskOp(challengeId, {
+      title: taskData.title,
+      description: taskData.description,
+      points: taskData.points
+    })
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success('Task added to challenge!')
   }
 
   const handleToggleChallengeTask = async (challengeId: string, taskId: string) => {
     const key = `${challengeId}:${taskId}`
+    if (pendingTogglesRef.current.has(key)) return
 
-    // Prevent concurrent toggles using ref instead of window object
-    if (pendingTogglesRef.current.has(key)) {
-      console.log(`⏳ Toggle already in progress for ${key}, skipping...`)
-      return
-    }
+    const challenge = challenges.find(c => c.id === challengeId)
+    const task = challenge?.tasks.find(t => t.id === taskId)
+    if (!challenge || !task) return
+
+    const wasCompleted = !!task.completions?.[currentUserId]?.completed
 
     try {
-      // Mark as pending
       pendingTogglesRef.current.add(key)
-
-      const challenge = challenges.find(c => c.id === challengeId)
-      const task = challenge?.tasks.find(t => t.id === taskId)
-      if (!challenge || !task) {
-        pendingTogglesRef.current.delete(key)
+      const { error } = await toggleChallengeTaskOp(challengeId, taskId)
+      if (error) {
+        toast.error(error)
         return
       }
-      // Determine current completion via new completions map (fallback to legacy array)
-      const existingCompletions = task.completions || {}
-      const isCompleted = existingCompletions[currentUserId]?.completed || task.completedBy.includes(currentUserId)
-      // First attempt subcollection document toggle (authoritative)
-      let txResult = await firestoreService.toggleSubcollectionTask(challengeId, taskId, currentUserId)
-      if (txResult.error) {
-        // Fallback to transactional array toggle to support legacy tasks
-        txResult = await firestoreService.toggleChallengeTaskTransactional(challengeId, taskId, currentUserId)
-      }
-      if (txResult.error) {
-        console.warn('Transactional toggle failed, falling back:', txResult.error)
-        // Fallback to legacy client-side merge path
-        const newCompletions = { ...existingCompletions }
-        if (isCompleted) {
-          if (newCompletions[currentUserId]) newCompletions[currentUserId] = { completed: false }
-          else delete newCompletions[currentUserId]
-        } else {
-          newCompletions[currentUserId] = { completed: true, completedAt: new Date() }
-        }
-        const updatedTasks = challenge.tasks.map(t => {
-          if (t.id !== taskId) return t
-          let legacyCompletedBy = Array.isArray(t.completedBy) ? [...t.completedBy] : []
-          const currentlyInLegacy = legacyCompletedBy.includes(currentUserId)
-            if (newCompletions[currentUserId]?.completed && !currentlyInLegacy) legacyCompletedBy.push(currentUserId)
-            else if (!newCompletions[currentUserId]?.completed && currentlyInLegacy) legacyCompletedBy = legacyCompletedBy.filter(u => u !== currentUserId)
-          return { ...t, completedBy: legacyCompletedBy, completions: newCompletions }
-        })
-        const result = await firestoreService.updateSharedChallenge(challengeId, { tasks: updatedTasks }, currentUserId)
-        if (result.error) {
-          toast.error('Failed to update task: ' + result.error)
-          return
-        }
-        setChallenges(current => current.map(c => c.id === challengeId ? { ...c, tasks: updatedTasks } : c))
-      }
-      // Optimistic points tweak for smoother UI
-      setChallenges(current => current.map(c => {
-        if (c.id !== challengeId) return c
-        if (!c.pointsSummary) return c
-        const delta = isCompleted ? -task.points : task.points
-        return {
-          ...c,
-          pointsSummary: {
-            ...c.pointsSummary,
-            pointsByUser: {
-              ...c.pointsSummary.pointsByUser,
-              [currentUserId]: (c.pointsSummary.pointsByUser[currentUserId] || 0) + delta
-            }
-          }
-        }
-      }))
 
-      // Reconcile with fresh read (best-effort) to ensure consistency after concurrency
-      firestoreService.verifyChallengeExists(challengeId).then(v => {
-        if (v.exists && v.data) {
-          setChallenges(cur => cur.map(c => c.id === challengeId ? { ...c, tasks: v.data!.tasks, pointsSummary: v.data!.pointsSummary || c.pointsSummary } : c))
-        }
-      })
-
-  // Lightweight telemetry (replace with real analytics if available)
-  try { console.log('📊 toggleChallengeTask', { challengeId, taskId, userId: currentUserId, newState: !isCompleted }) } catch {}
-
-      if (!isCompleted) {
-        // Trigger special haptic feedback for challenge task completion
-        mobileFeedback.challengeTaskComplete()
-        
-        // Show celebration for completed challenge task
+      if (!wasCompleted) {
+        mobileFeedback.taskComplete()
         setCelebrationData({
           isOpen: true,
           taskTitle: task.title,
@@ -1012,129 +744,86 @@ function AppContent() {
           challengeTitle: challenge.title,
           points: task.points
         })
-
-        // Milestones for challenge task completions
-        try {
-          const totalChallengeCompletions = challenges.reduce((sum, ch) => {
-            return sum + ch.tasks.filter(ct => (ct.completions?.[currentUserId]?.completed) || ct.completedBy.includes(currentUserId)).length
-          }, 0) + 1 // include this one (optimistic)
-          const challengeMilestones = [10, 25, 50, 100, 200]
-          const reached = challengeMilestones.find(m => totalChallengeCompletions === m)
-          if (reached) {
-            toast.success(`Challenge Milestone: ${reached} challenge tasks completed!`, { description: 'Great collaboration!' })
-          }
-        } catch {}
       }
-    } catch (error) {
-      console.error('Error toggling challenge task:', error)
-      toast.error('Failed to update challenge task. Please try again.')
     } finally {
-      // Always remove from pending set
       pendingTogglesRef.current.delete(key)
     }
   }
+
+  const handleDeleteChallenge = async (challengeId: string) => {
+    const { error } = await deleteChallengeOp(challengeId)
+    if (error) {
+      toast.error(error)
+      return
+    }
+    toast.success('Challenge deleted')
+  }
+
 
   const handleSwitchProgressView = () => {
     setShowChallengeProgress(!showChallengeProgress)
   }
 
-  const handleEndChallenge = async (challengeId: string, winnerId: string) => {
+  const handleEndChallenge = async (challengeId: string) => {
+    const challenge = challenges.find(c => c.id === challengeId)
+
+    // The winner is decided by the database from the completion rows, not sent
+    // from here. Whoever ends the challenge could otherwise nominate anyone --
+    // including themselves -- and the frozen snapshot was never revisited.
+    const { data: updated, error } = await endChallengeOp(challengeId)
+    if (error) {
+      toast.error('Failed to end challenge: ' + error)
+      return
+    }
+
+    mobileFeedback.achievement()
+
+    const winnerIds = updated?.winnerIds ?? []
+    const isCurrentUserWinner = winnerIds.includes(currentUserId)
+    const winnerNames = winnerIds.map(id => resolveUserName(id)).join(', ')
+
+    toast.success(
+      isCurrentUserWinner
+        ? `🏆 Congratulations! You won "${challenge?.title}"!`
+        : `Challenge "${challenge?.title}" has ended!`,
+      {
+        description: isCurrentUserWinner
+          ? 'You are the challenge champion!'
+          : winnerNames
+            ? `Winner: ${winnerNames}`
+            : 'No tasks were completed.',
+        duration: 5000
+      }
+    )
+
     try {
-      // Determine winners (tie support) from pointsSummary if available
-      const endingChallenge = challenges.find(c => c.id === challengeId)
-      let winnerIds: string[] | undefined = undefined
-      if (endingChallenge?.pointsSummary) {
-        const entries = Object.entries(endingChallenge.pointsSummary.pointsByUser)
-        if (entries.length) {
-          const max = Math.max(...entries.map(([_, pts]) => pts))
-            winnerIds = entries.filter(([_, pts]) => pts === max).map(([uid]) => uid)
-        }
-      }
-      // Capture immutable final points snapshot before any further task mutations
-      const finalPointsByUser = endingChallenge?.pointsSummary?.pointsByUser ? { ...endingChallenge.pointsSummary.pointsByUser } : undefined
-      const finalMaxPoints = endingChallenge?.pointsSummary?.maxPoints
-      // Update shared challenge in Firestore
-      const result = await firestoreService.updateSharedChallenge(challengeId, {
-        isActive: false,
-        winnerId, // legacy single winner
-        winnerIds: winnerIds || [winnerId],
-        endDate: new Date(),
-        finalPointsByUser,
-        finalMaxPoints
-      }, currentUserId)
-
-      if (result.error) {
-        toast.error('Failed to end challenge: ' + result.error)
-        return
-      }
-
-      // Update local state
-      setChallenges(current => 
-        current.map(ch => 
-          ch.id === challengeId 
-            ? { ...ch, isActive: false, winnerId, winnerIds: (ch.pointsSummary ? (winnerIds || [winnerId]) : [winnerId]), endDate: new Date(), finalPointsByUser, finalMaxPoints }
-            : ch
+      const points = updated?.finalPointsByUser?.[currentUserId] ?? 0
+      if (isCurrentUserWinner) {
+        await notificationManager.notifyChallengeWin(challenge?.title || 'Challenge', points)
+      } else {
+        await notificationManager.notifyChallengeComplete(
+          challenge?.title || 'Challenge',
+          winnerNames || 'nobody'
         )
-      )
-      
-      // Trigger achievement haptic feedback
-      mobileFeedback.achievement()
-      
-      const challenge = challenges.find(c => c.id === challengeId)
-      const isCurrentUserWinner = winnerId === currentUserId
-      
-      // Calculate winner's points
-      const winnerPoints = challenge?.tasks
-  .filter(task => (task.completions?.[winnerId]?.completed) || task.completedBy.includes(winnerId))
-        .reduce((total, task) => total + task.points, 0) || 0
-      
-      // Show in-app toast
-      toast.success(
-        isCurrentUserWinner 
-          ? `🏆 Congratulations! You won "${challenge?.title}"!`
-          : `Challenge "${challenge?.title}" has ended!`,
-        {
-          description: isCurrentUserWinner 
-            ? 'You are the challenge champion!'
-            : `Winner: ${userNames[winnerId] || 'User ' + winnerId.slice(-4)}`,
-          duration: 5000
-        }
-      )
-      
-      // Send push notifications
-      try {
-        if (isCurrentUserWinner) {
-          // Notify winner
-          await notificationManager.notifyChallengeWin(
-            challenge?.title || 'Challenge',
-            winnerPoints
-          )
-        } else {
-          // Notify other participants
-          await notificationManager.notifyChallengeComplete(
-            challenge?.title || 'Challenge',
-            (userNames[winnerId] || 'User ' + winnerId.slice(-4))
-          )
-        }
-      } catch (error) {
-        // Silent notification failure
       }
-    } catch (error) {
-      toast.error('Failed to end challenge. Please try again.')
+    } catch {
+      // Notifications are best-effort.
     }
   }
+
 
   return (
     <div className="min-h-screen relative mobile-scroll-container" ref={containerRef as React.RefObject<HTMLDivElement>}>
       <SpaceBackground />
       <OfflineIndicator />
-      <NetworkBlockIndicator />
-      <FirebaseStatusIndicator />
-      <NetworkStatus />
       {!isStandalone && <PWAInstallPrompt />}
       <PWAIndicator />
-      
+
       <div className="relative z-10 container max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-32 md:pb-28 no-select">
+        {/* Inside the container, not floating behind the starfield: this only
+            renders when a collection genuinely failed to sync, and it needs to
+            be legible when it does. */}
+        <NetworkStatus />
         <header className="text-center py-6">
           <div className="flex items-center justify-between">
             <div className="flex-1"></div>

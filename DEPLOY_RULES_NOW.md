@@ -16,50 +16,16 @@ Your goals and other data are **sometimes not loading** because:
 
 2. **Click "Edit Rules"**
 
-3. **Delete ALL existing rules** and paste this:
+3. **Delete ALL existing rules** and paste the contents of [`firestore.rules`](./firestore.rules)
+   from this repository.
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can read/write their own profile
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      // Allow access to user's shared challenges subcollection
-      match /shared-challenges/{challengeId} {
-        allow read, write: if request.auth != null;
-      }
-    }
-
-    // Users can read/write their own data
-    // Note: Specific userData rules removed - using fallback rule below for simplicity
-    // The fallback rule at the end handles all authenticated user access
-
-    // Challenge sharing rules - fixes CVF9L9 permission issues
-    match /shared-challenges/{challengeId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && (
-        resource.data.createdBy == request.auth.uid ||
-        request.auth.uid in resource.data.participants
-      );
-    }
-
-    // Public challenge index for discovery
-    match /public-challenge-index/{indexId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
-    }
-
-    // Fallback rule for authenticated users
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
+   > The ruleset that used to be inlined here has been removed. It ended with
+   > `match /{document=**} { allow read, write: if request.auth != null; }`,
+   > which grants every registered user full read and write access to every
+   > document in the project — all users' profiles, emails, notes and study
+   > data. Because Firestore combines rules with OR, that one line also
+   > cancelled every narrower rule above it. Always deploy the checked-in
+   > `firestore.rules` rather than a snippet pasted from documentation.
 
 4. **Click "Publish"**
 

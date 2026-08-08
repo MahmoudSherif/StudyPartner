@@ -4,49 +4,75 @@ import userEvent from '@testing-library/user-event'
 import App from '@/App'
 import { AuthProvider } from '@/contexts/AuthContext'
 
-// Mock Firebase and external dependencies
-vi.mock('@/lib/firebase', () => ({
-  db: null,
-  isFirebaseAvailable: false,
+// Stable identities on purpose. Returning a fresh `[]` and a fresh `vi.fn()`
+// per call makes every consumer's dependency arrays change on every render,
+// which drove App into an unbounded render loop and exhausted the heap. The
+// real hooks return referentially stable values between changes; the mocks
+// must too.
+const EMPTY: any[] = []
+const NOOP = vi.fn()
+
+const STUDY_PARTNER_SETTINGS = { apiUrl: '', autoSync: false }
+
+
+// Mock Supabase and external dependencies
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(),
+    rpc: vi.fn(),
+    channel: vi.fn(),
+    removeChannel: vi.fn(),
+    auth: {
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null }))
+    }
+  },
+  isSupabaseConfigured: true,
+  describeAuthError: vi.fn((e: unknown) => String(e)),
   authFunctions: {
-    onAuthStateChanged: vi.fn(() => vi.fn()),
-    signInWithEmailAndPassword: vi.fn(),
-    createUserWithEmailAndPassword: vi.fn(),
-    signOut: vi.fn(),
-    updateProfile: vi.fn()
+    onAuthStateChange: vi.fn(() => vi.fn()),
+    getSession: vi.fn(() => Promise.resolve(null)),
+    signIn: vi.fn(() => Promise.resolve({ user: null, error: null })),
+    signUp: vi.fn(() => Promise.resolve({ user: null, error: null })),
+    signInWithGoogle: vi.fn(() => Promise.resolve({ error: null })),
+    signOut: vi.fn(() => Promise.resolve({ error: null })),
+    resetPassword: vi.fn(() => Promise.resolve({ error: null }))
   }
 }))
 
-vi.mock('@/lib/firestore', () => ({
-  firestoreService: {
-    saveSubjects: vi.fn(() => Promise.resolve({ error: null })),
-    getSubjects: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    saveSessions: vi.fn(() => Promise.resolve({ error: null })),
-    getSessions: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    saveTasks: vi.fn(() => Promise.resolve({ error: null })),
-    getTasks: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    saveAchievements: vi.fn(() => Promise.resolve({ error: null })),
-    getAchievements: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    saveFocusSessions: vi.fn(() => Promise.resolve({ error: null })),
-    getFocusSessions: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    saveGoals: vi.fn(() => Promise.resolve({ error: null })),
-    getGoals: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    createUserProfile: vi.fn(() => Promise.resolve({ error: null })),
-    getUserProfile: vi.fn(() => Promise.resolve({ data: null, error: null })),
-    saveChallenges: vi.fn(() => Promise.resolve({ error: null })),
-    getChallenges: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    getDiscoverableChallenges: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    findSharedChallengeByCode: vi.fn(() => Promise.resolve({ data: null, error: 'Not found' })),
-    saveSharedChallengeVerified: vi.fn(() => Promise.resolve({ error: null, verified: true })),
-    updateSharedChallenge: vi.fn(() => Promise.resolve({ error: null })),
-    createSubcollectionTask: vi.fn(() => Promise.resolve({ error: null, id: 'task-123' })),
-    toggleSubcollectionTask: vi.fn(() => Promise.resolve({ error: null })),
-    toggleChallengeTaskTransactional: vi.fn(() => Promise.resolve({ error: null })),
-    verifyChallengeExists: vi.fn(() => Promise.resolve({ exists: true, data: { tasks: [], pointsSummary: null } })),
-    getUserChallenges: vi.fn(() => Promise.resolve({ data: [], error: null })),
-    syncLocalChallengesForUser: vi.fn(() => Promise.resolve({ pushed: 0 })),
-    onChallengeSnapshot: vi.fn(() => vi.fn())
-  }
+vi.mock('@/hooks/useAppData', () => ({
+  useSubjects: () => [EMPTY, NOOP],
+  useSessions: () => [EMPTY, NOOP],
+  useFocusSessions: () => [EMPTY, NOOP],
+  useActiveFocusSession: () => [null, NOOP],
+  useTasks: () => [EMPTY, NOOP],
+  useGoals: () => [EMPTY, NOOP],
+  useNotes: () => [EMPTY, NOOP],
+  useCalendarEvents: () => [EMPTY, NOOP],
+  useAchievements: () => [EMPTY, NOOP],
+  useTheme: () => ['dark', NOOP],
+  useStudyPartnerSettings: () => [STUDY_PARTNER_SETTINGS, NOOP],
+  useUserSetting: () => [null, NOOP]
+}))
+
+vi.mock('@/hooks/useChallenges', () => ({
+  useChallenges: () => ({
+    challenges: [],
+    activeChallenge: null,
+    members: {},
+    nameFor: (id: string) => id,
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    create: vi.fn(),
+    join: vi.fn(),
+    addTask: vi.fn(),
+    removeTask: vi.fn(),
+    toggleTask: vi.fn(),
+    end: vi.fn(),
+    leave: vi.fn(),
+    remove: vi.fn()
+  })
 }))
 
 vi.mock('@/lib/notifications', () => ({
@@ -200,12 +226,12 @@ describe('Application Integration Tests', () => {
   })
 
   describe('Error Handling Integration', () => {
-    it('should handle Firebase connection errors gracefully', async () => {
-      // Mock Firebase unavailable
-      vi.mocked(vi.doMock('@/lib/firebase', () => ({
-        isFirebaseAvailable: false,
-        db: null
-      })))
+    it('should handle Supabase connection errors gracefully', async () => {
+      // Mock Supabase as unconfigured
+      vi.doMock('@/lib/supabase', () => ({
+        isSupabaseConfigured: false,
+        supabase: null
+      }))
       
       render(<App />)
       

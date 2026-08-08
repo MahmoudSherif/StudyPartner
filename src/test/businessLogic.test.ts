@@ -152,8 +152,10 @@ describe('Business Logic and Utilities Comprehensive Tests', () => {
         const stats = calculateUserStats(sessions, focusSessions, tasks, [], 'user-123')
 
         expect(stats.totalStudyTime).toBe(175) // 150 + 25 minutes
-        expect(stats.sessionsCompleted).toBe(2)
-        expect(stats.averageSessionLength).toBe(4500) // Average seconds
+        // Focus sessions count towards both the total time and the session
+        // count, so this is 2 study sessions + 1 focus session.
+        expect(stats.sessionsCompleted).toBe(3)
+        expect(stats.averageSessionLength).toBe(3500) // 10500s over 3 sessions
         expect(stats.tasksCompleted).toBe(2)
         // Note: focusSessionsCompleted not available in UserStats interface
       })
@@ -319,18 +321,27 @@ describe('Business Logic and Utilities Comprehensive Tests', () => {
         const stats = calculateUserStats([], [], [], [], 'user-123')
         const updatedAchievements = updateAchievements(achievements, stats, [], [], goals)
 
+        // 'goal-setter' needs one goal; 'goal-achiever' needs five completed
+        // ones, so a single goal advances its progress without unlocking it.
+        const goalSetter = updatedAchievements.find(a => a.id === 'goal-setter')
+        expect(goalSetter?.unlocked).toBeTruthy()
+
         const goalAchiever = updatedAchievements.find(a => a.id === 'goal-achiever')
-        expect(goalAchiever?.unlocked).toBeTruthy()
+        expect(goalAchiever?.progress).toBe(1)
+        expect(goalAchiever?.unlocked).toBeFalsy()
       })
     })
 
     describe('Utility Functions', () => {
+      // formatTime takes MINUTES and renders a human label ("1h 30m").
+      // These cases previously asserted an "M:SS" rendering of seconds, which
+      // is formatDuration's contract, not this one.
       it('should format time correctly', () => {
-        expect(formatTime(0)).toBe('0:00')
-        expect(formatTime(30)).toBe('0:30')
-        expect(formatTime(60)).toBe('1:00')
-        expect(formatTime(90)).toBe('1:30')
-        expect(formatTime(3600)).toBe('60:00')
+        expect(formatTime(0)).toBe('0m')
+        expect(formatTime(30)).toBe('30m')
+        expect(formatTime(60)).toBe('1h')
+        expect(formatTime(90)).toBe('1h 30m')
+        expect(formatTime(3600)).toBe('60h')
       })
 
       it('should format dates correctly', () => {
@@ -688,7 +699,13 @@ describe('Business Logic and Utilities Comprehensive Tests', () => {
       })
 
       it('should validate theme objects', () => {
-        const validTheme = { primary: '#ffffff', secondary: '#000000', accent: '#ff0000' }
+        // A Theme requires all twelve colour roles; a partial object is not one.
+        const validTheme = {
+          primary: '#ffffff', secondary: '#000000', accent: '#ff0000',
+          background: '#111111', surface: '#222222', text: '#eeeeee',
+          textSecondary: '#aaaaaa', border: '#333333', success: '#00ff00',
+          warning: '#ffaa00', error: '#ff0000', info: '#0000ff'
+        }
         const invalidTheme = { primary: 'invalid-color' }
 
         expect(validateTheme(validTheme)).toBeTruthy()
@@ -728,7 +745,7 @@ describe('Business Logic and Utilities Comprehensive Tests', () => {
   describe('Error Handling in Utils', () => {
     it('should handle null/undefined inputs gracefully', () => {
       expect(calculateUserStats(null as any, null as any, null as any, null as any, 'user')).toBeDefined()
-      expect(formatTime(null as any)).toBe('0:00')
+      expect(formatTime(null as any)).toBe('0m')
       expect(formatDate(null as any)).toBe('')
       expect(validateInput(null as any, 'email')).toBeFalsy()
     })

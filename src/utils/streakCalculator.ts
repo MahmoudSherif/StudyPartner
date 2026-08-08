@@ -4,6 +4,7 @@
  */
 
 import { StudySession, FocusSession } from '@/lib/types'
+import { calculateStudyStreak, completedSessionDays } from '@/lib/chartUtils'
 
 export interface StreakData {
   current: number
@@ -22,54 +23,13 @@ export interface StreakData {
  * Calculate current active streak
  */
 export function calculateCurrentStreak(sessions: StudySession[]): number {
-  if (!sessions || sessions.length === 0) return 0
-
-  const completedSessions = sessions
-    .filter(session => session.completed)
-    .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
-
-  if (completedSessions.length === 0) return 0
-
-  let streak = 0
-  let currentDate = new Date()
-  currentDate.setHours(0, 0, 0, 0)
-
-  // Check if there's a session today or yesterday
-  const mostRecentSession = new Date(completedSessions[0].startTime)
-  mostRecentSession.setHours(0, 0, 0, 0)
-
-  const daysDifference = Math.floor((currentDate.getTime() - mostRecentSession.getTime()) / (1000 * 60 * 60 * 24))
-
-  // If the most recent session is more than 1 day old, streak is broken
-  if (daysDifference > 1) return 0
-
-  // Count consecutive days with sessions
-  const sessionDates = new Set<string>()
-  completedSessions.forEach(session => {
-    const sessionDate = new Date(session.startTime)
-    sessionDate.setHours(0, 0, 0, 0)
-    sessionDates.add(sessionDate.toISOString().split('T')[0])
-  })
-
-  const sortedDates = Array.from(sessionDates).sort().reverse()
-  
-  let checkDate = new Date()
-  checkDate.setHours(0, 0, 0, 0)
-
-  for (const dateStr of sortedDates) {
-    const sessionDate = new Date(dateStr)
-    const dayDiff = Math.floor((checkDate.getTime() - sessionDate.getTime()) / (1000 * 60 * 60 * 24))
-
-    if (dayDiff === streak) {
-      streak++
-      checkDate.setDate(checkDate.getDate() - 1)
-    } else if (dayDiff > streak) {
-      break
-    }
-  }
-
-  return streak
+  // Delegates to the single implementation in chartUtils. This file used to
+  // carry a second copy whose loop advanced both the day cursor and the counter
+  // on each match, so consecutive days were consumed two at a time: five
+  // straight days of study reported a streak of three.
+  return calculateStudyStreak(sessions)
 }
+
 
 /**
  * Find the longest streak in session history
@@ -83,24 +43,19 @@ export function getLongestStreak(sessions: StudySession[]): number {
 
   if (completedSessions.length === 0) return 0
 
-  // Get unique session dates
-  const sessionDates = new Set<string>()
-  completedSessions.forEach(session => {
-    const sessionDate = new Date(session.startTime)
-    sessionDate.setHours(0, 0, 0, 0)
-    sessionDates.add(sessionDate.toISOString().split('T')[0])
-  })
+  // Unique days, keyed in local time (see localDateKey).
+  const sortedDates = Array.from(completedSessionDays(completedSessions)).sort()
 
-  const sortedDates = Array.from(sessionDates).sort()
-  
   let maxStreak = 1
   let currentStreak = 1
 
   for (let i = 1; i < sortedDates.length; i++) {
+    // `YYYY-MM-DD` parses as UTC midnight, which is fine here: both sides of
+    // the subtraction are parsed the same way, so the difference is exact.
     const currentDate = new Date(sortedDates[i])
     const previousDate = new Date(sortedDates[i - 1])
-    
-    const dayDifference = Math.floor((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24))
+
+    const dayDifference = Math.round((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24))
 
     if (dayDifference === 1) {
       currentStreak++
@@ -142,15 +97,8 @@ export function getStreakData(sessions: StudySession[]): StreakData {
   const current = calculateCurrentStreak(sessions)
   const longest = getLongestStreak(sessions)
   
-  // Get unique study days
-  const studyDates = new Set<string>()
-  completedSessions.forEach(session => {
-    const sessionDate = new Date(session.startTime)
-    sessionDate.setHours(0, 0, 0, 0)
-    studyDates.add(sessionDate.toISOString().split('T')[0])
-  })
-
-  const total = studyDates.size
+  // Unique study days, keyed in local time.
+  const total = completedSessionDays(completedSessions).size
   const lastStudyDate = completedSessions.length > 0 
     ? new Date(Math.max(...completedSessions.map(s => new Date(s.startTime).getTime())))
     : null
@@ -190,15 +138,7 @@ function generateStreakHistory(sessions: StudySession[]): Array<{
 
   if (completedSessions.length === 0) return []
 
-  // Get unique session dates
-  const sessionDates = new Set<string>()
-  completedSessions.forEach(session => {
-    const sessionDate = new Date(session.startTime)
-    sessionDate.setHours(0, 0, 0, 0)
-    sessionDates.add(sessionDate.toISOString().split('T')[0])
-  })
-
-  const sortedDates = Array.from(sessionDates).sort()
+  const sortedDates = Array.from(completedSessionDays(completedSessions)).sort()
   const streaks: Array<{ startDate: Date; endDate: Date; length: number }> = []
   
   let streakStart = new Date(sortedDates[0])

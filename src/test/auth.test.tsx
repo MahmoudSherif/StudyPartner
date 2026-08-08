@@ -2,10 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { authFunctions } from '@/lib/firebase'
+import { authFunctions } from '@/lib/supabase'
 
-// Mock Firebase auth functions
-vi.mock('@/lib/firebase')
+// The Supabase client and its auth helpers are mocked globally in src/test/setup.ts.
 
 const MockedAuthFunctions = authFunctions as any
 
@@ -24,8 +23,8 @@ describe('AuthContext', () => {
   })
 
   it('should render AuthProvider without crashing', () => {
-    // Mock Firebase functions to return proper unsubscribe
-    MockedAuthFunctions.onAuthStateChanged.mockImplementation(() => vi.fn())
+    // Mock auth helpers to return a proper unsubscribe
+    MockedAuthFunctions.onAuthStateChange.mockImplementation(() => vi.fn())
     MockedAuthFunctions.firestoreFunctions = {
       createUserProfile: vi.fn().mockResolvedValue({ error: null }),
       getUserProfile: vi.fn().mockResolvedValue({ error: 'User not found' }),
@@ -37,14 +36,14 @@ describe('AuthContext', () => {
   })
 
   it('should initialize with no user', () => {
-    MockedAuthFunctions.getCurrentUser.mockReturnValue(null)
-    MockedAuthFunctions.onAuthStateChanged.mockImplementation((callback) => {
+    MockedAuthFunctions.getSession.mockResolvedValue(null)
+    MockedAuthFunctions.onAuthStateChange.mockImplementation((callback) => {
       callback(null)
       return () => {}
     })
 
     render(<TestComponent />)
-    expect(MockedAuthFunctions.onAuthStateChanged).toHaveBeenCalled()
+    expect(MockedAuthFunctions.onAuthStateChange).toHaveBeenCalled()
   })
 
   it('should handle user sign in', async () => {
@@ -121,8 +120,9 @@ describe('AuthContext', () => {
     })
 
     const result = await authFunctions.signInWithGoogle()
-    
-    expect(result.user).toEqual(mockUser)
+
+    // OAuth navigates away and the session is picked up on return, so this
+    // resolves with an error channel only -- there is no user to hand back.
     expect(result.error).toBeNull()
     expect(MockedAuthFunctions.signInWithGoogle).toHaveBeenCalled()
   })

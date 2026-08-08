@@ -12,7 +12,6 @@ import { generateSampleSessions, generateSampleFocusSessions } from '@/lib/sampl
 import { ActivityGrid } from '@/components/ActivityGrid'
 import { ActivityCharts } from '@/components/ActivityCharts'
 import { NotificationSettings } from '@/components/NotificationSettings'
-import { StudyPartnerIntegration } from '@/components/StudyPartnerIntegration'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -109,20 +108,15 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           <CardTitle className="text-base text-white flex items-center gap-2">
             <UserIcon size={20} />
             Profile
-            {user?.isFromStudyPartner && (
-              <Badge variant="outline" className="ml-auto text-xs bg-green-100 text-green-800 border-green-200">
-                StudyPartner
-              </Badge>
-            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4 flex-1 min-w-0">
               <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
-                {user?.avatar ? (
+                {user?.photoURL ? (
                   <img
-                    src={user.avatar}
+                    src={user.photoURL}
                     alt="Profile"
                     className="w-12 h-12 rounded-full object-cover"
                   />
@@ -135,9 +129,6 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
                   {user?.displayName || user?.email?.split('@')[0] || 'User'}
                 </h3>
                 <p className="text-sm text-white/70 truncate">{user?.email}</p>
-                {user?.isFromStudyPartner && (
-                  <p className="text-xs text-green-400 mt-1">Connected to StudyPartner</p>
-                )}
               </div>
             </div>
             <Button
@@ -156,21 +147,22 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
 
       {/* Profile Tabs */}
       <Tabs defaultValue="stats" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm">
+        <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-sm">
           <TabsTrigger value="stats" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
             Statistics
           </TabsTrigger>
           <TabsTrigger value="settings" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
             Settings
           </TabsTrigger>
-          <TabsTrigger value="sync" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-            Sync
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="stats" className="space-y-4 m-0">
-          {/* Development Helper - Only show if no real data exists */}
-          {(sessions.length === 0 && focusSessions.length === 0) && (
+          {/* Development helper. Gated to dev builds: this fills the charts with
+              randomised fixtures, and a real user with no data yet was being
+              offered a "Generate Sample Data" button in production. Vite
+              statically replaces import.meta.env.DEV, so the whole block is
+              dropped from the production bundle. */}
+          {import.meta.env.DEV && (sessions.length === 0 && focusSessions.length === 0) && (
             <Card className="border-yellow-500/30 bg-yellow-500/10">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -222,7 +214,7 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           <ActivityCharts sessions={allActivitySessions} tasks={tasks} challenges={challenges} currentUserId={currentUserId} />
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-5 text-center">
                 <Clock size={24} className="mx-auto text-primary mb-3" />
@@ -339,10 +331,6 @@ export function ProfileTab({ stats, achievements, sessions = [], focusSessions =
           <NotificationSettings />
         </TabsContent>
 
-        <TabsContent value="sync" className="space-y-4 m-0">
-          {/* StudyPartner Integration */}
-          <StudyPartnerIntegration />
-        </TabsContent>
       </Tabs>
     </div>
   )

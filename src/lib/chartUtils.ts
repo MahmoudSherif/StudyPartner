@@ -157,48 +157,68 @@ export function getSubjectBreakdown(sessions: StudySession[], subjects: Subject[
 /**
  * Calculate study streak
  */
+/**
+ * Local calendar-day key (`YYYY-MM-DD`) for a session timestamp.
+ *
+ * Local, not UTC. `toISOString().split('T')[0]` was used before, which converts
+ * to UTC first -- so an 8pm session in New York was filed under the following
+ * day and a 1am session in Tokyo under the previous one. Streaks were credited
+ * to the wrong day for most of the world.
+ */
+export function localDateKey(value: Date | string | number): string {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
+/** Distinct local days on which a completed session took place. */
+export function completedSessionDays(sessions: StudySession[]): Set<string> {
+  const days = new Set<string>()
+  ;(sessions ?? []).forEach(session => {
+    if (!session?.completed) return
+    const key = localDateKey(session.startTime)
+    if (key) days.add(key)
+  })
+  return days
+}
+
+/**
+ * Consecutive days up to and including today (or yesterday) with a session.
+ *
+ * Two bugs are fixed relative to the previous implementation:
+ *
+ *  - It iterated sessions rather than distinct days, and broke out of the loop
+ *    as soon as a session predated the cursor. A user who studied yesterday but
+ *    not yet today therefore saw a streak of 0 -- the counter appeared to reset
+ *    every morning and only came back after that day's first session, which is
+ *    precisely the moment a streak is meant to be motivating.
+ *
+ *  - Day keys were derived in UTC, so the day boundary was wrong outside GMT.
+ */
 export function calculateStudyStreak(sessions: StudySession[]): number {
-  const completedSessions = sessions.filter(s => s.completed)
-  
-  if (completedSessions.length === 0) return 0
-  
-  const today = new Date()
-  const sortedSessions = [...completedSessions].sort((a, b) => 
-    new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-  )
-  
+  const days = completedSessionDays(sessions)
+  if (days.size === 0) return 0
+
+  const cursor = new Date()
+  cursor.setHours(0, 0, 0, 0)
+
+  // A streak survives until today's chance to study has passed, so start from
+  // yesterday when there is no session today yet.
+  if (!days.has(localDateKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 1)
+    if (!days.has(localDateKey(cursor))) return 0
+  }
+
   let streak = 0
-  const currentDate = new Date(today)
-  currentDate.setHours(0, 0, 0, 0)
-  
-  // Check if user studied today or yesterday to maintain streak
-  const lastSessionDate = new Date(sortedSessions[0].startTime)
-  lastSessionDate.setHours(0, 0, 0, 0)
-  
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
-  yesterday.setHours(0, 0, 0, 0)
-  
-  // If last session wasn't today or yesterday, streak is broken
-  if (lastSessionDate.getTime() < yesterday.getTime()) {
-    return 0
+  while (days.has(localDateKey(cursor))) {
+    streak++
+    cursor.setDate(cursor.getDate() - 1)
   }
-  
-  // Count consecutive days with sessions
-  for (const session of sortedSessions) {
-    const sessionDate = new Date(session.startTime)
-    sessionDate.setHours(0, 0, 0, 0)
-    
-    if (sessionDate.getTime() === currentDate.getTime()) {
-      streak++
-      currentDate.setDate(currentDate.getDate() - 1)
-    } else if (sessionDate.getTime() < currentDate.getTime()) {
-      break
-    }
-  }
-  
+
   return streak
 }
+
 
 /**
  * Get best study time (hour of day when most productive)

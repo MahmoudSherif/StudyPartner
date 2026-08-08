@@ -124,7 +124,7 @@ export function usePWA(): PWAHookReturn {
         setInstallPrompt(null)
         return true
       } else if (choice?.outcome === 'dismissed') {
-        try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch {}
+        try { localStorage.setItem(DISMISS_KEY, Date.now().toString()) } catch { /* storage unavailable */ }
         setDismissedRecently(true)
         setIsInstallable(false)
       }

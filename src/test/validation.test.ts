@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { isValidEmail, validatePassword, sanitizeInput } from '@/utils/validation'
+import { isValidEmail, validatePassword, normalizeText } from '@/utils/validation'
 
 describe('Validation Utils', () => {
   describe('isValidEmail', () => {
@@ -78,37 +78,40 @@ describe('Validation Utils', () => {
     })
   })
 
-  describe('sanitizeInput', () => {
-    it('should remove script tags', () => {
-      const input = 'Hello <script>alert("xss")</script> World'
-      const sanitized = sanitizeInput(input)
-      expect(sanitized).not.toContain('<script>')
-      expect(sanitized).not.toContain('alert')
+  describe('normalizeText', () => {
+    it('should trim surrounding whitespace', () => {
+      expect(normalizeText('  hello  ')).toBe('hello')
     })
 
-    it('should remove dangerous HTML attributes', () => {
-      const input = '<div onclick="malicious()">Content</div>'
-      const sanitized = sanitizeInput(input)
-      expect(sanitized).not.toContain('onclick')
-      expect(sanitized).not.toContain('malicious()')
+    it('should strip control characters but keep tabs and newlines', () => {
+      expect(normalizeText('a\u0000b\u001Fc')).toBe('abc')
+      expect(normalizeText('line1\nline2\tend')).toBe('line1\nline2\tend')
     })
 
-    it('should preserve safe content', () => {
+    it('should preserve safe content unchanged', () => {
       const input = 'Hello World! This is safe content with numbers 123.'
-      const sanitized = sanitizeInput(input)
-      expect(sanitized).toBe(input)
+      expect(normalizeText(input)).toBe(input)
     })
 
     it('should handle empty input', () => {
-      expect(sanitizeInput('')).toBe('')
-      expect(sanitizeInput(null as any)).toBe('')
-      expect(sanitizeInput(undefined as any)).toBe('')
+      expect(normalizeText('')).toBe('')
+      expect(normalizeText(null as any)).toBe('')
+      expect(normalizeText(undefined as any)).toBe('')
     })
 
     it('should limit input length', () => {
-      const longInput = 'a'.repeat(10000)
-      const sanitized = sanitizeInput(longInput)
-      expect(sanitized.length).toBeLessThanOrEqual(5000) // Assuming max length is 5000
+      expect(normalizeText('a'.repeat(10000)).length).toBeLessThanOrEqual(5000)
+      expect(normalizeText('a'.repeat(100), 10)).toHaveLength(10)
+    })
+
+    it('does not attempt to strip HTML, by design', () => {
+      // Documents the contract deliberately: this is not an XSS filter. The
+      // previous implementation advertised itself as one while letting exactly
+      // this payload through. XSS is prevented by React escaping JSX text, and
+      // input-time filtering cannot help because data also reaches the
+      // database through paths that never call this function.
+      const payload = '<img src=x onerror=alert(1)>'
+      expect(normalizeText(payload)).toBe(payload)
     })
   })
 })

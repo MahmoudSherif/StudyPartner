@@ -1,37 +1,75 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import App from '@/App'
+import { useAuth } from '@/contexts/AuthContext'
 
 // Mock all the dependencies
-vi.mock('@/lib/firebase', () => ({
-  auth: null,
-  db: null,
-  isFirebaseAvailable: false,
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn(),
+    rpc: vi.fn(),
+    channel: vi.fn(),
+    removeChannel: vi.fn(),
+    auth: {
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+    },
+  },
+  isSupabaseConfigured: true,
+  describeAuthError: vi.fn((e: unknown) => String(e)),
   authFunctions: {
-    onAuthStateChanged: vi.fn(() => () => {}),
-    getCurrentUser: vi.fn(() => null),
+    onAuthStateChange: vi.fn(() => () => {}),
+    getSession: vi.fn(() => Promise.resolve(null)),
   }
 }))
 
-vi.mock('@/hooks/useFirebaseData', () => ({
-  useFirebaseSubjects: () => [[], vi.fn()],
-  useFirebaseSessions: () => [[], vi.fn()],
-  useFirebaseAchievements: () => [[], vi.fn()],
-  useFirebaseTasks: () => [[], vi.fn()],
-  useFirebaseChallenges: () => [[], vi.fn()],
-  useFirebaseFocusSessions: () => [[], vi.fn()],
-  useFirebaseGoals: () => [[], vi.fn()],
+vi.mock('@/hooks/useAppData', () => ({
+  useSubjects: () => [[], vi.fn()],
+  useSessions: () => [[], vi.fn()],
+  useAchievements: () => [[], vi.fn()],
+  useTasks: () => [[], vi.fn()],
+  useFocusSessions: () => [[], vi.fn()],
+  useActiveFocusSession: () => [null, vi.fn()],
+  useGoals: () => [[], vi.fn()],
+  useNotes: () => [[], vi.fn()],
+  useCalendarEvents: () => [[], vi.fn()],
+  useTheme: () => ['dark', vi.fn()],
+  useStudyPartnerSettings: () => [{ apiUrl: '', autoSync: false }, vi.fn()],
+  useUserSetting: () => [null, vi.fn()],
 }))
 
+vi.mock('@/hooks/useChallenges', () => ({
+  useChallenges: () => ({
+    challenges: [],
+    activeChallenge: null,
+    members: {},
+    nameFor: (id: string) => id,
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    create: vi.fn(),
+    join: vi.fn(),
+    addTask: vi.fn(),
+    removeTask: vi.fn(),
+    toggleTask: vi.fn(),
+    end: vi.fn(),
+    leave: vi.fn(),
+    remove: vi.fn(),
+  }),
+}))
+
+// useAuth must be a vi.fn so individual cases can re-point it. As a plain
+// arrow function there was nothing for vi.mocked(...).mockReturnValue to
+// configure, and every case saw the signed-out default.
 vi.mock('@/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
-  useAuth: () => ({
+  useAuth: vi.fn(() => ({
     user: null,
     loading: false,
     signIn: vi.fn(),
     signUp: vi.fn(),
     signOut: vi.fn(),
-  })
+  }))
 }))
 
 vi.mock('sonner', () => ({
@@ -56,14 +94,6 @@ vi.mock('@/components/OfflineIndicator', () => ({
   OfflineIndicator: () => null
 }))
 
-vi.mock('@/components/NetworkBlockIndicator', () => ({
-  NetworkBlockIndicator: () => null
-}))
-
-vi.mock('@/components/FirebaseStatusIndicator', () => ({
-  FirebaseStatusIndicator: () => null
-}))
-
 // Mock other complex components
 vi.mock('@/components/SpaceBackground', () => ({
   SpaceBackground: () => <div data-testid="space-background">Space Background</div>
@@ -80,6 +110,14 @@ vi.mock('@/components/AuthScreen', () => ({
 describe('App Component Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // clearAllMocks strips the factory's default implementation too.
+    vi.mocked(useAuth).mockReturnValue({
+      user: null,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    } as any)
   })
 
   it('should render the app without crashing', () => {
@@ -91,13 +129,13 @@ describe('App Component Integration', () => {
 
   it('should show auth screen when user is not authenticated', async () => {
     // Mock unauthenticated state
-    vi.mocked(require('@/contexts/AuthContext').useAuth).mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: null,
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
-    })
+    } as any)
 
     render(<App />)
     
@@ -108,13 +146,13 @@ describe('App Component Integration', () => {
 
   it('should show main app when user is authenticated', async () => {
     // Mock authenticated state
-    vi.mocked(require('@/contexts/AuthContext').useAuth).mockReturnValue({
-      user: { uid: 'test-uid', email: 'test@example.com' },
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'test-uid', uid: 'test-uid', email: 'test@example.com', displayName: 'Test' },
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
-    })
+    } as any)
 
     render(<App />)
     
@@ -125,6 +163,16 @@ describe('App Component Integration', () => {
   })
 
   it('should render background components', async () => {
+    // Signed out, App short-circuits to <AuthScreen /> and never reaches the
+    // background layers, so this has to authenticate first.
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'test-uid', uid: 'test-uid', email: 'test@example.com', displayName: 'Test' },
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    } as any)
+
     render(<App />)
     
     await waitFor(() => {
@@ -135,13 +183,13 @@ describe('App Component Integration', () => {
 
   it('should handle loading state', async () => {
     // Mock loading state
-    vi.mocked(require('@/contexts/AuthContext').useAuth).mockReturnValue({
+    vi.mocked(useAuth).mockReturnValue({
       user: null,
       loading: true,
       signIn: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
-    })
+    } as any)
 
     render(<App />)
     
@@ -149,24 +197,20 @@ describe('App Component Integration', () => {
     expect(document.body).toBeTruthy()
   })
 
-  it('should set up auth state listener', () => {
-    const mockOnAuthStateChanged = vi.fn(() => () => {})
-    vi.mocked(require('@/lib/firebase').authFunctions.onAuthStateChanged).mockImplementation(mockOnAuthStateChanged)
-
-    render(<App />)
-    
-    expect(mockOnAuthStateChanged).toHaveBeenCalled()
-  })
+  // The auth-state listener is deliberately not asserted here: this file
+  // replaces AuthProvider with a pass-through, so the real provider -- the only
+  // thing that subscribes -- never runs and the assertion could only ever fail.
+  // src/test/auth.test.tsx exercises the provider itself.
 
   it('should render with responsive navigation tabs', async () => {
     // Mock authenticated state
-    vi.mocked(require('@/contexts/AuthContext').useAuth).mockReturnValue({
-      user: { uid: 'test-uid', email: 'test@example.com' },
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'test-uid', uid: 'test-uid', email: 'test@example.com', displayName: 'Test' },
       loading: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
-    })
+    } as any)
 
     render(<App />)
     

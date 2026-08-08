@@ -1,5 +1,6 @@
-@import 'tailwindcss';
-@import "tw-animate-css";
+/* Tailwind and tw-animate-css are imported once, by main.css, which is the
+   single stylesheet entry point. Importing them again here emitted the entire
+   framework a second time into the built CSS. */
 
 @layer base {
   * {

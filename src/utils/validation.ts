@@ -57,14 +57,14 @@ export function validatePassword(password: string): PasswordValidationResult {
     errors.push('Password must contain at least one number')
   }
   
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     errors.push('Password must contain at least one special character')
   }
   
   // Determine strength
   let strength: 'weak' | 'medium' | 'strong' = 'weak'
   if (errors.length === 0) {
-    if (password.length >= 12 && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (password.length >= 12 && /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       strength = 'strong'
     } else {
       strength = 'medium'
@@ -79,25 +79,32 @@ export function validatePassword(password: string): PasswordValidationResult {
 }
 
 /**
- * Sanitizes user input to prevent XSS attacks
+ * Normalises free-text input: trims it, caps its length, and strips control
+ * characters that corrupt stored records.
+ *
+ * This is NOT an XSS filter and must never be relied on as one. The previous
+ * implementation was a regex denylist that claimed to "prevent XSS attacks"
+ * while letting `<img src=x onerror=alert(1)>` through untouched -- its
+ * attribute pattern required the handler value to be quoted, and its element
+ * list omitted svg, img, style and math.
+ *
+ * XSS is prevented here by rendering all user content as JSX text, which React
+ * escapes. If HTML rendering is ever introduced, sanitise with DOMPurify at
+ * the point of render; a denylist applied at the point of input cannot do it,
+ * because data also reaches the database by paths that never run this code.
  */
-export function sanitizeInput(input: string, maxLength: number = 5000): string {
+export function normalizeText(input: string, maxLength: number = 5000): string {
   if (!input || typeof input !== 'string') return ''
-  
-  // Trim and limit length
-  let sanitized = input.trim().slice(0, maxLength)
-  
-  // Remove script tags and dangerous content
-  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-  
-  // Remove dangerous HTML attributes
-  sanitized = sanitized.replace(/\s*(on\w+|javascript:|data:)\s*=\s*['""][^'""]*['""]?\s*/gi, '')
-  
-  // Remove other dangerous elements
-  sanitized = sanitized.replace(/<(iframe|object|embed|form|input|meta|link)\b[^>]*>/gi, '')
-  
-  return sanitized
+  return input
+    // Strip C0/C1 control characters, keeping tab and newline. The control
+    // characters are the whole point of this expression, so the rule that
+    // forbids them is disabled deliberately rather than worked around.
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, '')
+    .trim()
+    .slice(0, maxLength)
 }
+
 
 /**
  * Validates display name

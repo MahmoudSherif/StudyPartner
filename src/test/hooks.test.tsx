@@ -1,45 +1,72 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
+
+// src/test/setup.ts replaces @/hooks/useAppData with stubs for every test file,
+// which is right for component tests but made THIS file assert against those
+// stubs rather than the hooks it is named after: every setter was a no-op
+// vi.fn(), so every collection stayed empty no matter what was written to it.
+vi.unmock('@/hooks/useAppData')
 import {
-  useFirebaseSubjects,
-  useFirebaseSessions,
-  useFirebaseAchievements,
-  useFirebaseTasks,
-  useFirebaseChallenges,
-  useFirebaseFocusSessions,
-  useFirebaseGoals
-} from '@/hooks/useFirebaseData'
+  useSubjects,
+  useSessions,
+  useAchievements,
+  useTasks,
+  useFocusSessions,
+  useGoals
+} from '@/hooks/useAppData'
+import { useChallenges } from '@/hooks/useChallenges'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ReactNode } from 'react'
 
 // Mock the auth context
+// The data hooks key their store on `user.id`. The mock previously supplied
+// only `uid` -- the name Firebase used -- so `userId` was the empty string, no
+// store was created and every setter silently did nothing.
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
-    user: { uid: 'test-uid' },
+    // Inline, not a module const: vi.mock factories are hoisted above every
+    // top-level declaration, so referencing one here is a use-before-init.
+    user: {
+      id: '00000000-0000-4000-8000-000000000001',
+      uid: '00000000-0000-4000-8000-000000000001'
+    },
     loading: false
   }),
   AuthProvider: ({ children }: { children: ReactNode }) => children
 }))
 
-describe('useFirebaseData Hooks', () => {
+/**
+ * Lets the collection's initial load settle.
+ *
+ * Mounting a synced collection kicks off a fetch. The mocked client resolves it
+ * with an empty result on a later microtask, so an update applied before that
+ * point was promptly overwritten by the empty response and every assertion saw
+ * `[]`. Draining it first reproduces the real ordering, where the user edits
+ * data that has already loaded.
+ */
+const flush = () => act(async () => { await Promise.resolve() })
+
+describe('useAppData Hooks', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  describe('useFirebaseSubjects', () => {
-    it('should initialize with empty array', () => {
-      const { result } = renderHook(() => useFirebaseSubjects())
+  describe('useSubjects', () => {
+    it('should initialize with empty array', async () => {
+      const { result } = renderHook(() => useSubjects())
+      await flush()
       
       expect(Array.isArray(result.current[0])).toBeTruthy()
       expect(result.current[0]).toHaveLength(0)
       expect(typeof result.current[1]).toBe('function')
     })
 
-    it('should update subjects', () => {
-      const { result } = renderHook(() => useFirebaseSubjects())
+    it('should update subjects', async () => {
+      const { result } = renderHook(() => useSubjects())
+      await flush()
       
       const newSubjects = [{
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         name: 'Math',
         description: 'Mathematics',
         color: '#FF5733',
@@ -56,11 +83,12 @@ describe('useFirebaseData Hooks', () => {
       expect(result.current[0]).toEqual(newSubjects)
     })
 
-    it('should update subjects with function', () => {
-      const { result } = renderHook(() => useFirebaseSubjects())
+    it('should update subjects with function', async () => {
+      const { result } = renderHook(() => useSubjects())
+      await flush()
       
       const initialSubject = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         name: 'Math',
         description: 'Mathematics',
         color: '#FF5733',
@@ -77,7 +105,7 @@ describe('useFirebaseData Hooks', () => {
       act(() => {
         result.current[1](prev => [...prev, {
           ...initialSubject,
-          id: '2',
+          id: '00000000-0000-4000-8000-00000000aa02',
           name: 'Science'
         }])
       })
@@ -87,19 +115,21 @@ describe('useFirebaseData Hooks', () => {
     })
   })
 
-  describe('useFirebaseSessions', () => {
-    it('should initialize with empty array', () => {
-      const { result } = renderHook(() => useFirebaseSessions())
+  describe('useSessions', () => {
+    it('should initialize with empty array', async () => {
+      const { result } = renderHook(() => useSessions())
+      await flush()
       
       expect(Array.isArray(result.current[0])).toBeTruthy()
       expect(result.current[0]).toHaveLength(0)
     })
 
-    it('should update sessions', () => {
-      const { result } = renderHook(() => useFirebaseSessions())
+    it('should update sessions', async () => {
+      const { result } = renderHook(() => useSessions())
+      await flush()
       
       const newSession = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         subjectId: 'math',
         startTime: new Date(),
         endTime: new Date(),
@@ -116,15 +146,20 @@ describe('useFirebaseData Hooks', () => {
     })
   })
 
-  describe('useFirebaseAchievements', () => {
-    it('should initialize with empty array', async () => {
-      const { result } = renderHook(() => useFirebaseAchievements())
-      
-      expect(result.current[0]).toEqual([])
+  describe('useAchievements', () => {
+    it('should initialize with the achievement catalogue, all locked', async () => {
+      const { result } = renderHook(() => useAchievements())
+      await flush()
+
+      // Definitions are application constants; only unlock state and progress
+      // are per-user, so this hook never starts empty.
+      expect(result.current[0].length).toBeGreaterThan(0)
+      expect(result.current[0].every(a => !a.unlocked)).toBeTruthy()
     })
 
     it('should update achievements', async () => {
-      const { result } = renderHook(() => useFirebaseAchievements())
+      const { result } = renderHook(() => useAchievements())
+      await flush()
       
       const newAchievement = {
         id: 'unique-test-achievement-123',
@@ -148,19 +183,21 @@ describe('useFirebaseData Hooks', () => {
     })
   })
 
-  describe('useFirebaseTasks', () => {
-    it('should initialize with empty array', () => {
-      const { result } = renderHook(() => useFirebaseTasks())
+  describe('useTasks', () => {
+    it('should initialize with empty array', async () => {
+      const { result } = renderHook(() => useTasks())
+      await flush()
       
       expect(Array.isArray(result.current[0])).toBeTruthy()
       expect(result.current[0]).toHaveLength(0)
     })
 
-    it('should update tasks', () => {
-      const { result } = renderHook(() => useFirebaseTasks())
+    it('should update tasks', async () => {
+      const { result } = renderHook(() => useTasks())
+      await flush()
       
       const newTask = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         title: 'Study Math',
         description: 'Complete chapter 5',
         completed: false,
@@ -179,11 +216,12 @@ describe('useFirebaseData Hooks', () => {
       expect(result.current[0][0].completed).toBeFalsy()
     })
 
-    it('should mark task as completed', () => {
-      const { result } = renderHook(() => useFirebaseTasks())
+    it('should mark task as completed', async () => {
+      const { result } = renderHook(() => useTasks())
+      await flush()
       
       const task = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         title: 'Study Math',
         description: 'Complete chapter 5',
         completed: false,
@@ -202,7 +240,7 @@ describe('useFirebaseData Hooks', () => {
 
       act(() => {
         result.current[1](prev => prev.map(t => 
-          t.id === '1' ? { ...t, completed: true, completedAt: new Date() } : t
+          t.id === '00000000-0000-4000-8000-00000000aa01' ? { ...t, completed: true, completedAt: new Date() } : t
         ))
       })
 
@@ -211,55 +249,43 @@ describe('useFirebaseData Hooks', () => {
     })
   })
 
-  describe('useFirebaseChallenges', () => {
-    it('should initialize with empty array', () => {
-      const { result } = renderHook(() => useFirebaseChallenges())
-      
-      expect(Array.isArray(result.current[0])).toBeTruthy()
-      expect(result.current[0]).toHaveLength(0)
+  // Challenges are no longer a client-settable tuple: scores are derived
+  // server-side from completion rows, so the hook exposes commands rather
+  // than a setter.
+  describe('useChallenges', () => {
+    it('should initialize with an empty challenge list', async () => {
+      const { result } = renderHook(() => useChallenges())
+      await flush()
+
+      expect(Array.isArray(result.current.challenges)).toBeTruthy()
+      expect(result.current.challenges).toHaveLength(0)
     })
 
-    it('should update challenges', () => {
-      const { result } = renderHook(() => useFirebaseChallenges())
-      
-      const newChallenge = {
-        id: '1',
-        title: '30-Day Study Challenge',
-        description: 'Study for 30 consecutive days',
-        createdBy: 'test-uid',
-        createdAt: new Date(),
-        participants: ['test-uid'],
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        tasks: [],
-        completions: {},
-        points: {},
-        isActive: true,
-        code: 'STUDY30'
+    it('should expose command functions instead of a setter', async () => {
+      const { result } = renderHook(() => useChallenges())
+      await flush()
+
+      for (const command of ['create', 'join', 'addTask', 'removeTask', 'toggleTask', 'end', 'leave', 'remove'] as const) {
+        expect(typeof result.current[command]).toBe('function')
       }
-
-      act(() => {
-        result.current[1]([newChallenge])
-      })
-
-      expect(result.current[0]).toHaveLength(1)
-      expect(result.current[0][0].isActive).toBeTruthy()
     })
   })
 
-  describe('useFirebaseFocusSessions', () => {
-    it('should initialize with empty array', () => {
-      const { result } = renderHook(() => useFirebaseFocusSessions())
+  describe('useFocusSessions', () => {
+    it('should initialize with empty array', async () => {
+      const { result } = renderHook(() => useFocusSessions())
+      await flush()
       
       expect(Array.isArray(result.current[0])).toBeTruthy()
       expect(result.current[0]).toHaveLength(0)
     })
 
-    it('should update focus sessions', () => {
-      const { result } = renderHook(() => useFirebaseFocusSessions())
+    it('should update focus sessions', async () => {
+      const { result } = renderHook(() => useFocusSessions())
+      await flush()
       
       const newFocusSession = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         title: 'Math Focus Session',
         startTime: new Date(),
         endTime: new Date(),
@@ -278,19 +304,21 @@ describe('useFirebaseData Hooks', () => {
     })
   })
 
-  describe('useFirebaseGoals', () => {
-    it('should initialize with empty array', () => {
-      const { result } = renderHook(() => useFirebaseGoals())
+  describe('useGoals', () => {
+    it('should initialize with empty array', async () => {
+      const { result } = renderHook(() => useGoals())
+      await flush()
       
       expect(Array.isArray(result.current[0])).toBeTruthy()
       expect(result.current[0]).toHaveLength(0)
     })
 
-    it('should update goals', () => {
-      const { result } = renderHook(() => useFirebaseGoals())
+    it('should update goals', async () => {
+      const { result } = renderHook(() => useGoals())
+      await flush()
       
       const newGoal = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         title: 'Master Calculus',
         description: 'Complete all calculus topics',
         target: 100,
@@ -310,11 +338,12 @@ describe('useFirebaseData Hooks', () => {
       expect(result.current[0][0].current).toBe(25)
     })
 
-    it('should mark goal as completed', () => {
-      const { result } = renderHook(() => useFirebaseGoals())
+    it('should mark goal as completed', async () => {
+      const { result } = renderHook(() => useGoals())
+      await flush()
       
       const goal = {
-        id: '1',
+        id: '00000000-0000-4000-8000-00000000aa01',
         title: 'Master Calculus',
         description: 'Complete all calculus topics',
         target: 100,
@@ -331,7 +360,7 @@ describe('useFirebaseData Hooks', () => {
 
       act(() => {
         result.current[1](prev => prev.map(g => 
-          g.id === '1' ? { ...g, current: 100, isCompleted: true } : g
+          g.id === '00000000-0000-4000-8000-00000000aa01' ? { ...g, current: 100, isCompleted: true } : g
         ))
       })
 
