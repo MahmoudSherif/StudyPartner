@@ -82,7 +82,7 @@ values. `.env` is gitignored.
 > Pages Functions, and Vite would still not see it at build time. Build-time
 > variables come from the dashboard only.
 
-## One-time: set up the database
+## Setting up and migrating the database
 
 The Pages deploy ships only the front end. Nothing works until the Supabase
 project has the schema, the policies **and the Realtime publication**.
@@ -91,6 +91,34 @@ project has the schema, the policies **and the Realtime publication**.
 npx supabase link --project-ref <your-project-ref>
 npx supabase db push
 ```
+
+> **`db push` is not only a first-time step. Run it for every deploy that adds
+> a migration, before or alongside the push to `main`.**
+>
+> Nothing automates this. Cloudflare builds and publishes the front end on its
+> own, and knows nothing about Postgres, so code that depends on a new column
+> can go live against a database that does not have it yet.
+>
+> This has already happened once. `20260809000001_focus_session_goal_link.sql`
+> added `focus_sessions.goal_id` and the client began sending that column on
+> every focus-session write. The migration was never pushed, so the insert was
+> rejected and **no focus session could be started at all** — including sessions
+> with no goal attached, because the client sends `goal_id: null` rather than
+> omitting the key.
+>
+> The signature is a PostgREST `42703 column ... does not exist`. It is worth
+> knowing that PostgREST resolves column names *before* checking permissions,
+> so you can confirm a missing column from outside with nothing but the anon
+> key: a column that exists but is protected answers `42501 permission denied`,
+> while a column that does not exist answers `42703`.
+>
+> ```bash
+> curl -s "https://<project-ref>.supabase.co/rest/v1/<table>?select=<column>&limit=1" \
+>   -H "apikey: <anon-key>"
+> ```
+>
+> `npx supabase migration list` shows the same thing from the other side: a
+> migration present locally with an empty `remote` column has not been applied.
 
 That applies `supabase/migrations/` in order:
 

@@ -30,13 +30,21 @@ npx supabase link --project-ref dlvdplhmcmepsrvxglop
 npx supabase db push
 ```
 
-This applies three migrations in order:
+This applies the migrations in order:
 
 | Migration | What it does |
 |---|---|
 | `20260808000001_initial_schema.sql` | 14 tables, constraints, indexes |
 | `20260808000002_rls_and_logic.sql` | RLS policies on every table, challenge functions, derived score views, profile trigger |
 | `20260808000003_realtime.sql` | Adds the 12 synced tables to the `supabase_realtime` publication |
+| `20260809000001_focus_session_goal_link.sql` | `focus_sessions.goal_id`, so a session counts toward one chosen goal |
+
+> **Re-run `db push` for every deploy that adds a migration.** Cloudflare builds
+> and publishes the front end by itself and knows nothing about Postgres, so
+> shipping code that reads a new column without pushing the migration takes the
+> feature down in production. See
+> [CLOUDFLARE_DEPLOY.md](CLOUDFLARE_DEPLOY.md#setting-up-and-migrating-the-database)
+> for how to spot it (`42703` from PostgREST) and how it has already bitten once.
 
 > **Do not skip the third migration.** A `postgres_changes` subscription against
 > a table that is not in the publication *joins successfully and then silently
